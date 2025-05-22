@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Workflow Rules
+
+## General
+- Return brief and terse responses
+- Only create the minimum that is asked for
+
+## Editing
+- Always check and update references when refactoring code
+
+## Structure
+- Always maintain good practices and structure

@@ -1,0 +1,39 @@
+{% extends "base/layout.html" %}
+
+{% block sidebar %}
+<div class="dashboard-sidebar">
+    <h3>Dashboard</h3>
+    <ul class="dashboard-menu">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#media">Media</a></li>
+        <li><a href="#settings">Settings</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<div class="dashboard-content">
+    <h1>Dashboard</h1>
+
+    <section id="overview" class="dashboard-section">
+        <h2>Overview</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Files</h3>
+                <p>0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Storage Used</h3>
+                <p>0 MB</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="media" class="dashboard-section">
+        <h2>Recent Media</h2>
+        <div class="media-grid">
+            <!-- Media items will be displayed here -->
+        </div>
+    </section>
+</div>
+{% endblock %}

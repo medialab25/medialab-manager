@@ -1,0 +1,39 @@
+{% extends "base/layout.html" %}
+
+{% block sidebar %}
+<div class="profile-sidebar">
+    <h3>Profile</h3>
+    <ul class="profile-menu">
+        <li><a href="#info">Personal Info</a></li>
+        <li><a href="#media">My Media</a></li>
+        <li><a href="#settings">Settings</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<div class="profile-content">
+    <h1>Profile</h1>
+
+    <section id="info" class="profile-section">
+        <h2>Personal Information</h2>
+        <div class="profile-info">
+            <div class="info-group">
+                <label>Username</label>
+                <p>user123</p>
+            </div>
+            <div class="info-group">
+                <label>Email</label>
+                <p>user@example.com</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="media" class="profile-section">
+        <h2>My Media</h2>
+        <div class="media-grid">
+            <!-- User's media items will be displayed here -->
+        </div>
+    </section>
+</div>
+{% endblock %}

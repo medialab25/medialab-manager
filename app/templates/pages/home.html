@@ -1,0 +1,73 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="home">
+    <h1>Welcome to {{ config.PROJECT_NAME }}</h1>
+    <p>This is a FastAPI project with Jinja2 templating.</p>
+
+    <div class="features">
+        <div class="feature-card">
+            <h3>FastAPI</h3>
+            <p>Modern, fast web framework for building APIs</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>Jinja2</h3>
+            <p>Powerful templating engine for Python</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>Media Management</h3>
+            <p>Upload and manage your media files</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>Media Refresh</h3>
+            <p>Refresh your media library</p>
+            <button class="refresh-button" onclick="refreshMedia()">Refresh Media</button>
+        </div>
+
+        <div class="feature-card">
+            <h3>Media Merge</h3>
+            <p>Merge your media library</p>
+            <button class="merge-button" onclick="mergeMedia()">Merge Media</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function refreshMedia() {
+        fetch('/api/media/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert('Media refresh completed!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error refreshing media');
+            });
+    }
+
+    function mergeMedia() {
+        fetch('/api/media/merge', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert('Media merge completed!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error merging media');
+            });
+    }
+</script>
+{% endblock %}
