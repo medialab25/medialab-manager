@@ -1,10 +1,5 @@
 {
     "PROJECT_NAME": "MediaLab Manager",
     "VERSION": "0.1.0",
-    "DESCRIPTION": "MediaLab Management System",
-    "API_BASE_URL": "http://localhost:8000",
-    "MEDIA_ROOT": "media",
-    "ALLOWED_EXTENSIONS": ["jpg", "jpeg", "png", "gif", "mp4", "mp3"],
-    "MAX_CONTENT_LENGTH": 16777216
-
+    "DESCRIPTION": "MediaLab Management System"
 }  

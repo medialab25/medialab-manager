@@ -7,14 +7,16 @@ from datetime import datetime
 from contextlib import asynccontextmanager
 import logging
 import sys
+import uvicorn
+import argparse
 
 from app.core.settings import settings
-from app.api.routers import views
-from app.api.routers.media import router as media_router
-from app.api.routers.search import router as search_router
-from app.api.routers.cache import router as cache_router
-from app.api.routers.sync import router as sync_router
-from app.api.routers.system import router as system_router
+# from app.api.routers import views
+#from app.api.routers.media import router as media_router
+#from app.api.routers.search import router as search_router
+#from app.api.routers.cache import router as cache_router
+#from app.api.routers.sync import router as sync_router
+#from app.api.routers.system import router as system_router
 from app.scheduler import start_scheduler, stop_scheduler
 
 log_file_path = '/var/log/mediavault-manager/mediavault-manager.log'
@@ -36,6 +38,7 @@ logging.basicConfig(
         logging.FileHandler(log_file_path)
     ]
 )
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
@@ -59,11 +62,11 @@ templates = Jinja2Templates(directory="app/templates")
 # Include routers
 #app.include_router(views.router)
 #app.include_router(tasks.router)
-app.include_router(system_router, prefix="/api/system", tags=["system"])
-app.include_router(media_router, prefix="/api/media", tags=["media"])
-app.include_router(search_router, prefix="/api/search", tags=["search"])
-app.include_router(cache_router, prefix="/api/cache", tags=["cache"])
-app.include_router(sync_router, prefix="/api/sync", tags=["sync"])
+#app.include_router(system_router, prefix="/api/system", tags=["system"])
+#app.include_router(media_router, prefix="/api/media", tags=["media"])
+#app.include_router(search_router, prefix="/api/search", tags=["search"])
+#app.include_router(cache_router, prefix="/api/cache", tags=["cache"])
+#app.include_router(sync_router, prefix="/api/sync", tags=["sync"])
 
 @app.get("/")
 async def root(request: Request):
@@ -75,4 +78,27 @@ async def root(request: Request):
             "config": settings,
             "now": datetime.now()
         }
-    ) 
+    )
+
+def run_service(debug: bool = None):
+    """Run the FastAPI service with uvicorn"""
+    if debug is not None:
+        settings.DEBUG = debug
+    
+    uvicorn.run(
+        "app.main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.DEBUG,
+        log_level="debug" if settings.DEBUG else "info"
+    )
+
+if __name__ == "__main__":
+    main()
+
+def main():
+    """Entry point for the mvm-service command"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true", help="Run in debug mode")
+    args = parser.parse_args()
+    run_service(debug=args.debug) 

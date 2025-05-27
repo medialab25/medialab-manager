@@ -1,0 +1,3 @@
+"""
+MediaVault Manager package
+""" 

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import asyncio
 import logging
 
-from app.api.managers.sync_manager import SyncManager
+# from app.api.managers.sync_manager import SyncManager
 from app.core.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -58,19 +58,18 @@ def start_scheduler():
     """Start the scheduler and add default jobs"""
     if not scheduler.running:
         scheduler.start()
-        
-        # Add tasks from settings
-        for task_id, task_data in settings.TASKS.items():
-            if task_data.get("enabled", False):
-                config = TaskConfig(
-                    task_id=task_id,
-                    task_type=task_data.get("task_type", "interval"),
-                    function_name=task_data.get("function_name", task_id),
-                    cron_hour=task_data.get("cron_hour", 0),
-                    cron_minute=task_data.get("cron_minute", 0),
-                    cron_second=task_data.get("cron_second", 0)
-                )
-                add_task(task_id, config)
+        # # Add tasks from settings
+        # for task_id, task_data in settings.TASKS.items():
+        #     if task_data.get("enabled", False):
+        #         config = TaskConfig(
+        #             task_id=task_id,
+        #             task_type=task_data.get("task_type", "interval"),
+        #             function_name=task_data.get("function_name", task_id),
+        #             cron_hour=task_data.get("cron_hour", 0),
+        #             cron_minute=task_data.get("cron_minute", 0),
+        #             cron_second=task_data.get("cron_second", 0)
+        #         )
+        #         add_task(task_id, config)
 
 def stop_scheduler():
     """Stop the scheduler"""
@@ -121,7 +120,7 @@ def sync_task():
     """Run the sync task"""
     try:
         logger.info(f"Running sync task at {datetime.now()}")
-        sync_manager = SyncManager(settings.MEDIA_LIBRARY)
+        # sync_manager = SyncManager(settings.MEDIA_LIBRARY)
         
         # Create event loop for async operation
         loop = asyncio.new_event_loop()
