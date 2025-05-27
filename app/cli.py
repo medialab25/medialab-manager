@@ -6,6 +6,7 @@ from pathlib import Path
 
 # Import project settings
 from app.core.settings import settings
+from app.cli.media import media_app
 
 # Configure logging
 logging.basicConfig(
@@ -20,6 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = typer.Typer()
+app.add_typer(media_app, name="media", help="Media management commands")
 
 @app.command()
 def start(
@@ -36,13 +38,6 @@ def start(
 def version():
     """Show the current version of MediaLab Manager"""
     typer.echo(f"MediaLab Manager version: {settings.VERSION}")
-
-@app.command()
-def config():
-    """Show the current configuration"""
-    typer.echo("Current configuration:")
-    for key, value in settings.dict().items():
-        typer.echo(f"{key}: {value}")
 
 if __name__ == "__main__":
     app() 
