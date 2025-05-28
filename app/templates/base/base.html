@@ -12,16 +12,92 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
     <style>
+        :root {
+            --sidebar-width: 280px;
+            --header-height: 60px;
+            --footer-height: 60px;
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --background-color: #f5f6fa;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background-color: var(--background-color);
         }
 
         .content-area {
             flex: 1;
-            padding-bottom: 60px;
-            /* Add space for footer */
+            padding-bottom: var(--footer-height);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            gap: 2rem;
+            height: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .sidebar {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: calc(100vh - var(--header-height) - var(--footer-height));
+            position: sticky;
+            top: var(--header-height);
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            display: block;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: var(--background-color);
+            color: var(--primary-color);
+        }
+
+        .sidebar-menu a.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        main {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
         }
 
         footer {
@@ -30,6 +106,26 @@
             width: 100%;
             background: white;
             z-index: 1000;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+            height: var(--footer-height);
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                padding: 0 0.5rem;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+                height: auto;
+                margin-bottom: 1rem;
+            }
+
+            main {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
@@ -38,49 +134,24 @@
     {% include "components/navbar.html" %}
 
     <div class="content-area">
-        <main class="container py-4">
-            <div class="row">
-                <div class="col-12">
-                    <h1 class="mb-4">Welcome to {{ config.PROJECT_NAME }}</h1>
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title">Sample Content</h5>
-                            <p class="card-text">This is some dummy content to help visualize the layout. The footer
-                                should stay at the bottom of the page.</p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Feature 1</h5>
-                                    <p class="card-text">Some quick example text to build on the card title and make up
-                                        the bulk of the card's content.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Feature 2</h5>
-                                    <p class="card-text">Some quick example text to build on the card title and make up
-                                        the bulk of the card's content.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Feature 3</h5>
-                                    <p class="card-text">Some quick example text to build on the card title and make up
-                                        the bulk of the card's content.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <div class="main-layout">
+            <aside class="sidebar">
+                <h3>{{ title }}</h3>
+                <ul class="sidebar-menu">
+                    <li><a href="/" {% if request.url.path=='/' %}class="active" {% endif %}>Home</a></li>
+                    <li><a href="/dashboard" {% if request.url.path=='/dashboard' %}class="active" {% endif
+                            %}>Dashboard</a></li>
+                    <li><a href="/profile" {% if request.url.path=='/profile' %}class="active" {% endif %}>Profile</a>
+                    </li>
+                    <li><a href="#media">Media</a></li>
+                    <li><a href="#settings">Settings</a></li>
+                </ul>
+            </aside>
+
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+        </div>
     </div>
 
     <footer>
