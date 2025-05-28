@@ -19,7 +19,8 @@ def mail(
     to: str = typer.Option(..., "--to", "-t", help="Recipient email address"),
     subject: str = typer.Option(..., "--subject", "-s", help="Email subject"),
     body: str = typer.Option(..., "--body", "-b", help="Email body content"),
-    attachment: Path = typer.Option(None, "--attachment", "-a", help="Path to file attachment")
+    attachment: Path = typer.Option(None, "--attachment", "-a", help="Path to file attachment"),
+    attachment_name: str = typer.Option(None, "--attachment-name", "-n", help="Custom name for the attachment file")
 ):
     """Send an email using the notification API"""
     try:
@@ -31,7 +32,9 @@ def mail(
                 if not attachment.exists():
                     console.print(Panel.fit(f"Attachment file not found: {attachment}", style="red"))
                     return
-                files["attachment"] = (attachment.name, open(attachment, "rb"))
+                # Use custom attachment name if provided, otherwise use original filename
+                filename = attachment_name if attachment_name else attachment.name
+                files["attachment"] = (filename, open(attachment, "rb"))
             
             response = client.post(
                 f"{get_server_url()}/api/notify/mail",

@@ -18,11 +18,15 @@ async def send_mail(
     to: str = Form(...),
     subject: str = Form(...),
     body: str = Form(...),
-    attachment: Optional[UploadFile] = File(None)
+    attachment: Optional[UploadFile] = File(None),
+    attachment_name: Optional[str] = Form(None)
 ):
     try:
         # If there's an attachment, save it temporarily and send it
         if attachment:
+            # Use provided attachment name or fall back to original filename
+            filename = attachment_name if attachment_name else attachment.filename
+            
             # Create a temporary file
             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 # Write the uploaded file content to the temporary file
@@ -32,7 +36,7 @@ async def send_mail(
 
             try:
                 # Send the email with the attachment
-                notify_manager.send_mail(to, subject, body, temp_path)
+                notify_manager.send_mail(to, subject, body, temp_path, filename)
             finally:
                 # Clean up the temporary file
                 os.unlink(temp_path)

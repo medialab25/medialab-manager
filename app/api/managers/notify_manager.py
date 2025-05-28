@@ -17,7 +17,7 @@ class NotifyManager:
         with open(config_path) as f:
             return json.load(f)
 
-    def send_mail(self, to: str, subject: str, body: str, attachment_path: str = None) -> None:
+    def send_mail(self, to: str, subject: str, body: str, attachment_path: str = None, filename: str = None) -> None:
         msg = MIMEMultipart()
         msg["From"] = self.smtp_settings["SMTP_FROM"]
         msg["To"] = to
@@ -38,10 +38,11 @@ class NotifyManager:
             # Encode the attachment
             encoders.encode_base64(part)
             
-            # Add header
+            # Add header with custom filename if provided, otherwise use the original filename
+            attachment_filename = filename if filename else Path(attachment_path).name
             part.add_header(
                 'Content-Disposition',
-                f'attachment; filename={Path(attachment_path).name}'
+                f'attachment; filename={attachment_filename}'
             )
             
             msg.attach(part)
