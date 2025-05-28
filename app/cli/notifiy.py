@@ -1,4 +1,7 @@
-"""Notification CLI module."""
+"""Notification CLI module.
+
+This module provides command-line interface functionality for sending notifications.
+"""
 
 import typer
 import httpx
@@ -36,4 +39,4 @@ def mail(
         console.print(Panel.fit(f"Failed to send email: {str(e)}", style="red"))
 
 if __name__ == "__main__":
-    notification_app() 
+    notification_app()

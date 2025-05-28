@@ -11,6 +11,7 @@ import uvicorn
 import argparse
 
 from app.core.settings import settings
+from app.api.routers.notification import router as notification_router
 # from app.api.routers import views
 #from app.api.routers.media import router as media_router
 #from app.api.routers.search import router as search_router
@@ -67,6 +68,7 @@ templates = Jinja2Templates(directory="app/templates")
 #app.include_router(search_router, prefix="/api/search", tags=["search"])
 #app.include_router(cache_router, prefix="/api/cache", tags=["cache"])
 #app.include_router(sync_router, prefix="/api/sync", tags=["sync"])
+app.include_router(notification_router, prefix="/api/notify", tags=["notify"])
 
 @app.get("/")
 async def root(request: Request):
