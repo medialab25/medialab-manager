@@ -1,12 +1,13 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from pydantic import BaseModel
 from typing import Optional
 from app.api.managers.notify_manager import NotifyManager
+from app.core.database import get_db
+from sqlalchemy.orm import Session
 import tempfile
 import os
 
 router = APIRouter()
-notify_manager = NotifyManager()
 
 class MailRequest(BaseModel):
     to: str
@@ -19,8 +20,10 @@ async def send_mail(
     subject: str = Form(...),
     body: str = Form(...),
     attachment: Optional[UploadFile] = File(None),
-    attachment_name: Optional[str] = Form(None)
+    attachment_name: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
 ):
+    notify_manager = NotifyManager(db)
     try:
         # If there's an attachment, save it temporarily and send it
         if attachment:

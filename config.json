@@ -8,6 +8,7 @@
     "NOTIFICATION": {
         "SMTP_RELAY": "192.168.2.1",
         "SMTP_PORT": 25,
-        "SMTP_FROM": "MediaLab Admin <admin@spongnet.uk>"
+        "SMTP_FROM": "MediaLab Admin <admin@spongnet.uk>",
+        "SMTP_TO": "medialab25@icloud.com"
     }
 }  
