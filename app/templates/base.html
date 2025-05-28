@@ -31,7 +31,12 @@
             <!-- Header -->
             <header class="main-header">
                 <div class="header-content">
-                    <h2>{% block header_title %}{% endblock %}</h2>
+                    <div class="header-left">
+                        <button class="menu-toggle" aria-label="Toggle Menu">
+                            <span class="menu-icon"></span>
+                        </button>
+                        <h2>{% block header_title %}{% endblock %}</h2>
+                    </div>
                     <div class="user-menu">
                         {% if user %}
                         <span>{{ user.username }}</span>
@@ -62,6 +67,30 @@
             </footer>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const body = document.body;
+
+            menuToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('active');
+                body.classList.toggle('sidebar-active');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function (event) {
+                if (window.innerWidth <= 768 &&
+                    !sidebar.contains(event.target) &&
+                    !menuToggle.contains(event.target) &&
+                    sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                    body.classList.remove('sidebar-active');
+                }
+            });
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>
