@@ -13,15 +13,19 @@
     box-sizing: border-box;
 }
 
+html {
+    height: 100%;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--background-color);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
     position: relative;
+    padding-bottom: 60px;
+    /* Footer height */
 }
 
 /* Layout */
@@ -34,9 +38,8 @@ body {
 
 main {
     flex: 1 0 auto;
-    padding: 2rem 0;
-    min-height: calc(100vh - 120px);
-    /* Adjust based on your navbar and footer height */
+    padding: 1rem 0;
+    width: 100%;
 }
 
 .layout {
@@ -82,10 +85,18 @@ main {
 /* Footer */
 .footer {
     background-color: white;
-    padding: 1rem;
+    padding: 0.5rem 0;
     text-align: center;
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-    margin-top: auto;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 60px;
+}
+
+.footer .container {
+    padding: 1rem 0;
 }
 
 /* Cards */
