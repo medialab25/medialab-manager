@@ -11,7 +11,7 @@ import uvicorn
 import argparse
 
 from app.core.settings import settings
-from app.api.routers.notification import router as notification_router
+from app.api.routers.notify import router as notification_router
 # from app.api.routers import views
 #from app.api.routers.media import router as media_router
 #from app.api.routers.search import router as search_router
