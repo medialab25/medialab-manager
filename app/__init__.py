@@ -1,3 +1,3 @@
 """
-MediaVault Manager package
+medialab Manager package
 """ 

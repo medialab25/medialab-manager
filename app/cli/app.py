@@ -21,7 +21,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-app = typer.Typer(help="MediaVault Manager CLI")
+app = typer.Typer(help="MediaLab Manager CLI")
 console = Console()
 
 app.add_typer(media_app, name="media", help="Media management commands")

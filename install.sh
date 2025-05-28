@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo -e "${BLUE}Starting MediaVault Manager installation...${NC}"
+echo -e "${BLUE}Starting MediaLab Manager installation...${NC}"
 
 # Check if Python 3 is installed
 if ! command -v python3 &> /dev/null; then
@@ -82,7 +82,7 @@ echo -e "${BLUE}Upgrading pip...${NC}"
 pip install --upgrade pip
 
 # Install the package
-echo -e "${BLUE}Installing MediaVault Manager...${NC}"
+echo -e "${BLUE}Installing MediaLab Manager...${NC}"
 if [ "$INSTALL_MODE" = "dev" ]; then
     echo -e "${YELLOW}Installing in development mode${NC}"
     pip install -e .
@@ -104,10 +104,10 @@ if [ "$INSTALL_SYSTEMD" = true ]; then
     VENV_PYTHON=$(realpath .venv/bin/python)
     
     # Create the service file
-    SERVICE_FILE="/etc/systemd/system/mediavault-manager.service"
+    SERVICE_FILE="/etc/systemd/system/medialab-manager.service"
     sudo tee "$SERVICE_FILE" > /dev/null << EOF
 [Unit]
-Description=MediaVault Manager Service
+Description=MediaLab Manager Service
 After=network.target
 
 [Service]
@@ -125,14 +125,14 @@ EOF
 
     # Reload systemd and enable the service
     sudo systemctl daemon-reload
-    sudo systemctl enable mediavault-manager
-    sudo systemctl start mediavault-manager
+    sudo systemctl enable medialab-manager
+    sudo systemctl start medialab-manager
     
     echo -e "${GREEN}Systemd service created and started!${NC}"
     echo -e "You can manage the service with:"
-    echo -e "  ${BLUE}sudo systemctl status mediavault-manager${NC}"
-    echo -e "  ${BLUE}sudo systemctl stop mediavault-manager${NC}"
-    echo -e "  ${BLUE}sudo systemctl start mediavault-manager${NC}"
+    echo -e "  ${BLUE}sudo systemctl status medialab-manager${NC}"
+    echo -e "  ${BLUE}sudo systemctl stop medialab-manager${NC}"
+    echo -e "  ${BLUE}sudo systemctl start medialab-manager${NC}"
 fi
 
 echo -e "${GREEN}Installation complete!${NC}"

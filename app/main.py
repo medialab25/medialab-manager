@@ -12,7 +12,7 @@ import argparse
 
 from app.core.settings import settings
 from app.api.routers.notify import router as notification_router
-# from app.api.routers import views
+from app.views import router as views_router
 #from app.api.routers.media import router as media_router
 #from app.api.routers.search import router as search_router
 #from app.api.routers.cache import router as cache_router
@@ -20,7 +20,7 @@ from app.api.routers.notify import router as notification_router
 #from app.api.routers.system import router as system_router
 from app.scheduler import start_scheduler, stop_scheduler
 
-log_file_path = '/var/log/mediavault-manager/mediavault-manager.log'
+log_file_path = '/var/log/medialab-manager/medialab-manager.log'
 
 # Create the log directory if it doesn't exist, but if permissions fail create a log file in the current users home directory
 log_dir = Path(log_file_path).parent
@@ -28,7 +28,7 @@ if not log_dir.exists():
     try:
         log_dir.mkdir(parents=True, exist_ok=True)
     except PermissionError:
-        log_file_path = os.path.expanduser('~/mediavault-manager.log')
+        log_file_path = os.path.expanduser('~/medialab-manager.log')
 
 # Configure logging
 logging.basicConfig(
@@ -61,7 +61,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Include routers
-#app.include_router(views.router)
+app.include_router(views_router)
 #app.include_router(tasks.router)
 #app.include_router(system_router, prefix="/api/system", tags=["system"])
 #app.include_router(media_router, prefix="/api/media", tags=["media"])
@@ -95,12 +95,12 @@ def run_service(debug: bool = None):
         log_level="debug" if settings.DEBUG else "info"
     )
 
-if __name__ == "__main__":
-    main()
-
 def main():
     """Entry point for the mvm-service command"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true", help="Run in debug mode")
     args = parser.parse_args()
     run_service(debug=args.debug) 
+
+if __name__ == "__main__":
+    main() 

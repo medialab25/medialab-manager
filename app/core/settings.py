@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     # Application settings
     VERSION: str = "0.1.0"
     LOG_FILE: Path = Path("logs/app.log")
-    PROJECT_NAME: str = "MediaVault Manager"
+    PROJECT_NAME: str = "MediaLab Manager"
     DESCRIPTION: str = "A FastAPI application for managing media files."
     
     class Config:
