@@ -4,7 +4,7 @@ from pathlib import Path
 class Settings(BaseSettings):
     # Server settings
     HOST: str = "127.0.0.1"
-    PORT: int = 8000
+    PORT: int = 4800
     DEBUG: bool = False
     
     # Application settings

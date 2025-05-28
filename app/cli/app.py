@@ -1,6 +1,7 @@
 import typer
 import logging
 import sys
+import httpx
 from rich.console import Console
 from rich.panel import Panel
 
@@ -24,6 +25,10 @@ console = Console()
 
 app.add_typer(media_app, name="media", help="Media management commands")
 
+def get_server_url() -> str:
+    """Get the server URL based on settings"""
+    return f"http://{settings.HOST}:{settings.PORT}"
+
 @app.command()
 def start(
     host: str = typer.Option(settings.HOST, "--host", "-h", help="Host to run the server on"),
@@ -33,7 +38,20 @@ def start(
     """Start the MediaLab Manager server"""
     from app.main import run_service
     logger.info(f"Starting server on {host}:{port}")
-    run_service()
+    run_service(debug=debug)
+
+@app.command()
+def status():
+    """Check if the server is running and get its status"""
+    try:
+        with httpx.Client() as client:
+            response = client.get(f"{get_server_url()}/")
+            if response.status_code == 200:
+                console.print(Panel.fit("Server is running", style="green"))
+            else:
+                console.print(Panel.fit(f"Server returned status code: {response.status_code}", style="yellow"))
+    except httpx.ConnectError:
+        console.print(Panel.fit("Server is not running", style="red"))
 
 @app.command()
 def version():
