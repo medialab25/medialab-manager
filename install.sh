@@ -53,11 +53,11 @@ if [ "$INSTALL_DEPS" = true ]; then
     echo -e "${BLUE}Installing system dependencies...${NC}"
     if command -v apt-get &> /dev/null; then
         sudo apt-get update
-        sudo apt-get install -y python3-venv python3-pip
+        sudo apt-get install -y python3-venv python3-pip python3-full
     elif command -v dnf &> /dev/null; then
-        sudo dnf install -y python3-venv python3-pip
+        sudo dnf install -y python3-venv python3-pip python3-full
     elif command -v yum &> /dev/null; then
-        sudo yum install -y python3-venv python3-pip
+        sudo yum install -y python3-venv python3-pip python3-full
     else
         echo -e "${YELLOW}Warning: Could not detect package manager. Please install python3-venv and python3-pip manually.${NC}"
     fi
@@ -100,8 +100,10 @@ fi
 if [ "$INSTALL_SYSTEMD" = true ]; then
     echo -e "${BLUE}Creating systemd service...${NC}"
     
-    # Get the absolute path of the virtual environment's Python
-    VENV_PYTHON=$(realpath .venv/bin/python)
+    # Get the current user and working directory
+    CURRENT_USER=$(whoami)
+    WORKING_DIR=$(pwd)
+    VENV_PYTHON="$WORKING_DIR/.venv/bin/python"
     
     # Create the service file
     SERVICE_FILE="/etc/systemd/system/medialab-manager.service"
@@ -112,9 +114,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=$USER
-WorkingDirectory=$(pwd)
-Environment="PATH=$(dirname $VENV_PYTHON):\$PATH"
+User=$CURRENT_USER
+WorkingDirectory=$WORKING_DIR
+Environment="PATH=$WORKING_DIR/.venv/bin:\$PATH"
 ExecStart=$VENV_PYTHON -m app.main
 Restart=always
 RestartSec=3
