@@ -1,4 +1,4 @@
-"""Notification CLI module."""
+"""Notify CLI module."""
 
 import typer
 import httpx
@@ -6,18 +6,18 @@ from rich.console import Console
 from rich.panel import Panel
 from app.core.settings import settings
 
-notification_app = typer.Typer(help="Notification commands")
+notify_app = typer.Typer(help="Notify commands")
 console = Console()
 
 def get_server_url() -> str:
     """Get the server URL based on settings"""
     return f"http://{settings.HOST}:{settings.PORT}"
 
-@notification_app.command()
+@notify_app.command()
 def mail(
-    to: str = typer.Argument(..., help="Recipient email address"),
-    subject: str = typer.Argument(..., help="Email subject"),
-    body: str = typer.Argument(..., help="Email body content")
+    to: str = typer.Option(..., "--to", "-t", help="Recipient email address"),
+    subject: str = typer.Option(..., "--subject", "-s", help="Email subject"),
+    body: str = typer.Option(..., "--body", "-b", help="Email body content")
 ):
     """Send an email using the notification API"""
     try:
@@ -36,4 +36,4 @@ def mail(
         console.print(Panel.fit(f"Failed to send email: {str(e)}", style="red"))
 
 if __name__ == "__main__":
-    notification_app() 
+    notify_app() 
