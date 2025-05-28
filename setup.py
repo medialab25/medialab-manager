@@ -20,7 +20,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "mvm=app.cli:app",
+            "mvm=app.cli:cli_app",
             "mvm-service=app.main:main",
         ],
     },

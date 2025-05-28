@@ -1,19 +1,44 @@
 import typer
+import logging
+import sys
 from rich.console import Console
 from rich.panel import Panel
+
+from app.core.settings import settings
+from app.cli.media import media_app
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG if settings.DEBUG else logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(settings.LOG_FILE)
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 app = typer.Typer(help="MediaVault Manager CLI")
 console = Console()
 
+app.add_typer(media_app, name="media", help="Media management commands")
+
 @app.command()
-def hello(name: str = typer.Argument("World", help="Name to greet")):
-    """Say hello to someone."""
-    console.print(Panel(f"Hello {name}! 👋", title="Greeting"))
+def start(
+    host: str = typer.Option(settings.HOST, "--host", "-h", help="Host to run the server on"),
+    port: int = typer.Option(settings.PORT, "--port", "-p", help="Port to run the server on"),
+    debug: bool = typer.Option(settings.DEBUG, "--debug", "-d", help="Run in debug mode")
+):
+    """Start the MediaLab Manager server"""
+    from app.main import run_service
+    logger.info(f"Starting server on {host}:{port}")
+    run_service()
 
 @app.command()
 def version():
-    """Show the current version."""
-    console.print("MediaVault Manager v0.1.0")
+    """Show the current version of MediaLab Manager"""
+    typer.echo(f"MediaLab Manager version: {settings.VERSION}")
 
 if __name__ == "__main__":
     app()
