@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 import logging
 import sys
@@ -70,22 +70,73 @@ app.include_router(views_router)
 #app.include_router(sync_router, prefix="/api/sync", tags=["sync"])
 app.include_router(notification_router, prefix="/api/notify", tags=["notify"])
 
+# Dummy data for projects
+PROJECTS = [
+    {
+        "id": 1,
+        "name": "Documentary Series",
+        "description": "A 6-part documentary series exploring local wildlife",
+        "status": "active",
+        "start_date": (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d"),
+        "end_date": (datetime.now() + timedelta(days=60)).strftime("%Y-%m-%d"),
+        "equipment_count": 5
+    },
+    {
+        "id": 2,
+        "name": "Music Video Production",
+        "description": "Music video shoot for local band's new single",
+        "status": "pending",
+        "start_date": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d"),
+        "end_date": (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d"),
+        "equipment_count": 3
+    },
+    {
+        "id": 3,
+        "name": "Corporate Event Coverage",
+        "description": "Video coverage of annual company conference",
+        "status": "completed",
+        "start_date": (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d"),
+        "end_date": (datetime.now() - timedelta(days=85)).strftime("%Y-%m-%d"),
+        "equipment_count": 4
+    }
+]
+
 @app.get("/")
-async def root(request: Request):
+async def home(request: Request):
     return templates.TemplateResponse(
         "pages/home.html",
         {
             "request": request,
-            "title": "Home",
-            "config": settings,
-            "now": datetime.now(),
-            "user": None,  # Replace with actual user from session/auth
-            "messages": [],  # Replace with actual messages
-            "active_projects": 0,
-            "available_equipment": 0,
-            "upcoming_reservations": 0,
-            "total_equipment": 0,
-            "recent_activity": []
+            "user": None,  # Replace with actual user when auth is implemented
+            "messages": [],
+            "dashboard": {
+                "total_projects": 3,
+                "active_projects": 1,
+                "total_equipment": 12,
+                "available_equipment": 8,
+                "recent_activity": [
+                    {
+                        "time": "2 hours ago",
+                        "description": "New project 'Documentary Series' created"
+                    },
+                    {
+                        "time": "1 day ago",
+                        "description": "Equipment 'Sony A7III' checked out"
+                    }
+                ]
+            }
+        }
+    )
+
+@app.get("/projects")
+async def projects(request: Request):
+    return templates.TemplateResponse(
+        "pages/projects.html",
+        {
+            "request": request,
+            "user": None,  # Replace with actual user when auth is implemented
+            "messages": [],
+            "projects": PROJECTS
         }
     )
 

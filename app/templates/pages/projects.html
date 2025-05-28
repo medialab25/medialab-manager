@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Projects - MediaLab Manager{% endblock %}
+
+{% block header_title %}Projects{% endblock %}
+
+{% block content %}
+<div class="projects-page">
+    <!-- Projects Header -->
+    <div class="page-header">
+        <div class="header-actions">
+            <a href="/projects/new" class="action-button">
+                <span class="button-icon">+</span>
+                New Project
+            </a>
+        </div>
+    </div>
+
+    <!-- Projects List -->
+    <div class="projects-grid">
+        {% if projects %}
+        {% for project in projects %}
+        <div class="project-card">
+            <div class="project-header">
+                <h3>{{ project.name }}</h3>
+                <span class="project-status status-{{ project.status }}">{{ project.status }}</span>
+            </div>
+            <div class="project-details">
+                <p class="project-description">{{ project.description }}</p>
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Start Date:</span>
+                        <span class="meta-value">{{ project.start_date }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">End Date:</span>
+                        <span class="meta-value">{{ project.end_date }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Equipment:</span>
+                        <span class="meta-value">{{ project.equipment_count }} items</span>
+                    </div>
+                </div>
+            </div>
+            <div class="project-actions">
+                <a href="/projects/{{ project.id }}" class="action-link">View Details</a>
+                <a href="/projects/{{ project.id }}/edit" class="action-link">Edit</a>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="no-data">
+            <p>No projects found</p>
+            <a href="/projects/new" class="action-button">Create Your First Project</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .projects-page {
+        padding: 1rem;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .header-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .project-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+        overflow: hidden;
+    }
+
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .project-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .project-header h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    .project-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .status-completed {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .project-details {
+        padding: 1.5rem;
+    }
+
+    .project-description {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .project-meta {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .meta-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.875rem;
+    }
+
+    .meta-label {
+        color: var(--text-muted);
+    }
+
+    .meta-value {
+        font-weight: 500;
+    }
+
+    .project-actions {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 1rem;
+        background-color: #f8fafc;
+    }
+
+    .action-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: color var(--transition-speed);
+    }
+
+    .action-link:hover {
+        color: var(--primary-hover);
+    }
+
+    .button-icon {
+        margin-right: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .projects-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
