@@ -17,6 +17,8 @@ setup(
         "typer>=0.9.0",
         "rich>=13.7.0",
         "click>=8.1,<8.2",
+        "sqlalchemy>=2.0.0",
+        "aiosqlite>=0.19.0",
     ],
     entry_points={
         "console_scripts": [

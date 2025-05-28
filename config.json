@@ -2,6 +2,9 @@
     "PROJECT_NAME": "MediaLab Manager",
     "VERSION": "0.1.0",
     "DESCRIPTION": "MediaLab Management System",
+    "DATABASE": {
+        "SQLITE_PATH": "/var/lib/medialab-manager/medialab.db"
+    },
     "NOTIFICATION": {
         "SMTP_RELAY": "192.168.2.1",
         "SMTP_PORT": 25,

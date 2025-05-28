@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -9,16 +9,24 @@ import logging
 import sys
 import uvicorn
 import argparse
+from sqlalchemy.orm import Session
+from urllib.parse import urlencode, parse_qs
 
 from app.core.settings import settings
+from app.core.database import engine, Base, get_db
 from app.api.routers.notify import router as notification_router
 from app.views import router as views_router
+from app.models.notification import Notification
+from app.schemas.notification import NotificationFilter
 #from app.api.routers.media import router as media_router
 #from app.api.routers.search import router as search_router
 #from app.api.routers.cache import router as cache_router
 #from app.api.routers.sync import router as sync_router
 #from app.api.routers.system import router as system_router
 from app.scheduler import start_scheduler, stop_scheduler
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 log_file_path = '/var/log/medialab-manager/medialab-manager.log'
 
@@ -43,6 +51,11 @@ logging.basicConfig(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
+    # Create database tables
+    logger.info("Creating database tables...")
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
+    
     start_scheduler()
     yield
     stop_scheduler()
@@ -59,6 +72,15 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Templates
 templates = Jinja2Templates(directory="app/templates")
+
+# Add template filter for removing query parameters
+def remove_query_param(query_params: dict, param: str) -> str:
+    params = parse_qs(query_params)
+    if param in params:
+        del params[param]
+    return urlencode(params, doseq=True)
+
+templates.env.filters["remove_param"] = remove_query_param
 
 # Include routers
 app.include_router(views_router)
@@ -137,6 +159,75 @@ async def projects(request: Request):
             "user": None,  # Replace with actual user when auth is implemented
             "messages": [],
             "projects": PROJECTS
+        }
+    )
+
+@app.get("/notifications")
+async def notifications(
+    request: Request,
+    page: int = 1,
+    recipient: str = None,
+    title: str = None,
+    start_date: str = None,
+    end_date: str = None,
+    status: str = None,
+    has_attachment: str = None,
+    db: Session = Depends(get_db)
+):
+    # Convert query parameters to filter
+    filter_params = {}
+    if recipient:
+        filter_params["recipient"] = recipient
+    if title:
+        filter_params["title"] = title
+    if start_date:
+        filter_params["start_date"] = datetime.fromisoformat(start_date)
+    if end_date:
+        filter_params["end_date"] = datetime.fromisoformat(end_date)
+    if status:
+        filter_params["status"] = status
+    if has_attachment:
+        filter_params["has_attachment"] = has_attachment.lower() == "true"
+
+    # Create filter object
+    notification_filter = NotificationFilter(**filter_params)
+
+    # Calculate pagination
+    per_page = 10
+    skip = (page - 1) * per_page
+
+    # Get notifications
+    notifications = db.query(Notification)
+    
+    if notification_filter.recipient:
+        notifications = notifications.filter(Notification.recipient.ilike(f"%{notification_filter.recipient}%"))
+    if notification_filter.title:
+        notifications = notifications.filter(Notification.title.ilike(f"%{notification_filter.title}%"))
+    if notification_filter.start_date:
+        notifications = notifications.filter(Notification.timestamp >= notification_filter.start_date)
+    if notification_filter.end_date:
+        notifications = notifications.filter(Notification.timestamp <= notification_filter.end_date)
+    if notification_filter.status:
+        notifications = notifications.filter(Notification.status == notification_filter.status)
+    if notification_filter.has_attachment is not None:
+        notifications = notifications.filter(Notification.has_attachment == notification_filter.has_attachment)
+
+    # Get total count for pagination
+    total = notifications.count()
+    has_next = total > page * per_page
+
+    # Get paginated results
+    notifications = notifications.order_by(Notification.timestamp.desc()).offset(skip).limit(per_page).all()
+
+    return templates.TemplateResponse(
+        "pages/notifications.html",
+        {
+            "request": request,
+            "user": None,  # Replace with actual user when auth is implemented
+            "messages": [],
+            "notifications": notifications,
+            "page": page,
+            "has_next": has_next
         }
     )
 

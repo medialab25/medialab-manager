@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - MediaLab Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-form {
+        background: #f5f5f5;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .filter-form .form-group {
+        margin-bottom: 0.5rem;
+    }
+
+    .notifications-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .notifications-table th,
+    .notifications-table td {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+    }
+
+    .notifications-table th {
+        background: #f5f5f5;
+    }
+
+    .attachment-preview {
+        max-width: 300px;
+        max-height: 300px;
+    }
+
+    .pagination {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Notifications</h1>
+
+    <!-- Filter Form -->
+    <form class="filter-form" method="get">
+        <div class="form-group">
+            <label for="recipient">Recipient:</label>
+            <input type="text" id="recipient" name="recipient" value="{{ request.query_params.get('recipient', '') }}">
+        </div>
+        <div class="form-group">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" value="{{ request.query_params.get('title', '') }}">
+        </div>
+        <div class="form-group">
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date"
+                value="{{ request.query_params.get('start_date', '') }}">
+        </div>
+        <div class="form-group">
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ request.query_params.get('end_date', '') }}">
+        </div>
+        <div class="form-group">
+            <label for="status">Status:</label>
+            <select id="status" name="status">
+                <option value="">All</option>
+                <option value="sent" {% if request.query_params.get('status')=='sent' %}selected{% endif %}>Sent
+                </option>
+                <option value="failed" {% if request.query_params.get('status')=='failed' %}selected{% endif %}>Failed
+                </option>
+                <option value="pending" {% if request.query_params.get('status')=='pending' %}selected{% endif %}>
+                    Pending</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="has_attachment">Has Attachment:</label>
+            <select id="has_attachment" name="has_attachment">
+                <option value="">All</option>
+                <option value="true" {% if request.query_params.get('has_attachment')=='true' %}selected{% endif %}>Yes
+                </option>
+                <option value="false" {% if request.query_params.get('has_attachment')=='false' %}selected{% endif %}>No
+                </option>
+            </select>
+        </div>
+        <button type="submit">Apply Filters</button>
+    </form>
+
+    <!-- Notifications Table -->
+    <table class="notifications-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Recipient</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Attachment</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for notification in notifications %}
+            <tr>
+                <td>{{ notification.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ notification.recipient }}</td>
+                <td>{{ notification.title }}</td>
+                <td>{{ notification.status }}</td>
+                <td>
+                    {% if notification.has_attachment %}
+                    <a href="/api/notifications/{{ notification.id }}/attachment" target="_blank">
+                        {{ notification.attachment_name }}
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}&{{ request.query_params|remove_param('page') }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page }}</span>
+        {% if has_next %}
+        <a href="?page={{ page + 1 }}&{{ request.query_params|remove_param('page') }}">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
