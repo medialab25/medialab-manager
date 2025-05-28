@@ -27,11 +27,14 @@ body {
     background-color: var(--background-color);
     line-height: 1.6;
     font-size: 0.9375rem;
+    min-height: 100vh;
+    display: flex;
 }
 
 /* Layout */
 .layout {
     display: flex;
+    width: 100%;
     min-height: 100vh;
 }
 
@@ -44,6 +47,7 @@ body {
     height: 100vh;
     overflow-y: auto;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    z-index: 20;
 }
 
 .sidebar-header {
@@ -88,6 +92,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 /* Header */
@@ -143,6 +148,8 @@ body {
 .content {
     flex: 1;
     padding: 2rem;
+    background-color: var(--background-color);
+    padding-bottom: calc(var(--footer-height) + 2rem);
 }
 
 /* Dashboard Styles */
@@ -287,6 +294,11 @@ body {
     padding: 0 2rem;
     color: var(--text-muted);
     font-size: 0.875rem;
+    position: fixed;
+    bottom: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    z-index: 10;
 }
 
 /* Responsive Design */
@@ -304,6 +316,10 @@ body {
         margin-left: 0;
     }
 
+    .main-footer {
+        left: 0;
+    }
+
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
@@ -314,5 +330,6 @@ body {
 
     .content {
         padding: 1rem;
+        padding-bottom: calc(var(--footer-height) + 1rem);
     }
 }
