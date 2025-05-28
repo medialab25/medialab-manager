@@ -7,6 +7,7 @@ from rich.panel import Panel
 
 from app.core.settings import settings
 from app.cli.media import media_app
+from app.cli.notification import notification_app
 
 # Configure logging
 logging.basicConfig(
@@ -24,6 +25,7 @@ app = typer.Typer(help="MediaVault Manager CLI")
 console = Console()
 
 app.add_typer(media_app, name="media", help="Media management commands")
+app.add_typer(notification_app, name="notify", help="Notification commands")
 
 def get_server_url() -> str:
     """Get the server URL based on settings"""
