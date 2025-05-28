@@ -78,7 +78,14 @@ async def root(request: Request):
             "request": request,
             "title": "Home",
             "config": settings,
-            "now": datetime.now()
+            "now": datetime.now(),
+            "user": None,  # Replace with actual user from session/auth
+            "messages": [],  # Replace with actual messages
+            "active_projects": 0,
+            "available_equipment": 0,
+            "upcoming_reservations": 0,
+            "total_equipment": 0,
+            "recent_activity": []
         }
     )
 
