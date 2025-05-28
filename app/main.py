@@ -52,9 +52,7 @@ logging.basicConfig(
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
     # Create database tables
-    logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created successfully")
     
     start_scheduler()
     yield
