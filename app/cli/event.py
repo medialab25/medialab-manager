@@ -14,7 +14,7 @@ event_app = typer.Typer(help="Event management commands")
 
 @event_app.command()
 def test():
-    """Test event creation and retrieval"""
+    """Test event creation, retrieval, and filtering"""
     try:
         with get_http_client() as client:
             # Create a test event
@@ -39,13 +39,13 @@ def test():
             event_id = create_response.json()["id"]
             console.print(Panel.fit(f"Test event created with ID: {event_id}", style="green"))
             
-            # Retrieve the event
+            # Retrieve the event by ID
             get_response = client.get(f"{get_server_url()}/api/events/{event_id}")
             
             if get_response.status_code == 200:
                 event_data = get_response.json()
                 console.print(Panel.fit(
-                    f"Successfully retrieved event:\n"
+                    f"Successfully retrieved event by ID:\n"
                     f"ID: {event_data['id']}\n"
                     f"Type: {event_data['type']}\n"
                     f"Status: {event_data['status']}\n"
@@ -55,6 +55,37 @@ def test():
                 ))
             else:
                 console.print(Panel.fit(f"Failed to retrieve test event: {get_response.text}", style="red"))
+                return
+
+            # Test filtering events
+            filter_params = {
+                "type": "system",
+                "status": "success",
+                "title": "Test Event"
+            }
+            
+            filter_response = client.get(
+                f"{get_server_url()}/api/events/",
+                params=filter_params
+            )
+            
+            if filter_response.status_code == 200:
+                events = filter_response.json()
+                if events:
+                    console.print(Panel.fit(
+                        f"Successfully filtered events:\n"
+                        f"Found {len(events)} matching events\n"
+                        f"First event:\n"
+                        f"ID: {events[0]['id']}\n"
+                        f"Type: {events[0]['type']}\n"
+                        f"Status: {events[0]['status']}\n"
+                        f"Title: {events[0]['title']}",
+                        style="green"
+                    ))
+                else:
+                    console.print(Panel.fit("No events found matching the filter criteria", style="yellow"))
+            else:
+                console.print(Panel.fit(f"Failed to filter events: {filter_response.text}", style="red"))
                 
     except Exception as e:
         handle_server_error(e)
