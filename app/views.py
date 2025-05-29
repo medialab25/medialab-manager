@@ -50,6 +50,9 @@ async def view_logs(request: Request):
     # Sort logs by timestamp in reverse order (newest first)
     logs.sort(key=lambda x: x['timestamp'], reverse=True)
     
+    # Limit to last 1000 logs to prevent UI performance issues
+    logs = logs[:1000]
+    
     return templates.TemplateResponse(
         "pages/logs.html",
         {

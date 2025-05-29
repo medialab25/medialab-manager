@@ -11,6 +11,7 @@ import uvicorn
 import argparse
 from sqlalchemy.orm import Session
 from urllib.parse import urlencode, parse_qs
+from logging.handlers import RotatingFileHandler
 
 from app.core.settings import settings
 from app.core.database import engine, Base, get_db
@@ -46,7 +47,12 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler(log_file_path)
+        RotatingFileHandler(
+            log_file_path,
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5,  # Keep 5 backup files
+            encoding='utf-8'
+        )
     ]
 )
 
