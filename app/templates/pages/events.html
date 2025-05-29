@@ -5,6 +5,7 @@
 {% block header_title %}Events{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
 <style>
     .filter-form {
         background: #f5f5f5;
@@ -200,6 +201,29 @@
         word-break: break-word;
     }
 
+    /* Content Type Badge */
+    .content-type-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 4px;
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    /* Syntax Highlighting */
+    .hljs {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-top: 0;
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
     /* Download Confirmation Dialog Styles */
     .download-dialog {
         display: none;
@@ -251,6 +275,16 @@
 
     .download-dialog-button:hover {
         opacity: 0.9;
+    }
+
+    .mime-type {
+        font-family: monospace;
+        font-size: 0.875rem;
+        color: #6c757d;
+        background: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
     }
 </style>
 {% endblock %}
@@ -345,6 +379,7 @@
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">&times;</span>
             <h3>Attachment Content</h3>
+            <div id="contentTypeBadge" class="content-type-badge"></div>
             <div id="attachmentContent" class="attachment-content"></div>
             <div id="attachmentError" class="attachment-error"></div>
         </div>
@@ -372,6 +407,11 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/markdown.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
 <script>
     let pendingDownloadBlob = null;
 
@@ -379,10 +419,12 @@
         const modal = document.getElementById('attachmentModal');
         const content = document.getElementById('attachmentContent');
         const error = document.getElementById('attachmentError');
+        const contentTypeBadge = document.getElementById('contentTypeBadge');
 
         // Clear previous content
         content.textContent = '';
         error.textContent = '';
+        contentTypeBadge.textContent = '';
 
         // Show loading state
         content.textContent = 'Loading...';
@@ -395,17 +437,23 @@
                 }
 
                 const contentType = response.headers.get('content-type');
-                if (contentType && (contentType.includes('text/') || contentType.includes('application/json'))) {
+                if (isViewableContent(contentType)) {
                     // Handle viewable content
                     return response.text().then(text => {
-                        try {
-                            // Try to parse as JSON for better formatting
-                            const jsonData = JSON.parse(text);
-                            content.textContent = JSON.stringify(jsonData, null, 2);
-                        } catch {
-                            // If not JSON, display as plain text
-                            content.textContent = text;
+                        contentTypeBadge.textContent = getContentTypeLabel(contentType);
+                        const language = getLanguageFromContentType(contentType);
+
+                        if (language === 'json') {
+                            try {
+                                const jsonData = JSON.parse(text);
+                                text = JSON.stringify(jsonData, null, 2);
+                            } catch (e) {
+                                // If JSON parsing fails, display as plain text
+                            }
                         }
+
+                        content.innerHTML = `<pre><code class="language-${language}">${escapeHtml(text)}</code></pre>`;
+                        hljs.highlightElement(content.querySelector('code'));
                     });
                 } else {
                     // Handle non-viewable content
@@ -420,6 +468,47 @@
                 content.textContent = '';
                 error.textContent = `Error loading attachment: ${error.message}`;
             });
+    }
+
+    function isViewableContent(contentType) {
+        if (!contentType) return false;
+
+        const viewableTypes = [
+            'text/plain',
+            'text/markdown',
+            'text/x-markdown',
+            'text/html',
+            'application/json',
+            'application/x-shellscript',
+            'text/x-shellscript',
+            'text/x-sh',
+            'text/bash'
+        ];
+
+        return viewableTypes.some(type => contentType.includes(type));
+    }
+
+    function getContentTypeLabel(contentType) {
+        if (contentType.includes('json')) return 'JSON';
+        if (contentType.includes('markdown')) return 'Markdown';
+        if (contentType.includes('html')) return 'HTML';
+        if (contentType.includes('shellscript') || contentType.includes('x-sh') || contentType.includes('bash')) return 'Shell Script';
+        if (contentType.includes('text/plain')) return 'Text';
+        return contentType;
+    }
+
+    function getLanguageFromContentType(contentType) {
+        if (contentType.includes('json')) return 'json';
+        if (contentType.includes('markdown')) return 'markdown';
+        if (contentType.includes('html')) return 'xml';
+        if (contentType.includes('shellscript') || contentType.includes('x-sh') || contentType.includes('bash')) return 'bash';
+        return 'plaintext';
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     function showDownloadDialog() {
