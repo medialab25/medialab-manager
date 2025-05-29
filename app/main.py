@@ -160,70 +160,65 @@ async def projects(request: Request):
         }
     )
 
-@app.get("/notifications")
-async def notifications(
+@app.get("/events")
+async def events(
     request: Request,
     page: int = 1,
-    recipient: str = None,
-    title: str = None,
+    type: str = None,
+    sub_type: str = None,
     start_date: str = None,
     end_date: str = None,
     status: str = None,
-    has_attachment: str = None,
     db: Session = Depends(get_db)
 ):
     # Convert query parameters to filter
     filter_params = {}
-    if recipient:
-        filter_params["recipient"] = recipient
-    if title:
-        filter_params["title"] = title
+    if type:
+        filter_params["type"] = type
+    if sub_type:
+        filter_params["sub_type"] = sub_type
     if start_date:
         filter_params["start_date"] = datetime.fromisoformat(start_date)
     if end_date:
         filter_params["end_date"] = datetime.fromisoformat(end_date)
     if status:
         filter_params["status"] = status
-    if has_attachment:
-        filter_params["has_attachment"] = has_attachment.lower() == "true"
 
     # Create filter object
-    notification_filter = NotificationFilter(**filter_params)
+    event_filter = EventFilter(**filter_params)
 
     # Calculate pagination
     per_page = 10
     skip = (page - 1) * per_page
 
-    # Get notifications
-    notifications = db.query(Notification)
+    # Get events
+    events = db.query(Event)
     
-    if notification_filter.recipient:
-        notifications = notifications.filter(Notification.recipient.ilike(f"%{notification_filter.recipient}%"))
-    if notification_filter.title:
-        notifications = notifications.filter(Notification.title.ilike(f"%{notification_filter.title}%"))
-    if notification_filter.start_date:
-        notifications = notifications.filter(Notification.timestamp >= notification_filter.start_date)
-    if notification_filter.end_date:
-        notifications = notifications.filter(Notification.timestamp <= notification_filter.end_date)
-    if notification_filter.status:
-        notifications = notifications.filter(Notification.status == notification_filter.status)
-    if notification_filter.has_attachment is not None:
-        notifications = notifications.filter(Notification.has_attachment == notification_filter.has_attachment)
+    if event_filter.type:
+        events = events.filter(Event.type.ilike(f"%{event_filter.type}%"))
+    if event_filter.sub_type:
+        events = events.filter(Event.sub_type.ilike(f"%{event_filter.sub_type}%"))
+    if event_filter.start_date:
+        events = events.filter(Event.timestamp >= event_filter.start_date)
+    if event_filter.end_date:
+        events = events.filter(Event.timestamp <= event_filter.end_date)
+    if event_filter.status:
+        events = events.filter(Event.status == event_filter.status)
 
     # Get total count for pagination
-    total = notifications.count()
+    total = events.count()
     has_next = total > page * per_page
 
     # Get paginated results
-    notifications = notifications.order_by(Notification.timestamp.desc()).offset(skip).limit(per_page).all()
+    events = events.order_by(Event.timestamp.desc()).offset(skip).limit(per_page).all()
 
     return templates.TemplateResponse(
-        "pages/notifications.html",
+        "pages/events.html",
         {
             "request": request,
             "user": None,  # Replace with actual user when auth is implemented
             "messages": [],
-            "notifications": notifications,
+            "events": events,
             "page": page,
             "has_next": has_next
         }

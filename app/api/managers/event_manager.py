@@ -4,8 +4,8 @@ import json
 from sqlalchemy.orm import Session
 from app.models.event import Event
 from app.core.database import DBManager
-from app.api.managers.notify_manager import NotifyManager
 from app.schemas.event import EventFilter
+from app.utils.file_utils import get_attachment_data
 from typing import List, Optional, Dict, Any
 from sqlalchemy import desc, asc
 
@@ -15,7 +15,6 @@ class EventManager:
     def __init__(self, db: Session = None):
         self.config = self._load_config()
         self.db_manager = DBManager(Event, db) if db else None
-        self.notify_manager = NotifyManager(db)
         self.db = db
 
     def _load_config(self) -> dict:
@@ -31,7 +30,7 @@ class EventManager:
             mime_type = None
 
             if attachment_path:
-                attachment_data, mime_type = self.notify_manager._get_attachment_data(attachment_path)
+                attachment_data, mime_type = get_attachment_data(attachment_path)
 
             event = self.db_manager.create(
                 type=type,

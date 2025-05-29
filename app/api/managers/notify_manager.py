@@ -9,7 +9,7 @@ import mimetypes
 import logging
 from sqlalchemy.orm import Session
 from app.core.database import DBManager
-from app.api.managers.event_manager import EventManager
+from app.utils.file_utils import get_attachment_data
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,6 @@ class NotifyManager:
         self.from_email = self.smtp_settings["SMTP_FROM"]
         self.to_email = self.smtp_settings["SMTP_TO"]
         self.db = db
-        self.event_manager = EventManager(db)
 
     def _load_config(self) -> dict:
         config_path = Path("config.json")
@@ -42,7 +41,7 @@ class NotifyManager:
                     mime_type = 'application/octet-stream'
                 
                 # Create the attachment
-                attachment_data = self._get_attachment_data(attachment_path)
+                attachment_data, _ = get_attachment_data(attachment_path)
                 part = MIMEBase(*mime_type.split('/'))
                 part.set_payload(attachment_data)
                 
@@ -63,31 +62,10 @@ class NotifyManager:
                 
             # Log successful email sending
             logger.info(f"Email sent successfully to {to} with subject: {subject}")
-            self.event_manager.add_event(
-                type="notification",
-                sub_type="email",
-                status="success",
-                title=f"Email sent to {to}",
-                details=f"Email sent successfully to {to} with subject: {subject}"
-            )
             return True
 
         except Exception as e:
             # Log failed email sending
             error_msg = f"Failed to send email to {to} with subject: {subject}. Error: {str(e)}"
             logger.error(error_msg)
-            self.event_manager.add_event(
-                type="notification",
-                sub_type="email",
-                status="error",
-                title=f"Failed to send email to {to}",
-                details=error_msg
-            )
             return False
-
-    def _get_attachment_data(self, attachment_path: str) -> tuple[bytes, str]:
-        with open(attachment_path, 'rb') as attachment:
-            mime_type, _ = mimetypes.guess_type(attachment_path)
-            if mime_type is None:
-                mime_type = 'application/octet-stream'
-            return attachment.read(), mime_type

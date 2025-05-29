@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from pydantic import BaseModel
 from typing import Optional
 from app.api.managers.notify_manager import NotifyManager
+from app.api.managers.event_manager import EventManager
 from app.core.database import get_db
 from sqlalchemy.orm import Session
 import tempfile
@@ -24,6 +25,7 @@ async def send_mail(
     db: Session = Depends(get_db)
 ):
     notify_manager = NotifyManager(db)
+    event_manager = EventManager(db)
     try:
         # If there's an attachment, save it temporarily and send it
         if attachment:
@@ -39,14 +41,54 @@ async def send_mail(
 
             try:
                 # Send the email with the attachment
-                notify_manager.send_mail(to, subject, body, temp_path, filename)
+                success = notify_manager.send_mail(to, subject, body, temp_path, filename)
+                if success:
+                    event_manager.add_event(
+                        type="notification",
+                        sub_type="email",
+                        status="success",
+                        title=f"Email sent to {to}",
+                        details=f"Email sent successfully to {to} with subject: {subject}"
+                    )
+                else:
+                    event_manager.add_event(
+                        type="notification",
+                        sub_type="email",
+                        status="error",
+                        title=f"Failed to send email to {to}",
+                        details=f"Failed to send email to {to} with subject: {subject}"
+                    )
             finally:
                 # Clean up the temporary file
                 os.unlink(temp_path)
         else:
             # Send email without attachment
-            notify_manager.send_mail(to, subject, body)
+            success = notify_manager.send_mail(to, subject, body)
+            if success:
+                event_manager.add_event(
+                    type="notification",
+                    sub_type="email",
+                    status="success",
+                    title=f"Email sent to {to}",
+                    details=f"Email sent successfully to {to} with subject: {subject}"
+                )
+            else:
+                event_manager.add_event(
+                    type="notification",
+                    sub_type="email",
+                    status="error",
+                    title=f"Failed to send email to {to}",
+                    details=f"Failed to send email to {to} with subject: {subject}"
+                )
 
         return {"status": "success"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        error_msg = str(e)
+        event_manager.add_event(
+            type="notification",
+            sub_type="email",
+            status="error",
+            title=f"Failed to send email to {to}",
+            details=f"Error: {error_msg}"
+        )
+        raise HTTPException(status_code=500, detail=error_msg) 
