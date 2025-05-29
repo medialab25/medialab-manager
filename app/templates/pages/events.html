@@ -62,6 +62,12 @@
         border: 1px solid #ddd;
     }
 
+    .events-table th:first-child,
+    .events-table td:first-child {
+        min-width: 160px;
+        white-space: nowrap;
+    }
+
     .events-table th {
         background: #f5f5f5;
     }
@@ -86,7 +92,8 @@
         </div>
         <div class="form-group">
             <label for="sub_type">Sub Type:</label>
-            <input type="text" id="sub_type" name="sub_type" value="{{ request.query_params.get('sub_type', '') }}">
+            <input type="text" id="sub_type" name="sub_type" value="{{ request.query_params.get('sub_type', '') }}"
+                placeholder="e.g. email,ntfy">
         </div>
         <div class="form-group">
             <label for="start_date">Start Date:</label>
@@ -119,7 +126,7 @@
                 <th>Time</th>
                 <th>Type</th>
                 <th>Sub Type</th>
-                <th>Title</th>
+                <th>Description</th>
                 <th>Status</th>
                 <th>Details</th>
             </tr>
@@ -128,9 +135,9 @@
             {% for event in events %}
             <tr>
                 <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                <td>{{ event.type }}</td>
-                <td>{{ event.sub_type }}</td>
-                <td>{{ event.title }}</td>
+                <td>{{ event.type.value }}</td>
+                <td>{{ event.sub_type.value if event.sub_type else '' }}</td>
+                <td>{{ event.description }}</td>
                 <td>{{ event.status }}</td>
                 <td>{{ event.details }}</td>
             </tr>

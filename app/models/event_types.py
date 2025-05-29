@@ -1,7 +1,7 @@
 from enum import Enum
 
 class EventType(str, Enum):
-    NOTIFY = "notify"
+    NOTIFY = "notification"
     BACKUP = "backup"
 
 class SubEventType(str, Enum):

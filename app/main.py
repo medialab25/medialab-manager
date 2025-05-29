@@ -115,7 +115,7 @@ async def home(request: Request, db: Session = Depends(get_db)):
     recent_activity = [
         {
             "time": event.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "description": f"{event.title} - {event.details}"
+            "description": f"{event.description} - {event.details}"
         }
         for event in recent_events
     ]
