@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Logs - MediaLab Manager{% endblock %}
+
+{% block header_title %}System Logs{% endblock %}
+
+{% block content %}
+<div class="logs-container">
+    <div class="logs-filters">
+        <select id="log-level" class="form-select">
+            <option value="ALL">All Levels</option>
+            <option value="INFO">Info</option>
+            <option value="WARNING">Warning</option>
+            <option value="ERROR">Error</option>
+        </select>
+        <input type="text" id="log-search" class="form-input" placeholder="Search logs...">
+    </div>
+
+    <div class="logs-table-container">
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Level</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody id="logs-body">
+                {% for log in logs %}
+                <tr class="log-entry log-level-{{ log.level.lower() }}">
+                    <td>{{ log.timestamp }}</td>
+                    <td>{{ log.level }}</td>
+                    <td>{{ log.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logs-container {
+        padding: 20px;
+    }
+
+    .logs-filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .logs-table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: auto;
+    }
+
+    .logs-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .logs-table th,
+    .logs-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    .logs-table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+
+    .log-level-info {
+        color: #0d6efd;
+    }
+
+    .log-level-warning {
+        color: #ffc107;
+    }
+
+    .log-level-error {
+        color: #dc3545;
+    }
+
+    .form-select,
+    .form-input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .form-select {
+        min-width: 150px;
+    }
+
+    .form-input {
+        flex: 1;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const logLevel = document.getElementById('log-level');
+        const logSearch = document.getElementById('log-search');
+        const logsBody = document.getElementById('logs-body');
+
+        function filterLogs() {
+            const level = logLevel.value;
+            const search = logSearch.value.toLowerCase();
+
+            const rows = logsBody.getElementsByTagName('tr');
+
+            for (let row of rows) {
+                const levelMatch = level === 'ALL' || row.classList.contains(`log-level-${level.toLowerCase()}`);
+                const searchMatch = row.textContent.toLowerCase().includes(search);
+
+                row.style.display = levelMatch && searchMatch ? '' : 'none';
+            }
+        }
+
+        logLevel.addEventListener('change', filterLogs);
+        logSearch.addEventListener('input', filterLogs);
+    });
+</script>
+{% endblock %}
