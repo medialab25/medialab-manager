@@ -25,6 +25,7 @@ from app.views import router as views_router
 from app.scheduler import start_scheduler, stop_scheduler
 from app.schemas.event import EventFilter
 from app.models.event import Event
+from app.api.managers.event_manager import EventManager
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -193,26 +194,13 @@ async def events(
     per_page = 10
     skip = (page - 1) * per_page
 
-    # Get events
-    events = db.query(Event)
-    
-    if event_filter.type:
-        events = events.filter(Event.type.ilike(f"%{event_filter.type}%"))
-    if event_filter.sub_type:
-        events = events.filter(Event.sub_type.ilike(f"%{event_filter.sub_type}%"))
-    if event_filter.start_date:
-        events = events.filter(Event.timestamp >= event_filter.start_date)
-    if event_filter.end_date:
-        events = events.filter(Event.timestamp <= event_filter.end_date)
-    if event_filter.status:
-        events = events.filter(Event.status == event_filter.status)
+    # Get events using EventManager
+    event_manager = EventManager(db)
+    events = event_manager.list_events(event_filter, skip, per_page, "timestamp", "desc")
 
     # Get total count for pagination
-    total = events.count()
+    total = db.query(Event).count()
     has_next = total > page * per_page
-
-    # Get paginated results
-    events = events.order_by(Event.timestamp.desc()).offset(skip).limit(per_page).all()
 
     return templates.TemplateResponse(
         "pages/events.html",

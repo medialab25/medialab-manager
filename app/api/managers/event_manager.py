@@ -76,7 +76,8 @@ class EventManager:
         
         # Apply filters
         if filter.type:
-            query = query.filter(Event.type == filter.type)
+            types = [t.strip() for t in filter.type.split(',')]
+            query = query.filter(Event.type.in_(types))
         if filter.sub_type:
             query = query.filter(Event.sub_type == filter.sub_type)
         if filter.status:
