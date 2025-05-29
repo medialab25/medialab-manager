@@ -5,7 +5,6 @@
 {% block header_title %}Events{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/json-viewer/1.4.0/json-viewer.min.css">
 <style>
     .filter-form {
         background: #f5f5f5;
@@ -200,6 +199,59 @@
         white-space: pre-wrap;
         word-break: break-word;
     }
+
+    /* Download Confirmation Dialog Styles */
+    .download-dialog {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .download-dialog-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 400px;
+        border-radius: 4px;
+        position: relative;
+        text-align: center;
+    }
+
+    .download-dialog-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .download-dialog-button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .download-dialog-button.confirm {
+        background: #28a745;
+        color: white;
+    }
+
+    .download-dialog-button.cancel {
+        background: #6c757d;
+        color: white;
+    }
+
+    .download-dialog-button:hover {
+        opacity: 0.9;
+    }
 </style>
 {% endblock %}
 
@@ -306,10 +358,23 @@
             <div id="jsonViewer" class="json-viewer"></div>
         </div>
     </div>
+
+    <!-- Download Confirmation Dialog -->
+    <div id="downloadDialog" class="download-dialog">
+        <div class="download-dialog-content">
+            <h3>Download Attachment</h3>
+            <p>This attachment cannot be viewed directly. Would you like to download it?</p>
+            <div class="download-dialog-buttons">
+                <button class="download-dialog-button confirm" onclick="confirmDownload()">Download</button>
+                <button class="download-dialog-button cancel" onclick="closeDownloadDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/json-viewer/1.4.0/json-viewer.min.js"></script>
 <script>
+    let pendingDownloadBlob = null;
+
     function showAttachment(eventId) {
         const modal = document.getElementById('attachmentModal');
         const content = document.getElementById('attachmentContent');
@@ -330,23 +395,24 @@
                 }
 
                 const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    // Handle text content
-                    return response.json().then(data => {
-                        content.textContent = data.content;
+                if (contentType && (contentType.includes('text/') || contentType.includes('application/json'))) {
+                    // Handle viewable content
+                    return response.text().then(text => {
+                        try {
+                            // Try to parse as JSON for better formatting
+                            const jsonData = JSON.parse(text);
+                            content.textContent = JSON.stringify(jsonData, null, 2);
+                        } catch {
+                            // If not JSON, display as plain text
+                            content.textContent = text;
+                        }
                     });
                 } else {
-                    // Handle binary content
+                    // Handle non-viewable content
+                    closeModal();
                     return response.blob().then(blob => {
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `event_${eventId}_attachment`;
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-                        closeModal();
+                        pendingDownloadBlob = blob;
+                        showDownloadDialog();
                     });
                 }
             })
@@ -354,6 +420,31 @@
                 content.textContent = '';
                 error.textContent = `Error loading attachment: ${error.message}`;
             });
+    }
+
+    function showDownloadDialog() {
+        const dialog = document.getElementById('downloadDialog');
+        dialog.style.display = 'block';
+    }
+
+    function closeDownloadDialog() {
+        const dialog = document.getElementById('downloadDialog');
+        dialog.style.display = 'none';
+        pendingDownloadBlob = null;
+    }
+
+    function confirmDownload() {
+        if (pendingDownloadBlob) {
+            const url = window.URL.createObjectURL(pendingDownloadBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `event_attachment`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        closeDownloadDialog();
     }
 
     function closeModal() {
@@ -364,8 +455,13 @@
     // Close modal when clicking outside
     window.onclick = function (event) {
         const modal = document.getElementById('attachmentModal');
+        const downloadDialog = document.getElementById('downloadDialog');
+
         if (event.target == modal) {
             modal.style.display = 'none';
+        }
+        if (event.target == downloadDialog) {
+            closeDownloadDialog();
         }
     }
 
@@ -399,18 +495,6 @@
     function closeJsonViewer() {
         const modal = document.getElementById('jsonViewerModal');
         modal.style.display = 'none';
-    }
-
-    // Close JSON viewer modal when clicking outside
-    window.onclick = function (event) {
-        const modal = document.getElementById('jsonViewerModal');
-        const attachmentModal = document.getElementById('attachmentModal');
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-        if (event.target == attachmentModal) {
-            attachmentModal.style.display = 'none';
-        }
     }
 </script>
 {% endblock %}
