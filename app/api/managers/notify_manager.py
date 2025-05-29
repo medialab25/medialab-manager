@@ -10,6 +10,8 @@ import logging
 from sqlalchemy.orm import Session
 from app.core.database import DBManager
 from app.utils.file_utils import get_attachment_data
+from app.models.event_types import EventType, SubEventType
+from app.api.managers.event_manager import EventManager
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +22,7 @@ class NotifyManager:
         self.from_email = self.smtp_settings["SMTP_FROM"]
         self.to_email = self.smtp_settings["SMTP_TO"]
         self.db = db
+        self.event_manager = EventManager(db) if db else None
 
     def _load_config(self) -> dict:
         config_path = Path("config.json")
@@ -62,10 +65,41 @@ class NotifyManager:
                 
             # Log successful email sending
             logger.info(f"Email sent successfully to {to} with subject: {subject}")
+            
+            # Create success event
+            if self.event_manager:
+                self.event_manager.add_event(
+                    type=EventType.NOTIFY.value,
+                    sub_type=SubEventType.EMAIL.value,
+                    status="success",
+                    title=f"Email sent successfully to {to} with subject: {subject}",
+                    details=json.dumps({
+                        "to": to,
+                        "subject": subject,
+                        "has_attachment": bool(attachment_path)
+                    })
+                )
+            
             return True
 
         except Exception as e:
             # Log failed email sending
             error_msg = f"Failed to send email to {to} with subject: {subject}. Error: {str(e)}"
             logger.error(error_msg)
+            
+            # Create failure event
+            if self.event_manager:
+                self.event_manager.add_event(
+                    type=EventType.NOTIFY.value,
+                    sub_type=SubEventType.EMAIL.value,
+                    status="error",
+                    title=error_msg,
+                    details=json.dumps({
+                        "to": to,
+                        "subject": subject,
+                        "has_attachment": bool(attachment_path),
+                        "error": str(e)
+                    })
+                )
+            
             return False

@@ -8,6 +8,7 @@ from app.schemas.event import EventFilter
 from app.utils.file_utils import get_attachment_data
 from typing import List, Optional, Dict, Any
 from sqlalchemy import desc, asc
+from app.models.event_types import EventType, SubEventType
 
 logger = logging.getLogger(__name__)
 

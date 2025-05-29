@@ -1,6 +1,7 @@
 from datetime import datetime, UTC
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, LargeBinary, Text
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, LargeBinary, Text, Enum as SQLEnum
 from app.core.database import Base
+from app.models.event_types import EventType, SubEventType
 
 class Event(Base):
     __tablename__ = "events"
@@ -8,8 +9,8 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     parent_id = Column(Integer, nullable=True)
     timestamp = Column(DateTime, default=lambda: datetime.now(UTC), index=True)
-    type = Column(String(20), index=True)       # system, user, application, service
-    sub_type = Column(String(20), nullable=True)
+    type = Column(SQLEnum(EventType), index=True)
+    sub_type = Column(SQLEnum(SubEventType), nullable=True)
     status = Column(String(10), nullable=True)  # success, error, warning, info
     title = Column(String(255))
     details = Column(Text, nullable=True)
