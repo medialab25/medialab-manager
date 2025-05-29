@@ -60,6 +60,26 @@ body {
     background-color: var(--card-bg);
 }
 
+.sidebar-header .sidebar-title-link {
+    text-decoration: none !important;
+    display: block;
+    color: inherit;
+    border: none;
+    outline: none;
+}
+
+.sidebar-header .sidebar-title-link:hover,
+.sidebar-header .sidebar-title-link:focus,
+.sidebar-header .sidebar-title-link:active {
+    text-decoration: none !important;
+    border: none;
+    outline: none;
+}
+
+.sidebar-header .sidebar-title-link:hover h1 {
+    opacity: 0.9;
+}
+
 .sidebar-header h1 {
     color: var(--primary-color);
     font-size: 1.75rem;
@@ -68,6 +88,19 @@ body {
     background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    transition: opacity var(--transition-speed);
+}
+
+.sidebar-header h1 a {
+    text-decoration: none;
+    color: inherit;
+    background: inherit;
+    -webkit-background-clip: inherit;
+    -webkit-text-fill-color: inherit;
+}
+
+.sidebar-header h1 a:hover {
+    opacity: 0.9;
 }
 
 .sidebar-nav ul {
