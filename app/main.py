@@ -99,37 +99,6 @@ app.include_router(views_router)
 app.include_router(notification_router, prefix="/api/notify", tags=["notify"])
 app.include_router(event_router, prefix="/api/events", tags=["events"])
 
-# Dummy data for projects
-PROJECTS = [
-    {
-        "id": 1,
-        "name": "Documentary Series",
-        "description": "A 6-part documentary series exploring local wildlife",
-        "status": "active",
-        "start_date": (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d"),
-        "end_date": (datetime.now() + timedelta(days=60)).strftime("%Y-%m-%d"),
-        "equipment_count": 5
-    },
-    {
-        "id": 2,
-        "name": "Music Video Production",
-        "description": "Music video shoot for local band's new single",
-        "status": "pending",
-        "start_date": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d"),
-        "end_date": (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d"),
-        "equipment_count": 3
-    },
-    {
-        "id": 3,
-        "name": "Corporate Event Coverage",
-        "description": "Video coverage of annual company conference",
-        "status": "completed",
-        "start_date": (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d"),
-        "end_date": (datetime.now() - timedelta(days=85)).strftime("%Y-%m-%d"),
-        "equipment_count": 4
-    }
-]
-
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse(
@@ -139,33 +108,18 @@ async def home(request: Request):
             "user": None,  # Replace with actual user when auth is implemented
             "messages": [],
             "dashboard": {
-                "total_projects": 3,
-                "active_projects": 1,
                 "total_equipment": 12,
-                "available_equipment": 8,
                 "recent_activity": [
                     {
                         "time": "2 hours ago",
-                        "description": "New project 'Documentary Series' created"
+                        "description": "System update completed"
                     },
                     {
                         "time": "1 day ago",
-                        "description": "Equipment 'Sony A7III' checked out"
+                        "description": "New event logged"
                     }
                 ]
             }
-        }
-    )
-
-@app.get("/projects")
-async def projects(request: Request):
-    return templates.TemplateResponse(
-        "pages/projects.html",
-        {
-            "request": request,
-            "user": None,  # Replace with actual user when auth is implemented
-            "messages": [],
-            "projects": PROJECTS
         }
     )
 
