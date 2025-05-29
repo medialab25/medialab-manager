@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -27,6 +27,7 @@ from app.scheduler import start_scheduler, stop_scheduler
 from app.schemas.event import EventFilter
 from app.models.event import Event
 from app.api.managers.event_manager import EventManager
+from app.models.event_types import EventType, SubEventType
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -80,8 +81,9 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Add template filter for removing query parameters
-def remove_query_param(query_params: dict, param: str) -> str:
-    params = parse_qs(query_params)
+def remove_query_param(query_params: str, param: str) -> str:
+    """Remove a parameter from query string"""
+    params = parse_qs(str(query_params))
     if param in params:
         del params[param]
     return urlencode(params, doseq=True)
@@ -144,6 +146,46 @@ async def events(
     status: str = None,
     db: Session = Depends(get_db)
 ):
+    # Validate event type if provided
+    if type:
+        try:
+            # Try to convert to EventType enum
+            event_type = EventType(type)
+            type = event_type.value
+        except ValueError:
+            # If invalid type, return empty results instead of error
+            return templates.TemplateResponse(
+                "pages/events.html",
+                {
+                    "request": request,
+                    "user": None,
+                    "messages": [{"type": "warning", "text": f"Invalid event type: {type}"}],
+                    "events": [],
+                    "page": page,
+                    "has_next": False
+                }
+            )
+
+    # Validate sub_type if provided
+    if sub_type:
+        try:
+            # Try to convert to SubEventType enum
+            event_sub_type = SubEventType(sub_type)
+            sub_type = event_sub_type.value
+        except ValueError:
+            # If invalid sub_type, return empty results instead of error
+            return templates.TemplateResponse(
+                "pages/events.html",
+                {
+                    "request": request,
+                    "user": None,
+                    "messages": [{"type": "warning", "text": f"Invalid sub-type: {sub_type}"}],
+                    "events": [],
+                    "page": page,
+                    "has_next": False
+                }
+            )
+
     # Convert query parameters to filter
     filter_params = {}
     if type:
