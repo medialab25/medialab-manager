@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import json
 
 from app.core.database import get_db
 from app.schemas.event import EventCreate, Event as EventSchema, EventFilter
@@ -90,4 +91,27 @@ def get_event_attachment(
         headers={
             'Content-Disposition': f'attachment; filename="event_{event_id}_attachment"'
         }
-    ) 
+    )
+
+@router.get("/{event_id}/details")
+def get_event_details(
+    event_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get the details content for a specific event as formatted JSON"""
+    event_manager = EventManager(db)
+    event = event_manager.get_event(event_id)
+    
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+        
+    if not event.details:
+        raise HTTPException(status_code=404, detail="Event has no details")
+        
+    try:
+        # Try to parse the details as JSON
+        details_json = json.loads(event.details)
+        return details_json
+    except json.JSONDecodeError:
+        # If not valid JSON, return as plain text
+        return {"content": event.details} 
