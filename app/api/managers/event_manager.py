@@ -23,7 +23,7 @@ class EventManager:
         with open(config_path) as f:
             return json.load(f)
 
-    def add_event(self, type: str, sub_type: str, status: str, title: str, details: str, attachment_path: str = None, parent_id: int = None) -> Event:
+    def add_event(self, type: str, sub_type: str, status: str, description: str, details: str, attachment_path: str = None, parent_id: int = None) -> Event:
         """Create a new event"""
         event = None
         if self.db_manager:
@@ -37,7 +37,7 @@ class EventManager:
                 type=type,
                 sub_type=sub_type,
                 status=status,
-                title=title,
+                description=description,
                 details=details,
                 has_attachment=bool(attachment_path),
                 attachment_data=attachment_data,
@@ -67,7 +67,7 @@ class EventManager:
             filter: EventFilter object containing filter criteria
             skip: Number of records to skip (for pagination)
             limit: Maximum number of records to return
-            sort_by: Field to sort by (id, timestamp, type, status, title)
+            sort_by: Field to sort by (id, timestamp, type, status, description)
             sort_order: Sort order ('asc' or 'desc')
         """
         if not self.db:
@@ -83,8 +83,8 @@ class EventManager:
             query = query.filter(Event.sub_type == filter.sub_type)
         if filter.status:
             query = query.filter(Event.status == filter.status)
-        if filter.title:
-            query = query.filter(Event.title.ilike(f"%{filter.title}%"))
+        if filter.description:
+            query = query.filter(Event.description.ilike(f"%{filter.description}%"))
         if filter.start_date:
             query = query.filter(Event.timestamp >= filter.start_date)
         if filter.end_date:

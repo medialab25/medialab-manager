@@ -72,7 +72,7 @@ class NotifyManager:
                     type=EventType.NOTIFY.value,
                     sub_type=SubEventType.EMAIL.value,
                     status="success",
-                    title=f"Email sent successfully to {to} with subject: {subject}",
+                    description=f"Email sent successfully to {to} with subject: {subject}",
                     details=json.dumps({
                         "to": to,
                         "subject": subject,
@@ -93,7 +93,7 @@ class NotifyManager:
                     type=EventType.NOTIFY.value,
                     sub_type=SubEventType.EMAIL.value,
                     status="error",
-                    title=error_msg,
+                    description=error_msg,
                     details=json.dumps({
                         "to": to,
                         "subject": subject,

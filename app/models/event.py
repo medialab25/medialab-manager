@@ -12,11 +12,11 @@ class Event(Base):
     type = Column(SQLEnum(EventType), index=True)
     sub_type = Column(SQLEnum(SubEventType), nullable=True)
     status = Column(String(10), nullable=True)  # success, error, warning, info
-    title = Column(String(255))
+    description = Column(String(255))
     details = Column(Text, nullable=True)
     has_attachment = Column(Boolean, default=False)
     attachment_data = Column(LargeBinary, nullable=True)
     attachment_mime_type = Column(String(100), nullable=True)  # MIME type
     
     def __repr__(self):
-        return f"<Event(id={self.id}, type={self.type}, status={self.status}, title={self.title})>" 
+        return f"<Event(id={self.id}, type={self.type}, status={self.status}, description={self.description})>" 

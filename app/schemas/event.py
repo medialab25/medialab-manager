@@ -6,7 +6,7 @@ class EventBase(BaseModel):
     type: str
     sub_type: Optional[str] = None
     status: str
-    title: str
+    description: str
     details: str
 
 class EventCreate(EventBase):
@@ -27,7 +27,7 @@ class EventFilter(BaseModel):
     type: Optional[str] = None
     sub_type: Optional[str] = None
     status: Optional[str] = None
-    title: Optional[str] = None
+    description: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     has_attachment: Optional[bool] = None
