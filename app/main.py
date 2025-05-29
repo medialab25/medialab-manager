@@ -23,6 +23,8 @@ from app.views import router as views_router
 #from app.api.routers.sync import router as sync_router
 #from app.api.routers.system import router as system_router
 from app.scheduler import start_scheduler, stop_scheduler
+from app.schemas.event import EventFilter
+from app.models.event import Event
 
 # Configure logging
 logger = logging.getLogger(__name__)
