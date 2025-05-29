@@ -35,10 +35,10 @@ async def view_logs(request: Request):
         with open(log_file, 'r') as f:
             for line in f:
                 try:
-                    # Parse log line (assuming format: timestamp - level - message)
-                    parts = line.strip().split(' - ', 2)
-                    if len(parts) == 3:
-                        timestamp, level, message = parts
+                    # Parse log line (format: timestamp - name - level - message)
+                    parts = line.strip().split(' - ', 3)
+                    if len(parts) == 4:
+                        timestamp, name, level, message = parts
                         logs.append({
                             'timestamp': timestamp,
                             'level': level,
