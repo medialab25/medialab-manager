@@ -14,6 +14,10 @@
             <option value="ERROR">Error</option>
         </select>
         <input type="text" id="log-search" class="form-input" placeholder="Search logs...">
+        <button id="auto-refresh" class="btn btn-secondary">
+            <span class="auto-refresh-icon">🔄</span>
+            <span class="auto-refresh-text">Auto-refresh</span>
+        </button>
     </div>
 
     <div class="logs-table-container">
@@ -109,6 +113,46 @@
     .form-input {
         flex: 1;
     }
+
+    .btn {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn:hover {
+        background-color: #e9ecef;
+    }
+
+    .btn.active {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+
+    .auto-refresh-icon {
+        font-size: 16px;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .auto-refresh-icon.spinning {
+        animation: spin 1s linear infinite;
+    }
 </style>
 {% endblock %}
 
@@ -118,6 +162,9 @@
         const logLevel = document.getElementById('log-level');
         const logSearch = document.getElementById('log-search');
         const logsBody = document.getElementById('logs-body');
+        const autoRefreshBtn = document.getElementById('auto-refresh');
+        const autoRefreshIcon = autoRefreshBtn.querySelector('.auto-refresh-icon');
+        let autoRefreshInterval = null;
 
         function filterLogs() {
             const level = logLevel.value;
@@ -133,8 +180,39 @@
             }
         }
 
+        async function refreshLogs() {
+            try {
+                const response = await fetch(window.location.href);
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const newLogsBody = doc.getElementById('logs-body');
+
+                if (newLogsBody) {
+                    logsBody.innerHTML = newLogsBody.innerHTML;
+                    filterLogs(); // Re-apply filters after refresh
+                }
+            } catch (error) {
+                console.error('Failed to refresh logs:', error);
+            }
+        }
+
+        function toggleAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                autoRefreshBtn.classList.remove('active');
+                autoRefreshIcon.classList.remove('spinning');
+            } else {
+                autoRefreshInterval = setInterval(refreshLogs, 5000); // Refresh every 5 seconds
+                autoRefreshBtn.classList.add('active');
+                autoRefreshIcon.classList.add('spinning');
+            }
+        }
+
         logLevel.addEventListener('change', filterLogs);
         logSearch.addEventListener('input', filterLogs);
+        autoRefreshBtn.addEventListener('click', toggleAutoRefresh);
     });
 </script>
 {% endblock %}
