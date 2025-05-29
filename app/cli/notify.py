@@ -2,17 +2,12 @@
 
 import typer
 import httpx
-from rich.console import Console
 from rich.panel import Panel
-from app.core.settings import settings
 from pathlib import Path
 
-notify_app = typer.Typer(help="Notify commands")
-console = Console()
+from app.cli.utils import get_server_url, console, handle_server_error
 
-def get_server_url() -> str:
-    """Get the server URL based on settings"""
-    return f"http://{settings.HOST}:{settings.PORT}"
+notify_app = typer.Typer(help="Notify commands")
 
 @notify_app.command()
 def mail(
@@ -46,10 +41,8 @@ def mail(
                 console.print(Panel.fit("Email sent successfully", style="green"))
             else:
                 console.print(Panel.fit(f"Failed to send email: {response.text}", style="red"))
-    except httpx.ConnectError:
-        console.print(Panel.fit("Could not connect to server. Make sure it's running.", style="red"))
     except Exception as e:
-        console.print(Panel.fit(f"Failed to send email: {str(e)}", style="red"))
+        handle_server_error(e)
     finally:
         if attachment and "files" in locals():
             files["attachment"][1].close()

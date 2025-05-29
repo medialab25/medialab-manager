@@ -2,12 +2,13 @@ import typer
 import logging
 import sys
 import httpx
-from rich.console import Console
 from rich.panel import Panel
 
 from app.core.settings import settings
 from app.cli.media import media_app
 from app.cli.notify import notify_app
+from app.cli.event import event_app
+from app.cli.utils import get_server_url, console, handle_server_error
 
 # Configure logging
 logging.basicConfig(
@@ -22,14 +23,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = typer.Typer(help="MediaLab Manager CLI")
-console = Console()
 
 app.add_typer(media_app, name="media", help="Media management commands")
 app.add_typer(notify_app, name="notify", help="Notification commands")
-
-def get_server_url() -> str:
-    """Get the server URL based on settings"""
-    return f"http://{settings.HOST}:{settings.PORT}"
+app.add_typer(event_app, name="event", help="Event management commands")
 
 @app.command()
 def start(
@@ -52,8 +49,8 @@ def status():
                 console.print(Panel.fit("Server is running", style="green"))
             else:
                 console.print(Panel.fit(f"Server returned status code: {response.status_code}", style="yellow"))
-    except httpx.ConnectError:
-        console.print(Panel.fit("Server is not running", style="red"))
+    except Exception as e:
+        handle_server_error(e)
 
 @app.command()
 def version():

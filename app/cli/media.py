@@ -9,9 +9,9 @@ from rich.console import Console
 from rich.panel import Panel
 
 from app.core.settings import settings
+from app.cli.utils import get_server_url, console, handle_server_error
 
 media_app = typer.Typer(help="Media management commands")
-console = Console()
 
 def get_server_url() -> str:
     """Get the server URL based on settings"""
@@ -34,8 +34,8 @@ def refresh():
                 console.print(Panel.fit("Media refresh completed successfully", style="green"))
             else:
                 console.print(Panel.fit(f"Media refresh failed with status code: {response.status_code}", style="red"))
-    except httpx.ConnectError:
-        console.print(Panel.fit("Could not connect to server. Make sure it's running.", style="red"))
+    except Exception as e:
+        handle_server_error(e)
 
 @media_app.command()
 def merge():
@@ -47,8 +47,8 @@ def merge():
                 console.print(Panel.fit("Media merge completed successfully", style="green"))
             else:
                 console.print(Panel.fit(f"Media merge failed with status code: {response.status_code}", style="red"))
-    except httpx.ConnectError:
-        console.print(Panel.fit("Could not connect to server. Make sure it's running.", style="red"))
+    except Exception as e:
+        handle_server_error(e)
 
 if __name__ == "__main__":
     media_app()

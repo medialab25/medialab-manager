@@ -15,9 +15,8 @@ from urllib.parse import urlencode, parse_qs
 from app.core.settings import settings
 from app.core.database import engine, Base, get_db
 from app.api.routers.notify import router as notification_router
+from app.api.routers.event import router as event_router
 from app.views import router as views_router
-from app.models.notification import Notification
-from app.schemas.notification import NotificationFilter
 #from app.api.routers.media import router as media_router
 #from app.api.routers.search import router as search_router
 #from app.api.routers.cache import router as cache_router
@@ -89,6 +88,7 @@ app.include_router(views_router)
 #app.include_router(cache_router, prefix="/api/cache", tags=["cache"])
 #app.include_router(sync_router, prefix="/api/sync", tags=["sync"])
 app.include_router(notification_router, prefix="/api/notify", tags=["notify"])
+app.include_router(event_router, prefix="/api/events", tags=["events"])
 
 # Dummy data for projects
 PROJECTS = [

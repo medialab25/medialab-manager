@@ -5,8 +5,7 @@ from datetime import datetime
 import mimetypes
 
 from app.core.database import get_db
-from app.models.notification import Notification
-from app.schemas.notification import NotificationCreate, Notification as NotificationSchema, NotificationFilter
+from app.schemas.event import NotificationCreate, Notification as NotificationSchema, NotificationFilter
 
 router = APIRouter()
 
