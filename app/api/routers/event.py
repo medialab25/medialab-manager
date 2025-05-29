@@ -1,6 +1,6 @@
 """Event management router."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -58,4 +58,36 @@ def list_events(
         )
     
     event_manager = EventManager(db)
-    return event_manager.list_events(filter, skip, limit, sort_by, sort_order) 
+    return event_manager.list_events(filter, skip, limit, sort_by, sort_order)
+
+@router.get("/{event_id}/attachment")
+def get_event_attachment(
+    event_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get the attachment content for a specific event"""
+    event_manager = EventManager(db)
+    event = event_manager.get_event(event_id)
+    
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+        
+    if not event.has_attachment or not event.attachment_data:
+        raise HTTPException(status_code=404, detail="Event has no attachment")
+        
+    # For text-based content, return as JSON
+    if event.attachment_mime_type and event.attachment_mime_type.startswith(('text/', 'application/json', 'application/xml')):
+        try:
+            content = event.attachment_data.decode('utf-8')
+            return {"content": content}
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=400, detail="Attachment content is not readable text")
+    
+    # For binary content, return as file download
+    return Response(
+        content=event.attachment_data,
+        media_type=event.attachment_mime_type or 'application/octet-stream',
+        headers={
+            'Content-Disposition': f'attachment; filename="event_{event_id}_attachment"'
+        }
+    ) 

@@ -161,7 +161,7 @@ class NotifyManager:
             status=status,
             description=description,
             details=json.dumps(details),
-            attachment_path=attachment_path if attachment_path else None
+            attachment_path=attachment_path
         )
 
     def send_mail(
@@ -200,7 +200,9 @@ class NotifyManager:
                 description=f"Email sent successfully to {to} with subject: {subject}",
                 to=to,
                 subject=subject,
-                body=body
+                body=body,
+                attachment_path=attachment_path,
+                filename=filename
             )
             return True
 
@@ -213,6 +215,8 @@ class NotifyManager:
                 to=to,
                 subject=subject,
                 body=body,
+                attachment_path=attachment_path,
+                filename=filename,
                 error=str(e)
             )
             return False

@@ -48,7 +48,13 @@ if [[ ! $SERVER_URL =~ ^https?:// ]]; then
 fi
 
 # Build the curl command
-CURL_CMD="curl -s -X POST -F \"to=$TO\" -F \"subject=$SUBJECT\" -F \"body=$BODY\""
+CURL_ARGS=(
+    "-s"
+    "-X" "POST"
+    "-F" "to=$TO"
+    "-F" "subject=$SUBJECT"
+    "-F" "body=$BODY"
+)
 
 # Add attachment if provided
 if [ ! -z "$ATTACHMENT" ]; then
@@ -56,20 +62,20 @@ if [ ! -z "$ATTACHMENT" ]; then
         echo "Error: Attachment file not found: $ATTACHMENT"
         exit 1
     fi
-    CURL_CMD="$CURL_CMD -F \"attachment=@$ATTACHMENT\""
+    CURL_ARGS+=("-F" "attachment=@$ATTACHMENT")
     
     # Add attachment name if provided
     if [ ! -z "$ATTACHMENT_NAME" ]; then
-        CURL_CMD="$CURL_CMD -F \"attachment_name=$ATTACHMENT_NAME\""
+        CURL_ARGS+=("-F" "attachment_name=$ATTACHMENT_NAME")
     fi
 fi
 
 # Add the server URL with the correct endpoint path
-CURL_CMD="$CURL_CMD $SERVER_URL/api/notify/mail"
+CURL_ARGS+=("$SERVER_URL/api/notify/mail")
 
 # Execute the command
 echo "Sending email..."
-eval $CURL_CMD
+curl "${CURL_ARGS[@]}"
 CURL_EXIT_CODE=$?
 
 if [ $CURL_EXIT_CODE -ne 0 ]; then
