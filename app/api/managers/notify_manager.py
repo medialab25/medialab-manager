@@ -9,6 +9,7 @@ import mimetypes
 import logging
 from sqlalchemy.orm import Session
 from app.core.database import DBManager
+from app.api.managers.event_manager import EventManager
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,8 @@ class NotifyManager:
         self.smtp_settings = self.config["NOTIFICATION"]
         self.from_email = self.smtp_settings["SMTP_FROM"]
         self.to_email = self.smtp_settings["SMTP_TO"]
+        self.db = db
+        self.event_manager = EventManager(db)
 
     def _load_config(self) -> dict:
         config_path = Path("config.json")
@@ -26,7 +29,6 @@ class NotifyManager:
 
     def send_mail(self, to: str, subject: str, body: str, attachment_path: str = None, filename: str = None) -> bool:
         try:
-            
             msg = MIMEMultipart()
             msg["From"] = self.smtp_settings["SMTP_FROM"]
             msg["To"] = to
@@ -58,13 +60,31 @@ class NotifyManager:
 
             with smtplib.SMTP(self.smtp_settings["SMTP_RELAY"], self.smtp_settings["SMTP_PORT"]) as server:
                 server.send_message(msg)
+                
+            # Log successful email sending
+            logger.info(f"Email sent successfully to {to} with subject: {subject}")
+            self.event_manager.add_event(
+                type="notification",
+                sub_type="email",
+                status="success",
+                title=f"Email sent to {to}",
+                details=f"Email sent successfully to {to} with subject: {subject}"
+            )
+            return True
 
         except Exception as e:
+            # Log failed email sending
+            error_msg = f"Failed to send email to {to} with subject: {subject}. Error: {str(e)}"
+            logger.error(error_msg)
+            self.event_manager.add_event(
+                type="notification",
+                sub_type="email",
+                status="error",
+                title=f"Failed to send email to {to}",
+                details=error_msg
+            )
             return False
-        
-        return True
 
-    
     def _get_attachment_data(self, attachment_path: str) -> tuple[bytes, str]:
         with open(attachment_path, 'rb') as attachment:
             mime_type, _ = mimetypes.guess_type(attachment_path)
