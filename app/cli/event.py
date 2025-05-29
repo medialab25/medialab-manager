@@ -14,7 +14,7 @@ event_app = typer.Typer(help="Event management commands")
 
 @event_app.command()
 def test():
-    """Test event creation, retrieval, and filtering"""
+    """Test event creation, retrieval, filtering, and sorting"""
     try:
         with get_http_client() as client:
             # Create a test event
@@ -57,11 +57,13 @@ def test():
                 console.print(Panel.fit(f"Failed to retrieve test event: {get_response.text}", style="red"))
                 return
 
-            # Test filtering events
+            # Test filtering and sorting events
             filter_params = {
                 "type": "system",
                 "status": "success",
-                "title": "Test Event"
+                "title": "Test Event",
+                "sort_by": "timestamp",
+                "sort_order": "desc"
             }
             
             filter_response = client.get(
@@ -73,13 +75,15 @@ def test():
                 events = filter_response.json()
                 if events:
                     console.print(Panel.fit(
-                        f"Successfully filtered events:\n"
+                        f"Successfully filtered and sorted events:\n"
                         f"Found {len(events)} matching events\n"
+                        f"Sorted by: {filter_params['sort_by']} ({filter_params['sort_order']})\n"
                         f"First event:\n"
                         f"ID: {events[0]['id']}\n"
                         f"Type: {events[0]['type']}\n"
                         f"Status: {events[0]['status']}\n"
-                        f"Title: {events[0]['title']}",
+                        f"Title: {events[0]['title']}\n"
+                        f"Timestamp: {events[0]['timestamp']}",
                         style="green"
                     ))
                 else:

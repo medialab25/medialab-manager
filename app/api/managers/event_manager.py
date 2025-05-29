@@ -6,7 +6,8 @@ from app.models.event import Event
 from app.core.database import DBManager
 from app.api.managers.notify_manager import NotifyManager
 from app.schemas.event import EventFilter
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from sqlalchemy import desc, asc
 
 logger = logging.getLogger(__name__)
 
@@ -52,13 +53,29 @@ class EventManager:
             return None
         return self.db.query(Event).filter(Event.id == event_id).first()
 
-    def list_events(self, filter: EventFilter, skip: int = 0, limit: int = 100) -> List[Event]:
-        """List events with optional filtering"""
+    def list_events(
+        self, 
+        filter: EventFilter, 
+        skip: int = 0, 
+        limit: int = 100,
+        sort_by: str = "timestamp",
+        sort_order: str = "desc"
+    ) -> List[Event]:
+        """List events with optional filtering and sorting
+        
+        Args:
+            filter: EventFilter object containing filter criteria
+            skip: Number of records to skip (for pagination)
+            limit: Maximum number of records to return
+            sort_by: Field to sort by (id, timestamp, type, status, title)
+            sort_order: Sort order ('asc' or 'desc')
+        """
         if not self.db:
             return []
             
         query = self.db.query(Event)
         
+        # Apply filters
         if filter.type:
             query = query.filter(Event.type == filter.type)
         if filter.sub_type:
@@ -76,4 +93,9 @@ class EventManager:
         if filter.parent_id is not None:
             query = query.filter(Event.parent_id == filter.parent_id)
         
-        return query.order_by(Event.timestamp.desc()).offset(skip).limit(limit).all() 
+        # Apply sorting
+        sort_field = getattr(Event, sort_by, Event.timestamp)
+        sort_func = desc if sort_order.lower() == "desc" else asc
+        query = query.order_by(sort_func(sort_field))
+        
+        return query.offset(skip).limit(limit).all() 

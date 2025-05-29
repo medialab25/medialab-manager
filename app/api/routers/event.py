@@ -1,8 +1,8 @@
 """Event management router."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.core.database import get_db
 from app.schemas.event import EventCreate, Event as EventSchema, EventFilter
@@ -42,8 +42,20 @@ def list_events(
     filter: EventFilter = Depends(),
     skip: int = 0,
     limit: int = 100,
+    sort_by: str = Query("timestamp", description="Field to sort by (id, timestamp, type, status, title)"),
+    sort_order: str = Query("desc", description="Sort order (asc or desc)"),
     db: Session = Depends(get_db)
 ):
-    """List events with optional filtering"""
+    """List events with optional filtering and sorting"""
+    if sort_order.lower() not in ["asc", "desc"]:
+        raise HTTPException(status_code=400, detail="sort_order must be 'asc' or 'desc'")
+    
+    valid_sort_fields = ["id", "timestamp", "type", "status", "title"]
+    if sort_by not in valid_sort_fields:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"sort_by must be one of: {', '.join(valid_sort_fields)}"
+        )
+    
     event_manager = EventManager(db)
-    return event_manager.list_events(filter, skip, limit) 
+    return event_manager.list_events(filter, skip, limit, sort_by, sort_order) 
