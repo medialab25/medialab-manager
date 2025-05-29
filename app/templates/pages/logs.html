@@ -75,6 +75,13 @@
         font-weight: 600;
     }
 
+    /* Add specific width for timestamp column */
+    .logs-table th:first-child,
+    .logs-table td:first-child {
+        min-width: 180px;
+        white-space: nowrap;
+    }
+
     .log-level-info {
         color: #0d6efd;
     }
