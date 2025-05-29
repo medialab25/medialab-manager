@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from datetime import datetime
-import logging
-import os
 from pathlib import Path
 
 from app.core.settings import settings
@@ -18,18 +16,6 @@ def format_timestamp(timestamp_str: str) -> str:
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
-
-@router.get("/dashboard")
-async def dashboard(request: Request):
-    return templates.TemplateResponse(
-        "pages/dashboard.html",
-        {
-            "request": request,
-            "title": "Dashboard",
-            "config": settings,
-            "now": datetime.now()
-        }
-    )
 
 @router.get("/logs")
 async def view_logs(request: Request):
@@ -83,4 +69,4 @@ async def view_logs(request: Request):
             "title": "System Logs",
             "logs": logs
         }
-    )
+    ) 
