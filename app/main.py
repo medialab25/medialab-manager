@@ -100,7 +100,26 @@ app.include_router(notification_router, prefix="/api/notify", tags=["notify"])
 app.include_router(event_router, prefix="/api/events", tags=["events"])
 
 @app.get("/")
-async def home(request: Request):
+async def home(request: Request, db: Session = Depends(get_db)):
+    # Get the last 10 events using EventManager
+    event_manager = EventManager(db)
+    recent_events = event_manager.list_events(
+        EventFilter(),
+        skip=0,
+        limit=10,
+        sort_by="timestamp",
+        sort_order="desc"
+    )
+
+    # Format events for display
+    recent_activity = [
+        {
+            "time": event.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "description": f"{event.title} - {event.details}"
+        }
+        for event in recent_events
+    ]
+
     return templates.TemplateResponse(
         "pages/home.html",
         {
@@ -109,16 +128,7 @@ async def home(request: Request):
             "messages": [],
             "dashboard": {
                 "total_equipment": 12,
-                "recent_activity": [
-                    {
-                        "time": "2 hours ago",
-                        "description": "System update completed"
-                    },
-                    {
-                        "time": "1 day ago",
-                        "description": "New event logged"
-                    }
-                ]
+                "recent_activity": recent_activity
             }
         }
     )
