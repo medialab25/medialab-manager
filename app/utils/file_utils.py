@@ -1,3 +1,4 @@
+from enum import Enum
 import mimetypes
 from pathlib import Path
 import re
@@ -66,3 +67,23 @@ def get_attachment_data(attachment_path: str) -> tuple[bytes, str]:
                 mime_type = 'application/octet-stream'
         
         return content, mime_type 
+    
+class AttachDataMimeType(str, Enum):
+    """Attach data type"""
+    TEXT = "text"
+    MARKDOWN = "markdown"
+    SHELL = "shell"
+    HTML = "html"
+    PLAIN = "plain"
+    OTHER = "other"
+
+# Dictionary mapping AttachDataMimeType enum values to their MIME type strings
+MIME_TYPE_MAPPING = {
+    AttachDataMimeType.TEXT: "text/plain",
+    AttachDataMimeType.MARKDOWN: "text/markdown",
+    AttachDataMimeType.SHELL: "text/x-shellscript",
+    AttachDataMimeType.HTML: "text/html",
+    AttachDataMimeType.PLAIN: "text/plain",
+    AttachDataMimeType.OTHER: "application/octet-stream"
+}
+    

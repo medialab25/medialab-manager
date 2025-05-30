@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.models.event import Event
 from app.core.database import DBManager
 from app.schemas.event import EventFilter
-from app.utils.file_utils import get_attachment_data
+from app.utils.file_utils import get_attachment_data, AttachDataMimeType, MIME_TYPE_MAPPING
 from typing import List, Optional, Dict, Any
 from sqlalchemy import desc, asc
 from app.models.event_types import EventType, SubEventType
@@ -22,6 +22,38 @@ class EventManager:
         config_path = Path("config.json")
         with open(config_path) as f:
             return json.load(f)
+
+    def add_event_with_output(self, type: str, sub_type: str, status: str, description: str, details: str, attachment_data: bytes = None, attachment_mime_type: AttachDataMimeType = None, parent_id: int = None) -> Event:
+        """Create a new event with binary attachment data
+        
+        Args:
+            type: Event type
+            sub_type: Event sub-type
+            status: Event status
+            description: Event description
+            details: Event details
+            attachment_data: Binary attachment data
+            attachment_mime_type: MIME type of the attachment
+            parent_id: Optional parent event ID
+            
+        Returns:
+            Event: Created event object
+        """
+        event = None
+        if self.db_manager:
+            event = self.db_manager.create(
+                type=type,
+                sub_type=sub_type,
+                status=status,
+                description=description,
+                details=details,
+                has_attachment=bool(attachment_data),
+                attachment_data=attachment_data,
+                attachment_mime_type=MIME_TYPE_MAPPING.get(attachment_mime_type) if attachment_mime_type else None,
+                parent_id=parent_id
+            )
+
+        return event
 
     def add_event(self, type: str, sub_type: str, status: str, description: str, details: str, attachment_path: str = None, parent_id: int = None) -> Event:
         """Create a new event"""
