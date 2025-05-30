@@ -10,5 +10,15 @@
         "SMTP_PORT": 25,
         "SMTP_FROM": "MediaLab Admin <admin@spongnet.uk>",
         "SMTP_TO": "medialab25@icloud.com"
+    },
+    "TASKS": {
+        "snapraid": {
+            "enabled": true,
+            "task_type": "cron",
+            "function_name": "snapraid_task",
+            "cron_hour": "*",
+            "cron_minute": "*",
+            "cron_second": "*/5"
+        }
     }
-}  
+}

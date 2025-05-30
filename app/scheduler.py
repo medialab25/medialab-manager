@@ -2,6 +2,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.date import DateTrigger
+from apscheduler.executors.pool import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from typing import Dict, Callable, Any, List, Optional
 from dataclasses import dataclass
@@ -10,8 +11,23 @@ import logging
 
 # from app.api.managers.sync_manager import SyncManager
 from app.core.settings import settings
+from app.tasks import test_task
 
 logger = logging.getLogger(__name__)
+
+# Configure executors
+executors = {
+    'default': ThreadPoolExecutor(max_workers=5)  # Adjust this number based on your needs
+}
+
+# Configure job defaults
+job_defaults = {
+    'coalesce': True,  # Combine multiple waiting executions
+    'max_instances': 1  # Allow up to 1 concurrent executions of the same task
+}
+
+# Create a scheduler instance with custom executors and job defaults
+scheduler = BackgroundScheduler(executors=executors, job_defaults=job_defaults)
 
 @dataclass
 class TaskConfig:
@@ -38,9 +54,6 @@ class Task:
     enabled: bool
     config: TaskConfig
 
-# Create a scheduler instance
-scheduler = BackgroundScheduler()
-
 # Dictionary to store registered task functions
 task_registry: Dict[str, Callable] = {}
 
@@ -58,18 +71,18 @@ def start_scheduler():
     """Start the scheduler and add default jobs"""
     if not scheduler.running:
         scheduler.start()
-        # # Add tasks from settings
-        # for task_id, task_data in settings.TASKS.items():
-        #     if task_data.get("enabled", False):
-        #         config = TaskConfig(
-        #             task_id=task_id,
-        #             task_type=task_data.get("task_type", "interval"),
-        #             function_name=task_data.get("function_name", task_id),
-        #             cron_hour=task_data.get("cron_hour", 0),
-        #             cron_minute=task_data.get("cron_minute", 0),
-        #             cron_second=task_data.get("cron_second", 0)
-        #         )
-        #         add_task(task_id, config)
+        # Add tasks from settings
+        for task_id, task_data in settings.TASKS.items():
+            if task_data.get("enabled", False):
+                config = TaskConfig(
+                    task_id=task_id,
+                    task_type=task_data.get("task_type", "interval"),
+                    function_name=task_data.get("function_name", task_id),
+                    cron_hour=task_data.get("cron_hour", 0),
+                    cron_minute=task_data.get("cron_minute", 0),
+                    cron_second=task_data.get("cron_second", 0)
+                )
+                add_task(task_id, config)
 
 def stop_scheduler():
     """Stop the scheduler"""
@@ -136,5 +149,6 @@ def sync_task():
 
 # Register example tasks
 register_task("sync", sync_task)
+register_task("snapraid_task", test_task.dummy_task)
 
 # You can add more task functions here 
