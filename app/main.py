@@ -227,6 +227,17 @@ async def events(
         }
     )
 
+@app.get("/media-manage")
+async def media_manage(request: Request):
+    return templates.TemplateResponse(
+        "pages/media_manage.html",
+        {
+            "request": request,
+            "user": None,  # Replace with actual user when auth is implemented
+            "messages": []
+        }
+    )
+
 def run_service(debug: bool = None):
     """Run the FastAPI service with uvicorn"""
     if debug is not None:
