@@ -12,6 +12,8 @@
         height: calc(100vh - 120px);
         gap: 1rem;
         padding: 1rem;
+        overflow: hidden;
+        /* Prevent main container scroll */
     }
 
     .filter-bar {
@@ -22,6 +24,8 @@
         display: flex;
         gap: 1rem;
         align-items: center;
+        flex-shrink: 0;
+        /* Prevent filter bar from shrinking */
     }
 
     .filter-group {
@@ -44,9 +48,13 @@
 
     .media-content {
         display: flex;
+        flex-direction: column;
         flex: 1;
         gap: 1rem;
         min-height: 0;
+        /* Allow content to shrink */
+        overflow: hidden;
+        /* Prevent content scroll */
     }
 
     .media-list {
@@ -55,56 +63,111 @@
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         overflow-y: auto;
+        /* Enable vertical scroll for list */
+        min-height: 0;
+        /* Allow list to shrink */
     }
 
     .media-item {
-        padding: 1rem;
+        padding: 0.75rem 1rem;
         border-bottom: 1px solid #e2e8f0;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .media-item:last-child {
+        border-bottom: none;
     }
 
     .media-item:hover {
-        background-color: #f7fafc;
+        background-color: #f8fafc;
+        transform: translateX(4px);
     }
 
     .media-item.active {
-        background-color: #ebf8ff;
+        background-color: #eff6ff;
+        border-left: 3px solid #3b82f6;
     }
 
     .media-item h3 {
         margin: 0;
-        color: #2d3748;
+        color: #1e293b;
+        font-size: 0.95rem;
+        font-weight: 600;
     }
 
     .media-item p {
-        margin: 0.5rem 0 0;
-        color: #718096;
-        font-size: 0.875rem;
+        margin: 0.25rem 0 0;
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+
+    .media-item-info {
+        flex: 1;
+    }
+
+    .media-item-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+
+    .media-item-status span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .media-item-status i {
+        font-size: 0.9rem;
     }
 
     .files-panel {
-        width: 300px;
         background: #fff;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 1rem;
+        padding: 0.75rem;
+        max-height: 180px;
         overflow-y: auto;
+        /* Enable vertical scroll for files */
+        display: none;
+        flex-shrink: 0;
+        /* Prevent files panel from shrinking */
+    }
+
+    .files-panel.visible {
+        display: block;
     }
 
     .files-panel h3 {
-        margin: 0 0 1rem;
-        color: #2d3748;
+        margin: 0 0 0.75rem;
+        color: #1e293b;
+        font-size: 0.95rem;
+        font-weight: 600;
     }
 
     .file-item {
         padding: 0.5rem;
         border-bottom: 1px solid #e2e8f0;
-        font-size: 0.875rem;
+        font-size: 0.85rem;
+        color: #475569;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .file-item:last-child {
         border-bottom: none;
+    }
+
+    .file-item i {
+        color: #94a3b8;
+        font-size: 0.9rem;
     }
 </style>
 {% endblock %}
@@ -133,36 +196,61 @@
         <div class="media-list">
             <!-- Dummy Data -->
             <div class="media-item active">
-                <h3>Breaking Bad</h3>
-                <p>Seasons: 5 | Episodes: 62</p>
+                <div class="media-item-info">
+                    <h3>Breaking Bad</h3>
+                    <p>Seasons: 5 | Episodes: 62</p>
+                </div>
+                <div class="media-item-status">
+                    <span><i class="fas fa-film"></i> 5 seasons</span>
+                    <span><i class="fas fa-video"></i> 62 episodes</span>
+                </div>
             </div>
             <div class="media-item">
-                <h3>Game of Thrones</h3>
-                <p>Seasons: 8 | Episodes: 73</p>
+                <div class="media-item-info">
+                    <h3>Game of Thrones</h3>
+                    <p>Seasons: 8 | Episodes: 73</p>
+                </div>
+                <div class="media-item-status">
+                    <span><i class="fas fa-film"></i> 8 seasons</span>
+                    <span><i class="fas fa-video"></i> 73 episodes</span>
+                </div>
             </div>
             <div class="media-item">
-                <h3>The Office</h3>
-                <p>Seasons: 9 | Episodes: 201</p>
+                <div class="media-item-info">
+                    <h3>The Office</h3>
+                    <p>Seasons: 9 | Episodes: 201</p>
+                </div>
+                <div class="media-item-status">
+                    <span><i class="fas fa-film"></i> 9 seasons</span>
+                    <span><i class="fas fa-video"></i> 201 episodes</span>
+                </div>
             </div>
             <div class="media-item">
-                <h3>Stranger Things</h3>
-                <p>Seasons: 4 | Episodes: 34</p>
+                <div class="media-item-info">
+                    <h3>Stranger Things</h3>
+                    <p>Seasons: 4 | Episodes: 34</p>
+                </div>
+                <div class="media-item-status">
+                    <span><i class="fas fa-film"></i> 4 seasons</span>
+                    <span><i class="fas fa-video"></i> 34 episodes</span>
+                </div>
             </div>
             <div class="media-item">
-                <h3>The Mandalorian</h3>
-                <p>Seasons: 3 | Episodes: 24</p>
+                <div class="media-item-info">
+                    <h3>The Mandalorian</h3>
+                    <p>Seasons: 3 | Episodes: 24</p>
+                </div>
+                <div class="media-item-status">
+                    <span><i class="fas fa-film"></i> 3 seasons</span>
+                    <span><i class="fas fa-video"></i> 24 episodes</span>
+                </div>
             </div>
         </div>
 
         <!-- Files Panel -->
         <div class="files-panel">
             <h3>Associated Files</h3>
-            <!-- Dummy Data -->
-            <div class="file-item">breaking_bad_s01e01.mkv</div>
-            <div class="file-item">breaking_bad_s01e02.mkv</div>
-            <div class="file-item">breaking_bad_s01e03.mkv</div>
-            <div class="file-item">breaking_bad_s01e04.mkv</div>
-            <div class="file-item">breaking_bad_s01e05.mkv</div>
+            <div class="files-content"></div>
         </div>
     </div>
 </div>
@@ -173,6 +261,54 @@
     document.addEventListener('DOMContentLoaded', function () {
         const mediaItems = document.querySelectorAll('.media-item');
         const filesPanel = document.querySelector('.files-panel');
+        const filesContent = document.querySelector('.files-content');
+        const titleFilter = document.getElementById('title-filter');
+        const seasonFilter = document.getElementById('season-filter');
+        const episodeFilter = document.getElementById('episode-filter');
+
+        // Function to update files panel
+        function updateFilesPanel(title) {
+            const files = mediaData[title]?.files || [];
+            filesContent.innerHTML = files.map(file =>
+                `<div class="file-item"><i class="fas fa-file-video"></i>${file}</div>`
+            ).join('');
+            filesPanel.classList.add('visible');
+        }
+
+        // Function to set active item
+        function setActiveItem(item) {
+            // Remove active class from all items
+            mediaItems.forEach(i => i.classList.remove('active'));
+            // Add active class to selected item
+            item.classList.add('active');
+            // Update files panel
+            const title = item.querySelector('h3').textContent;
+            updateFilesPanel(title);
+            // Store selection in localStorage
+            localStorage.setItem('selectedMediaItem', title);
+        }
+
+        // Function to save filter values
+        function saveFilters() {
+            const filters = {
+                title: titleFilter.value,
+                season: seasonFilter.value,
+                episode: episodeFilter.value
+            };
+            localStorage.setItem('mediaFilters', JSON.stringify(filters));
+        }
+
+        // Function to restore filter values
+        function restoreFilters() {
+            const savedFilters = localStorage.getItem('mediaFilters');
+            if (savedFilters) {
+                const filters = JSON.parse(savedFilters);
+                titleFilter.value = filters.title;
+                seasonFilter.value = filters.season;
+                episodeFilter.value = filters.episode;
+                applyFilters(); // Apply the restored filters
+            }
+        }
 
         // Dummy data for files and seasons/episodes
         const mediaData = {
@@ -254,32 +390,17 @@
         // Handle media item clicks
         mediaItems.forEach(item => {
             item.addEventListener('click', function () {
-                // Remove active class from all items
-                mediaItems.forEach(i => i.classList.remove('active'));
-                // Add active class to clicked item
-                this.classList.add('active');
-
-                // Update files panel
-                const title = this.querySelector('h3').textContent;
-                const files = mediaData[title]?.files || [];
-
-                // Update files panel content
-                filesPanel.innerHTML = `
-                    <h3>Associated Files</h3>
-                    ${files.map(file => `<div class="file-item">${file}</div>`).join('')}
-                `;
+                setActiveItem(this);
             });
         });
 
         // Handle filters
-        const titleFilter = document.getElementById('title-filter');
-        const seasonFilter = document.getElementById('season-filter');
-        const episodeFilter = document.getElementById('episode-filter');
-
         function applyFilters() {
             const titleValue = titleFilter.value.toLowerCase();
             const seasonRanges = parseRange(seasonFilter.value);
             const episodeRanges = parseRange(episodeFilter.value);
+
+            let firstVisibleItem = null;
 
             mediaItems.forEach(item => {
                 const title = item.querySelector('h3').textContent;
@@ -292,8 +413,25 @@
                 const matchesEpisode = !episodeRanges || episodeRanges.has(mediaInfo.episodes);
 
                 // Show item if it matches all active filters
-                item.style.display = (matchesTitle && matchesSeason && matchesEpisode) ? 'block' : 'none';
+                const isVisible = matchesTitle && matchesSeason && matchesEpisode;
+                item.style.display = isVisible ? 'flex' : 'none';
+
+                // Track the first visible item
+                if (isVisible && !firstVisibleItem) {
+                    firstVisibleItem = item;
+                }
             });
+
+            // If we have a visible item, select it and update files
+            if (firstVisibleItem) {
+                setActiveItem(firstVisibleItem);
+            } else {
+                // If no items are visible, hide the files panel
+                filesPanel.classList.remove('visible');
+            }
+
+            // Save filters after applying them
+            saveFilters();
         }
 
         // Add input event listeners for real-time filtering
@@ -313,6 +451,34 @@
 
         seasonFilter.addEventListener('input', () => formatRangeInput(seasonFilter));
         episodeFilter.addEventListener('input', () => formatRangeInput(episodeFilter));
+
+        // Restore filters and selection on page load
+        restoreFilters();
+
+        // Restore previous selection or select first item
+        const savedTitle = localStorage.getItem('selectedMediaItem');
+        if (savedTitle) {
+            const savedItem = Array.from(mediaItems).find(item =>
+                item.querySelector('h3').textContent === savedTitle
+            );
+            if (savedItem) {
+                setActiveItem(savedItem);
+            } else {
+                // If saved item not found (e.g., filtered out), select first visible item
+                const firstVisibleItem = Array.from(mediaItems).find(item =>
+                    item.style.display !== 'none'
+                );
+                if (firstVisibleItem) {
+                    setActiveItem(firstVisibleItem);
+                }
+            }
+        } else {
+            // No saved selection, select first item
+            const firstItem = document.querySelector('.media-item');
+            if (firstItem) {
+                setActiveItem(firstItem);
+            }
+        }
     });
 </script>
 {% endblock %}
