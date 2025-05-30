@@ -17,6 +17,7 @@ from app.core.settings import settings
 from app.core.database import engine, Base, get_db
 from app.api.routers.notify import router as notification_router
 from app.api.routers.event import router as event_router
+from app.api.routers.tasks import router as tasks_router
 from app.views import router as views_router
 #from app.api.routers.media import router as media_router
 #from app.api.routers.search import router as search_router
@@ -92,7 +93,7 @@ templates.env.filters["remove_param"] = remove_query_param
 
 # Include routers
 app.include_router(views_router)
-#app.include_router(tasks.router)
+app.include_router(tasks_router, prefix="/api/tasks", tags=["tasks"])
 #app.include_router(system_router, prefix="/api/system", tags=["system"])
 #app.include_router(media_router, prefix="/api/media", tags=["media"])
 #app.include_router(search_router, prefix="/api/search", tags=["search"])

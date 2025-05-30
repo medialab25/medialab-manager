@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks - MediaLab Manager{% endblock %}
+
+{% block header_title %}Tasks{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tasks-container {
+        padding: 20px;
+    }
+
+    .task-group {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .task-group-header {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .tasks-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .tasks-table th,
+    .tasks-table td {
+        padding: 12px 20px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .tasks-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .tasks-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .task-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .task-name {
+        font-weight: 500;
+        color: #212529;
+    }
+
+    .task-description {
+        color: #6c757d;
+        font-size: 0.9em;
+    }
+
+    .task-last-run {
+        color: #6c757d;
+        font-size: 0.9em;
+        white-space: nowrap;
+    }
+
+    .no-tasks {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tasks-container">
+    {% if tasks %}
+    {% for group, group_tasks in tasks.items() %}
+    <div class="task-group">
+        <div class="task-group-header">{{ group }}</div>
+        <table class="tasks-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px">Status</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th style="width: 200px">Last Run</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in group_tasks %}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" {% if task.enabled
+                            %}checked{% endif %} onchange="toggleTask(this)">
+                    </td>
+                    <td class="task-name">{{ task.name }}</td>
+                    <td class="task-description">{{ task.description }}</td>
+                    <td class="task-last-run">{{ task.last_run|default('Never', true) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="no-tasks">No tasks configured</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function toggleTask(checkbox) {
+        const taskId = checkbox.dataset.taskId;
+        const enabled = checkbox.checked;
+
+        try {
+            const response = await fetch(`/api/tasks/${taskId}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ enabled }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to toggle task');
+            }
+
+            // Show success message
+            const message = enabled ? 'Task enabled' : 'Task disabled';
+            alert(message);
+        } catch (error) {
+            console.error('Error toggling task:', error);
+            checkbox.checked = !enabled; // Revert checkbox state
+            alert('Failed to update task status');
+        }
+    }
+</script>
+{% endblock %}
