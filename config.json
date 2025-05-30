@@ -13,7 +13,7 @@
     },
     "TASKS": {
         "snapraid": {
-            "enabled": true,
+            "enabled": false,
             "task_type": "cron",
             "function_name": "snapraid_task",
             "cron_hour": "*",

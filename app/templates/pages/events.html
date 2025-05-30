@@ -450,6 +450,9 @@
                             } catch (e) {
                                 // If JSON parsing fails, display as plain text
                             }
+                        } else if (language === 'plaintext') {
+                            // For plain text, just display it as is
+                            text = text.trim();
                         }
 
                         content.innerHTML = `<pre><code class="language-${language}">${escapeHtml(text)}</code></pre>`;

@@ -80,7 +80,14 @@ def get_event_attachment(
     if event.attachment_mime_type and event.attachment_mime_type.startswith(('text/', 'application/json', 'application/xml')):
         try:
             content = event.attachment_data.decode('utf-8')
-            return {"content": content}
+            if event.attachment_mime_type.startswith('application/json'):
+                # Only wrap JSON content in a JSON response
+                return {"content": content}
+            # Return plain text directly
+            return Response(
+                content=content,
+                media_type=event.attachment_mime_type
+            )
         except UnicodeDecodeError:
             raise HTTPException(status_code=400, detail="Attachment content is not readable text")
     
