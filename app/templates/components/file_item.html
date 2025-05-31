@@ -1,0 +1,9 @@
+{% macro file_item(filename, quality, icon='📺') %}
+<div class="file-item">
+    <div class="file-icon">{{ icon }}</div>
+    <div class="file-info">
+        <div class="file-name">{{ filename }}</div>
+        <div class="file-meta">{{ quality }}</div>
+    </div>
+</div>
+{% endmacro %}

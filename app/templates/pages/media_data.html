@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/file_item.html" import file_item %}
 
 {% block title %}Media Data - MediaLab Manager{% endblock %}
 
@@ -61,27 +62,9 @@
                     </div>
                     <div class="season-content">
                         <div class="file-list">
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">Breaking Bad S01E01 - Pilot.mkv</div>
-                                    <div class="file-meta">1080p</div>
-                                </div>
-                            </div>
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">Breaking Bad S01E02 - Cat's in the Bag.mkv</div>
-                                    <div class="file-meta">1080p</div>
-                                </div>
-                            </div>
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">Breaking Bad S01E03 - And the Bag's in the River.mkv</div>
-                                    <div class="file-meta">1080p</div>
-                                </div>
-                            </div>
+                            {{ file_item("Breaking Bad S01E01 - Pilot.mkv", "1080p") }}
+                            {{ file_item("Breaking Bad S01E02 - Cat's in the Bag.mkv", "1080p") }}
+                            {{ file_item("Breaking Bad S01E03 - And the Bag's in the River.mkv", "1080p") }}
                         </div>
                     </div>
                 </div>
@@ -100,20 +83,8 @@
                     </div>
                     <div class="season-content">
                         <div class="file-list">
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">Breaking Bad S02E01 - 737.mkv</div>
-                                    <div class="file-meta">1080p</div>
-                                </div>
-                            </div>
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">Breaking Bad S02E02 - Grilled.mkv</div>
-                                    <div class="file-meta">1080p</div>
-                                </div>
-                            </div>
+                            {{ file_item("Breaking Bad S02E01 - 737.mkv", "1080p") }}
+                            {{ file_item("Breaking Bad S02E02 - Grilled.mkv", "1080p") }}
                         </div>
                     </div>
                 </div>
@@ -141,20 +112,8 @@
             </div>
             <div class="media-item-details">
                 <div class="file-list">
-                    <div class="file-item">
-                        <div class="file-icon">🎬</div>
-                        <div class="file-info">
-                            <div class="file-name">Inception (2010).mkv</div>
-                            <div class="file-meta">4K</div>
-                        </div>
-                    </div>
-                    <div class="file-item">
-                        <div class="file-icon">🎬</div>
-                        <div class="file-info">
-                            <div class="file-name">Inception (2010) - Special Features.mkv</div>
-                            <div class="file-meta">1080p</div>
-                        </div>
-                    </div>
+                    {{ file_item("Inception (2010).mkv", "4K", "🎬") }}
+                    {{ file_item("Inception (2010) - Special Features.mkv", "1080p", "🎬") }}
                 </div>
             </div>
         </div>
@@ -194,20 +153,8 @@
                     </div>
                     <div class="season-content">
                         <div class="file-list">
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">The Mandalorian S01E01 - Chapter 1.mkv</div>
-                                    <div class="file-meta">4K</div>
-                                </div>
-                            </div>
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">The Mandalorian S01E02 - Chapter 2.mkv</div>
-                                    <div class="file-meta">4K</div>
-                                </div>
-                            </div>
+                            {{ file_item("The Mandalorian S01E01 - Chapter 1.mkv", "4K") }}
+                            {{ file_item("The Mandalorian S01E02 - Chapter 2.mkv", "4K") }}
                         </div>
                     </div>
                 </div>
@@ -226,20 +173,8 @@
                     </div>
                     <div class="season-content">
                         <div class="file-list">
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">The Mandalorian S02E01 - Chapter 9.mkv</div>
-                                    <div class="file-meta">4K</div>
-                                </div>
-                            </div>
-                            <div class="file-item">
-                                <div class="file-icon">📺</div>
-                                <div class="file-info">
-                                    <div class="file-name">The Mandalorian S02E02 - Chapter 10.mkv</div>
-                                    <div class="file-meta">4K</div>
-                                </div>
-                            </div>
+                            {{ file_item("The Mandalorian S02E01 - Chapter 9.mkv", "4K") }}
+                            {{ file_item("The Mandalorian S02E02 - Chapter 10.mkv", "4K") }}
                         </div>
                     </div>
                 </div>
