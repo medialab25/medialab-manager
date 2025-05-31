@@ -802,3 +802,35 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+.search-group {
+    flex: 1;
+}
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-input-group input {
+    flex: 1;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.icon-button:hover {
+    background-color: #f1f5f9;
+    color: var(--primary-color);
+}

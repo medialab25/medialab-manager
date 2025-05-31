@@ -18,9 +18,19 @@
                     <option value="movie">Movies</option>
                 </select>
             </div>
-            <div class="filter-group">
+            <div class="filter-group search-group">
                 <label for="search">Search</label>
-                <input type="text" id="search" placeholder="Search titles..." oninput="applyFilters()">
+                <div class="search-input-group">
+                    <input type="text" id="search" placeholder="Search titles..." oninput="applyFilters()">
+                    <button class="icon-button" onclick="collapseAll()" title="Collapse All">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -199,6 +209,24 @@
 
         content.classList.toggle('active');
         button.classList.toggle('active');
+    }
+
+    function collapseAll() {
+        // Collapse all media items
+        document.querySelectorAll('.media-item-details').forEach(details => {
+            details.classList.remove('active');
+        });
+        document.querySelectorAll('.media-item-header .expand-button').forEach(button => {
+            button.classList.remove('active');
+        });
+
+        // Collapse all seasons
+        document.querySelectorAll('.season-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.querySelectorAll('.season-header .expand-button').forEach(button => {
+            button.classList.remove('active');
+        });
     }
 
     function applyFilters() {
