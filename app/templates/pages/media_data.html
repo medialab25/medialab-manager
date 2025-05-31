@@ -272,9 +272,8 @@
         });
     }
 
-    function toggleCache(filename, quality) {
+    function toggleCache(button) {
         // Find the quality badge by looking for the button that triggered the click
-        const button = event.currentTarget;
         const targetBadge = button.closest('.quality-badge');
 
         if (!targetBadge) {
