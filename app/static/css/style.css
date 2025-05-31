@@ -683,6 +683,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    padding-right: 4px;
 }
 
 .file-item {
@@ -698,6 +699,7 @@ body {
 .file-item:hover {
     background-color: #f8fafc;
     transform: translateX(4px);
+    border-color: var(--primary-color);
 }
 
 .file-icon {
