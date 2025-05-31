@@ -72,10 +72,17 @@
                     </div>
                     <div class="season-content">
                         <div class="file-list">
-                            {{ file_item("Breaking Bad S01E01 - Pilot.mkv", "1080p", in_cache=true) }}
-                            {{ file_item("Breaking Bad S01E02 - Cat's in the Bag.mkv", "1080p") }}
-                            {{ file_item("Breaking Bad S01E03 - And the Bag's in the River.mkv", "1080p", in_cache=true)
-                            }}
+                            {{ file_item("Breaking Bad S01E01 - Pilot.mkv", [
+                            {"quality": "4K", "in_cache": true, "pending": true},
+                            {"quality": "1080p", "in_cache": false}
+                            ]) }}
+                            {{ file_item("Breaking Bad S01E02 - Cat's in the Bag.mkv", [
+                            {"quality": "1080p", "in_cache": true, "pending": true}
+                            ]) }}
+                            {{ file_item("Breaking Bad S01E03 - And the Bag's in the River.mkv", [
+                            {"quality": "4K", "in_cache": true},
+                            {"quality": "1080p", "in_cache": true, "pending": true}
+                            ]) }}
                         </div>
                     </div>
                 </div>
@@ -94,8 +101,13 @@
                     </div>
                     <div class="season-content">
                         <div class="file-list">
-                            {{ file_item("Breaking Bad S02E01 - 737.mkv", "1080p", in_cache=true) }}
-                            {{ file_item("Breaking Bad S02E02 - Grilled.mkv", "1080p") }}
+                            {{ file_item("Breaking Bad S02E01 - 737.mkv", [
+                            {"quality": "1080p", "in_cache": true}
+                            ]) }}
+                            {{ file_item("Breaking Bad S02E02 - Grilled.mkv", [
+                            {"quality": "4K", "in_cache": false},
+                            {"quality": "1080p", "in_cache": true}
+                            ]) }}
                         </div>
                     </div>
                 </div>
@@ -123,8 +135,13 @@
             </div>
             <div class="media-item-details">
                 <div class="file-list">
-                    {{ file_item("Inception (2010).mkv", "4K", "🎬", in_cache=true) }}
-                    {{ file_item("Inception (2010) - Special Features.mkv", "1080p", "🎬") }}
+                    {{ file_item("Inception (2010).mkv", [
+                    {"quality": "4K", "in_cache": true, "pending": true},
+                    {"quality": "1080p", "in_cache": true}
+                    ], "🎬") }}
+                    {{ file_item("Inception (2010) - Special Features.mkv", [
+                    {"quality": "1080p", "in_cache": false, "pending": true}
+                    ], "🎬") }}
                 </div>
             </div>
         </div>
@@ -164,8 +181,13 @@
                     </div>
                     <div class="season-content">
                         <div class="file-list">
-                            {{ file_item("The Mandalorian S01E01 - Chapter 1.mkv", "4K", in_cache=true) }}
-                            {{ file_item("The Mandalorian S01E02 - Chapter 2.mkv", "4K") }}
+                            {{ file_item("The Mandalorian S01E01 - Chapter 1.mkv", [
+                            {"quality": "4K", "in_cache": true, "pending": true},
+                            {"quality": "1080p", "in_cache": true}
+                            ]) }}
+                            {{ file_item("The Mandalorian S01E02 - Chapter 2.mkv", [
+                            {"quality": "4K", "in_cache": false, "pending": true}
+                            ]) }}
                         </div>
                     </div>
                 </div>
@@ -184,8 +206,13 @@
                     </div>
                     <div class="season-content">
                         <div class="file-list">
-                            {{ file_item("The Mandalorian S02E01 - Chapter 9.mkv", "4K", in_cache=true) }}
-                            {{ file_item("The Mandalorian S02E02 - Chapter 10.mkv", "4K") }}
+                            {{ file_item("The Mandalorian S02E01 - Chapter 9.mkv", [
+                            {"quality": "4K", "in_cache": true}
+                            ]) }}
+                            {{ file_item("The Mandalorian S02E02 - Chapter 10.mkv", [
+                            {"quality": "4K", "in_cache": true},
+                            {"quality": "1080p", "in_cache": false}
+                            ]) }}
                         </div>
                     </div>
                 </div>
@@ -243,6 +270,46 @@
 
             item.style.display = matchesSearch && matchesType ? 'block' : 'none';
         });
+    }
+
+    function toggleCache(filename, quality) {
+        // Find the quality badge
+        const badges = document.querySelectorAll('.quality-badge');
+        const targetBadge = Array.from(badges).find(badge =>
+            badge.textContent.includes(filename) && badge.textContent.includes(quality)
+        );
+
+        if (!targetBadge) {
+            console.error('Target badge not found');
+            return;
+        }
+
+        // Simulate API call (replace with actual API call)
+        setTimeout(() => {
+            // Toggle cache state
+            targetBadge.classList.toggle('in-cache');
+
+            // Update cache badge
+            let cacheBadge = targetBadge.querySelector('.cache-badge');
+            if (targetBadge.classList.contains('in-cache')) {
+                if (!cacheBadge) {
+                    cacheBadge = document.createElement('span');
+                    cacheBadge.className = 'cache-badge';
+                    cacheBadge.textContent = 'Cache';
+                    targetBadge.appendChild(cacheBadge);
+                }
+            } else if (cacheBadge) {
+                cacheBadge.remove();
+            }
+
+            // Update action button icon
+            const actionButton = targetBadge.querySelector('.cache-action');
+            if (actionButton) {
+                actionButton.innerHTML = targetBadge.classList.contains('in-cache')
+                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>'
+                    : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>';
+            }
+        }, 1000); // Simulate 1 second delay
     }
 </script>
 {% endblock %}

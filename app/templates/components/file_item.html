@@ -1,13 +1,37 @@
-{% macro file_item(filename, quality, icon='📺', in_cache=false) %}
+{% macro file_item(filename, qualities, icon='📺') %}
 <div class="file-item">
     <div class="file-icon">{{ icon }}</div>
     <div class="file-info">
         <div class="file-name">{{ filename }}</div>
         <div class="file-meta">
-            {{ quality }}
-            {% if in_cache %}
-            <span class="cache-badge">In Cache</span>
-            {% endif %}
+            {% for quality in qualities %}
+            <span
+                class="quality-badge {% if quality.in_cache %}in-cache{% endif %} {% if quality.pending %}pending{% endif %}">
+                {{ quality.quality }}
+                {% if quality.in_cache %}
+                <span class="cache-badge">Cache</span>
+                {% endif %}
+                {% if quality.pending %}
+                <span class="pending-badge">Pending</span>
+                {% endif %}
+                <button type="button" class="cache-action"
+                    onclick="toggleCache('{{ filename }}', '{{ quality.quality }}')"
+                    title="{% if quality.in_cache %}Remove from cache{% else %}Add to cache{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        {% if quality.in_cache %}
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        {% else %}
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                        {% endif %}
+                    </svg>
+                </button>
+            </span>
+            {% endfor %}
         </div>
     </div>
 </div>
