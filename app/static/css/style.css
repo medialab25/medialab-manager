@@ -698,7 +698,6 @@ body {
 
 .file-item:hover {
     background-color: #f8fafc;
-    transform: translateX(4px);
     border-color: var(--primary-color);
 }
 
