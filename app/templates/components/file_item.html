@@ -1,12 +1,18 @@
-{% macro file_item(filename, qualities, icon='📺') %}
+{% macro file_item(filename, title, episode_number, qualities, icon='📺') %}
 <div class="file-item">
     <div class="file-icon">{{ icon }}</div>
     <div class="file-info">
-        <div class="file-name">{{ filename }}</div>
+        <div class="file-name">
+            {% if episode_number %}
+            <span class="episode-number">{{ episode_number }}</span>
+            {% endif %}
+            {{ title }}
+        </div>
         <div class="file-meta">
             {% for quality in qualities %}
             <span
-                class="quality-badge {% if quality.in_cache %}in-cache{% endif %} {% if quality.pending %}pending{% endif %}">
+                class="quality-badge {% if quality.in_cache %}in-cache{% endif %} {% if quality.pending %}pending{% endif %}"
+                title="{{ filename }} ({{ quality.quality }})">
                 {{ quality.quality }}
                 {% if quality.in_cache %}
                 <span class="cache-badge">Cache</span>
