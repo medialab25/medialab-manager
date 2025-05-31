@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Media Data - MediaLab Manager{% endblock %}
+
+{% block header_title %}Media Data{% endblock %}
+
+{% block content %}
+<div class="media-data">
+    <!-- Filter Panel -->
+    <div class="filter-panel">
+        <h3>Filter Media</h3>
+        <div class="filter-controls">
+            <div class="filter-group">
+                <label for="media-type">Media Type</label>
+                <select id="media-type">
+                    <option value="">All Types</option>
+                    <option value="tv">TV Shows</option>
+                    <option value="movie">Movies</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="genre">Genre</label>
+                <select id="genre">
+                    <option value="">All Genres</option>
+                    <option value="action">Action</option>
+                    <option value="comedy">Comedy</option>
+                    <option value="drama">Drama</option>
+                    <option value="sci-fi">Sci-Fi</option>
+                    <option value="thriller">Thriller</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="year">Year</label>
+                <input type="number" id="year" placeholder="e.g. 2023" min="1900" max="2024">
+            </div>
+            <div class="filter-group">
+                <label for="search">Search</label>
+                <input type="text" id="search" placeholder="Search titles...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Items List -->
+    <div class="media-items">
+        <!-- TV Show Item -->
+        <div class="media-item">
+            <div class="media-item-header" onclick="toggleDetails(this)">
+                <div class="media-item-title">Breaking Bad</div>
+                <div class="media-item-meta">
+                    <span>TV Show</span>
+                    <span>5 Seasons</span>
+                    <span>Added: 2023-07-15</span>
+                    <button class="expand-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="media-item-details">
+                <div class="file-list">
+                    <div class="file-item">
+                        <div class="file-icon">📺</div>
+                        <div class="file-info">
+                            <div class="file-name">Breaking Bad S01E01 - Pilot.mkv</div>
+                            <div class="file-meta">1080p • 2.3GB • 58:00</div>
+                        </div>
+                    </div>
+                    <div class="file-item">
+                        <div class="file-icon">📺</div>
+                        <div class="file-info">
+                            <div class="file-name">Breaking Bad S01E02 - Cat's in the Bag.mkv</div>
+                            <div class="file-meta">1080p • 2.1GB • 48:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movie Item -->
+        <div class="media-item">
+            <div class="media-item-header" onclick="toggleDetails(this)">
+                <div class="media-item-title">Inception</div>
+                <div class="media-item-meta">
+                    <span>Movie</span>
+                    <span>2010</span>
+                    <span>Added: 2023-08-20</span>
+                    <button class="expand-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="media-item-details">
+                <div class="file-list">
+                    <div class="file-item">
+                        <div class="file-icon">🎬</div>
+                        <div class="file-info">
+                            <div class="file-name">Inception (2010).mkv</div>
+                            <div class="file-meta">4K • 45.2GB • 2h 28m</div>
+                        </div>
+                    </div>
+                    <div class="file-item">
+                        <div class="file-icon">🎬</div>
+                        <div class="file-info">
+                            <div class="file-name">Inception (2010) - Special Features.mkv</div>
+                            <div class="file-meta">1080p • 15.8GB</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TV Show Item -->
+        <div class="media-item">
+            <div class="media-item-header" onclick="toggleDetails(this)">
+                <div class="media-item-title">The Mandalorian</div>
+                <div class="media-item-meta">
+                    <span>TV Show</span>
+                    <span>3 Seasons</span>
+                    <span>Added: 2023-09-05</span>
+                    <button class="expand-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="media-item-details">
+                <div class="file-list">
+                    <div class="file-item">
+                        <div class="file-icon">📺</div>
+                        <div class="file-info">
+                            <div class="file-name">The Mandalorian S01E01 - Chapter 1.mkv</div>
+                            <div class="file-meta">4K • 15.2GB • 39:00</div>
+                        </div>
+                    </div>
+                    <div class="file-item">
+                        <div class="file-icon">📺</div>
+                        <div class="file-info">
+                            <div class="file-name">The Mandalorian S01E02 - Chapter 2.mkv</div>
+                            <div class="file-meta">4K • 14.8GB • 42:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleDetails(header) {
+        const details = header.nextElementSibling;
+        const button = header.querySelector('.expand-button');
+
+        details.classList.toggle('active');
+        button.classList.toggle('active');
+    }
+</script>
+{% endblock %}
