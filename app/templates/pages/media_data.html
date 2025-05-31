@@ -12,30 +12,15 @@
         <div class="filter-controls">
             <div class="filter-group">
                 <label for="media-type">Media Type</label>
-                <select id="media-type">
+                <select id="media-type" onchange="applyFilters()">
                     <option value="">All Types</option>
                     <option value="tv">TV Shows</option>
                     <option value="movie">Movies</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="genre">Genre</label>
-                <select id="genre">
-                    <option value="">All Genres</option>
-                    <option value="action">Action</option>
-                    <option value="comedy">Comedy</option>
-                    <option value="drama">Drama</option>
-                    <option value="sci-fi">Sci-Fi</option>
-                    <option value="thriller">Thriller</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="year">Year</label>
-                <input type="number" id="year" placeholder="e.g. 2023" min="1900" max="2024">
-            </div>
-            <div class="filter-group">
                 <label for="search">Search</label>
-                <input type="text" id="search" placeholder="Search titles...">
+                <input type="text" id="search" placeholder="Search titles..." oninput="applyFilters()">
             </div>
         </div>
     </div>
@@ -43,7 +28,7 @@
     <!-- Media Items List -->
     <div class="media-items">
         <!-- TV Show Item -->
-        <div class="media-item">
+        <div class="media-item" data-type="tv">
             <div class="media-item-header" onclick="toggleDetails(this)">
                 <div class="media-item-title">Breaking Bad</div>
                 <div class="media-item-meta">
@@ -59,19 +44,74 @@
                 </div>
             </div>
             <div class="media-item-details">
-                <div class="file-list">
-                    <div class="file-item">
-                        <div class="file-icon">📺</div>
-                        <div class="file-info">
-                            <div class="file-name">Breaking Bad S01E01 - Pilot.mkv</div>
-                            <div class="file-meta">1080p • 2.3GB • 58:00</div>
+                <!-- Season 1 -->
+                <div class="season-group">
+                    <div class="season-header" onclick="toggleSeason(this)">
+                        <h4>Season 1</h4>
+                        <span class="episode-count">3 Episodes</span>
+                        <button class="expand-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="season-content">
+                        <div class="file-list">
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">Breaking Bad S01E01 - Pilot.mkv</div>
+                                    <div class="file-meta">1080p</div>
+                                </div>
+                            </div>
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">Breaking Bad S01E02 - Cat's in the Bag.mkv</div>
+                                    <div class="file-meta">1080p</div>
+                                </div>
+                            </div>
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">Breaking Bad S01E03 - And the Bag's in the River.mkv</div>
+                                    <div class="file-meta">1080p</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="file-item">
-                        <div class="file-icon">📺</div>
-                        <div class="file-info">
-                            <div class="file-name">Breaking Bad S01E02 - Cat's in the Bag.mkv</div>
-                            <div class="file-meta">1080p • 2.1GB • 48:00</div>
+                </div>
+                <!-- Season 2 -->
+                <div class="season-group">
+                    <div class="season-header" onclick="toggleSeason(this)">
+                        <h4>Season 2</h4>
+                        <span class="episode-count">2 Episodes</span>
+                        <button class="expand-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="season-content">
+                        <div class="file-list">
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">Breaking Bad S02E01 - 737.mkv</div>
+                                    <div class="file-meta">1080p</div>
+                                </div>
+                            </div>
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">Breaking Bad S02E02 - Grilled.mkv</div>
+                                    <div class="file-meta">1080p</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -79,7 +119,7 @@
         </div>
 
         <!-- Movie Item -->
-        <div class="media-item">
+        <div class="media-item" data-type="movie">
             <div class="media-item-header" onclick="toggleDetails(this)">
                 <div class="media-item-title">Inception</div>
                 <div class="media-item-meta">
@@ -100,14 +140,14 @@
                         <div class="file-icon">🎬</div>
                         <div class="file-info">
                             <div class="file-name">Inception (2010).mkv</div>
-                            <div class="file-meta">4K • 45.2GB • 2h 28m</div>
+                            <div class="file-meta">4K</div>
                         </div>
                     </div>
                     <div class="file-item">
                         <div class="file-icon">🎬</div>
                         <div class="file-info">
                             <div class="file-name">Inception (2010) - Special Features.mkv</div>
-                            <div class="file-meta">1080p • 15.8GB</div>
+                            <div class="file-meta">1080p</div>
                         </div>
                     </div>
                 </div>
@@ -115,7 +155,7 @@
         </div>
 
         <!-- TV Show Item -->
-        <div class="media-item">
+        <div class="media-item" data-type="tv">
             <div class="media-item-header" onclick="toggleDetails(this)">
                 <div class="media-item-title">The Mandalorian</div>
                 <div class="media-item-meta">
@@ -131,19 +171,67 @@
                 </div>
             </div>
             <div class="media-item-details">
-                <div class="file-list">
-                    <div class="file-item">
-                        <div class="file-icon">📺</div>
-                        <div class="file-info">
-                            <div class="file-name">The Mandalorian S01E01 - Chapter 1.mkv</div>
-                            <div class="file-meta">4K • 15.2GB • 39:00</div>
+                <!-- Season 1 -->
+                <div class="season-group">
+                    <div class="season-header" onclick="toggleSeason(this)">
+                        <h4>Season 1</h4>
+                        <span class="episode-count">2 Episodes</span>
+                        <button class="expand-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="season-content">
+                        <div class="file-list">
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">The Mandalorian S01E01 - Chapter 1.mkv</div>
+                                    <div class="file-meta">4K</div>
+                                </div>
+                            </div>
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">The Mandalorian S01E02 - Chapter 2.mkv</div>
+                                    <div class="file-meta">4K</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="file-item">
-                        <div class="file-icon">📺</div>
-                        <div class="file-info">
-                            <div class="file-name">The Mandalorian S01E02 - Chapter 2.mkv</div>
-                            <div class="file-meta">4K • 14.8GB • 42:00</div>
+                </div>
+                <!-- Season 2 -->
+                <div class="season-group">
+                    <div class="season-header" onclick="toggleSeason(this)">
+                        <h4>Season 2</h4>
+                        <span class="episode-count">2 Episodes</span>
+                        <button class="expand-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="season-content">
+                        <div class="file-list">
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">The Mandalorian S02E01 - Chapter 9.mkv</div>
+                                    <div class="file-meta">4K</div>
+                                </div>
+                            </div>
+                            <div class="file-item">
+                                <div class="file-icon">📺</div>
+                                <div class="file-info">
+                                    <div class="file-name">The Mandalorian S02E02 - Chapter 10.mkv</div>
+                                    <div class="file-meta">4K</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -159,6 +247,30 @@
 
         details.classList.toggle('active');
         button.classList.toggle('active');
+    }
+
+    function toggleSeason(header) {
+        const content = header.nextElementSibling;
+        const button = header.querySelector('.expand-button');
+
+        content.classList.toggle('active');
+        button.classList.toggle('active');
+    }
+
+    function applyFilters() {
+        const searchTerm = document.getElementById('search').value.toLowerCase();
+        const mediaType = document.getElementById('media-type').value;
+        const mediaItems = document.querySelectorAll('.media-item');
+
+        mediaItems.forEach(item => {
+            const title = item.querySelector('.media-item-title').textContent.toLowerCase();
+            const type = item.getAttribute('data-type');
+
+            const matchesSearch = title.includes(searchTerm);
+            const matchesType = !mediaType || type === mediaType;
+
+            item.style.display = matchesSearch && matchesType ? 'block' : 'none';
+        });
     }
 </script>
 {% endblock %}
