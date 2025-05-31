@@ -273,19 +273,33 @@
     }
 
     function toggleCache(filename, quality) {
-        // Find the quality badge
-        const badges = document.querySelectorAll('.quality-badge');
-        const targetBadge = Array.from(badges).find(badge =>
-            badge.textContent.includes(filename) && badge.textContent.includes(quality)
-        );
+        // Find the quality badge by looking for the button that triggered the click
+        const button = event.currentTarget;
+        const targetBadge = button.closest('.quality-badge');
 
         if (!targetBadge) {
             console.error('Target badge not found');
             return;
         }
 
+        // Add pending state
+        targetBadge.classList.add('pending');
+        let pendingBadge = targetBadge.querySelector('.pending-badge');
+        if (!pendingBadge) {
+            pendingBadge = document.createElement('span');
+            pendingBadge.className = 'pending-badge';
+            pendingBadge.textContent = 'Pending';
+            targetBadge.appendChild(pendingBadge);
+        }
+
         // Simulate API call (replace with actual API call)
         setTimeout(() => {
+            // Remove pending state
+            targetBadge.classList.remove('pending');
+            if (pendingBadge) {
+                pendingBadge.remove();
+            }
+
             // Toggle cache state
             targetBadge.classList.toggle('in-cache');
 
