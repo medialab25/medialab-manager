@@ -43,14 +43,6 @@
                         </button>
                         <h2>{% block header_title %}{% endblock %}</h2>
                     </div>
-                    <div class="user-menu">
-                        {% if user %}
-                        <span>{{ user.username }}</span>
-                        <a href="/logout">Logout</a>
-                        {% else %}
-                        <a href="/login">Login</a>
-                        {% endif %}
-                    </div>
                 </div>
             </header>
 
