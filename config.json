@@ -23,5 +23,26 @@
             "cron_minute": "*",
             "cron_second": "*/5"
         }
+    },
+    "MEDIA_DATA": {
+        "storage": {
+            "media": {
+                "path": "/srv/storage/media",
+                "type": "source"
+            },
+            "cache": {
+                "path": "/srv/storage/cache",
+                "type": "cache"
+            }
+        },
+        "libraries": {
+            "source": {
+                "storage": "media",
+                "id": "tv-hd",
+                "quality": "hd",
+                "type": "tv",
+                "description": "TV-HD"
+            }
+        }
     }
 }
