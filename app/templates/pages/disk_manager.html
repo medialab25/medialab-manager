@@ -6,93 +6,6 @@
 
 {% block content %}
 <div class="disk-manager">
-    <!-- Physical Drives Section -->
-    <div class="disk-section">
-        <h3>Physical Drives</h3>
-        <div class="disk-grid">
-            <!-- Drive 1 -->
-            <div class="disk-card">
-                <div class="disk-header">
-                    <h4>WD Red Pro 8TB</h4>
-                    <div class="disk-status">
-                        <span class="spin-status active">Spinning</span>
-                        <span class="smart-status good">SMART: Good</span>
-                    </div>
-                </div>
-                <div class="disk-info">
-                    <div class="disk-progress">
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 65%;"></div>
-                        </div>
-                        <div class="progress-labels">
-                            <span>Used: 5.2 TB</span>
-                            <span>Free: 2.8 TB</span>
-                        </div>
-                    </div>
-                    <div class="disk-details">
-                        <span>Serial: WD80EFZX-68UW8N0</span>
-                        <span>Type: HDD</span>
-                        <span>Interface: SATA 6Gb/s</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Drive 2 -->
-            <div class="disk-card">
-                <div class="disk-header">
-                    <h4>Samsung 870 EVO 2TB</h4>
-                    <div class="disk-status">
-                        <span class="spin-status ssd">SSD</span>
-                        <span class="smart-status good">SMART: Good</span>
-                    </div>
-                </div>
-                <div class="disk-info">
-                    <div class="disk-progress">
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 45%;"></div>
-                        </div>
-                        <div class="progress-labels">
-                            <span>Used: 900 GB</span>
-                            <span>Free: 1.1 TB</span>
-                        </div>
-                    </div>
-                    <div class="disk-details">
-                        <span>Serial: S4P8NF0M123456</span>
-                        <span>Type: SSD</span>
-                        <span>Interface: SATA 6Gb/s</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Drive 3 -->
-            <div class="disk-card">
-                <div class="disk-header">
-                    <h4>Seagate IronWolf 12TB</h4>
-                    <div class="disk-status">
-                        <span class="spin-status standby">Standby</span>
-                        <span class="smart-status warning">SMART: Warning</span>
-                    </div>
-                </div>
-                <div class="disk-info">
-                    <div class="disk-progress">
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 85%;"></div>
-                        </div>
-                        <div class="progress-labels">
-                            <span>Used: 10.2 TB</span>
-                            <span>Free: 1.8 TB</span>
-                        </div>
-                    </div>
-                    <div class="disk-details">
-                        <span>Serial: ZFN2A3KX</span>
-                        <span>Type: HDD</span>
-                        <span>Interface: SATA 6Gb/s</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Logical Drives Section -->
     <div class="disk-section">
         <h3>Logical Drives</h3>
@@ -159,6 +72,111 @@
                     <div class="disk-details">
                         <span>Type: NTFS</span>
                         <span>Mount Point: /media/backup</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Physical Drives Section -->
+    <div class="disk-section">
+        <h3>Physical Drives</h3>
+        <div class="disk-grid">
+            <!-- Drive 1 -->
+            <div class="disk-card">
+                <div class="disk-header">
+                    <h4>WD Red Pro 8TB</h4>
+                    <div class="disk-status">
+                        <div class="spin-control">
+                            <span class="spin-status active">Spinning</span>
+                            <button class="spin-button" title="Spin down drive">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 19V5M5 12l7-7 7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                        <span class="smart-status good">SMART: Good</span>
+                    </div>
+                </div>
+                <div class="disk-info">
+                    <div class="disk-progress">
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 65%;"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <span>Used: 5.2 TB</span>
+                            <span>Free: 2.8 TB</span>
+                        </div>
+                    </div>
+                    <div class="disk-details">
+                        <span>Serial: WD80EFZX-68UW8N0</span>
+                        <span>Type: HDD</span>
+                        <span>Interface: SATA 6Gb/s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drive 2 -->
+            <div class="disk-card">
+                <div class="disk-header">
+                    <h4>Samsung 870 EVO 2TB</h4>
+                    <div class="disk-status">
+                        <div class="spin-control">
+                            <span class="spin-status ssd">SSD</span>
+                        </div>
+                        <span class="smart-status good">SMART: Good</span>
+                    </div>
+                </div>
+                <div class="disk-info">
+                    <div class="disk-progress">
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 45%;"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <span>Used: 900 GB</span>
+                            <span>Free: 1.1 TB</span>
+                        </div>
+                    </div>
+                    <div class="disk-details">
+                        <span>Serial: S4P8NF0M123456</span>
+                        <span>Type: SSD</span>
+                        <span>Interface: SATA 6Gb/s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drive 3 -->
+            <div class="disk-card">
+                <div class="disk-header">
+                    <h4>Seagate IronWolf 12TB</h4>
+                    <div class="disk-status">
+                        <div class="spin-control">
+                            <span class="spin-status standby">Standby</span>
+                            <button class="spin-button" title="Spin up drive">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 5v14M5 12l7 7 7-7" />
+                                </svg>
+                            </button>
+                        </div>
+                        <span class="smart-status warning">SMART: Warning</span>
+                    </div>
+                </div>
+                <div class="disk-info">
+                    <div class="disk-progress">
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 85%;"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <span>Used: 10.2 TB</span>
+                            <span>Free: 1.8 TB</span>
+                        </div>
+                    </div>
+                    <div class="disk-details">
+                        <span>Serial: ZFN2A3KX</span>
+                        <span>Type: HDD</span>
+                        <span>Interface: SATA 6Gb/s</span>
                     </div>
                 </div>
             </div>
@@ -354,5 +372,82 @@
             justify-content: flex-end;
         }
     }
+
+    .spin-control {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .spin-button {
+        background: none;
+        border: none;
+        padding: 0.125rem;
+        cursor: pointer;
+        color: var(--text-muted);
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        opacity: 0.6;
+    }
+
+    .spin-button:hover {
+        background-color: #f1f5f9;
+        color: var(--primary-color);
+        opacity: 1;
+    }
+
+    .spin-status.active+.spin-button {
+        transform: rotate(180deg);
+    }
+
+    .spin-status.standby+.spin-button {
+        transform: rotate(0deg);
+    }
+
+    .spin-status.ssd+.spin-button {
+        display: none;
+    }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const spinButtons = document.querySelectorAll('.spin-button');
+
+        spinButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const spinControl = this.closest('.spin-control');
+                const spinStatus = spinControl.querySelector('.spin-status');
+                const isActive = spinStatus.classList.contains('active');
+
+                // Toggle the spin state
+                if (isActive) {
+                    spinStatus.classList.remove('active');
+                    spinStatus.classList.add('standby');
+                    spinStatus.textContent = 'Standby';
+                    this.title = 'Spin up drive';
+                } else {
+                    spinStatus.classList.remove('standby');
+                    spinStatus.classList.add('active');
+                    spinStatus.textContent = 'Spinning';
+                    this.title = 'Spin down drive';
+                }
+
+                // Add a loading state
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.5';
+
+                // Simulate API call
+                setTimeout(() => {
+                    this.style.pointerEvents = '';
+                    this.style.opacity = '';
+                }, 1000);
+            });
+        });
+    });
+</script>
 {% endblock %}
