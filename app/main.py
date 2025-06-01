@@ -249,6 +249,17 @@ async def media_data(request: Request):
         }
     )
 
+@app.get("/disk-manager")
+async def disk_manager(request: Request):
+    return templates.TemplateResponse(
+        "pages/disk_manager.html",
+        {
+            "request": request,
+            "user": None,  # Replace with actual user when auth is implemented
+            "messages": []
+        }
+    )
+
 def run_service(debug: bool = None):
     """Run the FastAPI service with uvicorn"""
     if debug is not None:
