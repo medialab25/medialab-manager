@@ -10,6 +10,8 @@ NC='\033[0m' # No Color
 INSTALL_MODE="dev"
 INSTALL_SYSTEMD=false
 INSTALL_DEPS=false
+REINSTALL=false
+CREATE_SYMLINKS=false
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -26,9 +28,17 @@ while [[ $# -gt 0 ]]; do
             INSTALL_DEPS=true
             shift
             ;;
+        --reinstall)
+            REINSTALL=true
+            shift
+            ;;
+        --symlink)
+            CREATE_SYMLINKS=true
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: ./install.sh [--prod] [--systemd] [--deps]"
+            echo "Usage: ./install.sh [--prod] [--systemd] [--deps] [--reinstall] [--symlink]"
             exit 1
             ;;
     esac
@@ -63,6 +73,27 @@ if [ "$INSTALL_DEPS" = true ]; then
     fi
 fi
 
+# Handle reinstall if requested
+if [ "$REINSTALL" = true ]; then
+    echo -e "${YELLOW}Reinstalling MediaLab Manager...${NC}"
+    if [ -d ".venv" ]; then
+        echo -e "${BLUE}Removing existing virtual environment...${NC}"
+        rm -rf .venv
+    fi
+    if [ -d "build" ]; then
+        echo -e "${BLUE}Removing build directory...${NC}"
+        rm -rf build
+    fi
+    if [ -d "dist" ]; then
+        echo -e "${BLUE}Removing dist directory...${NC}"
+        rm -rf dist
+    fi
+    if [ -d "*.egg-info" ]; then
+        echo -e "${BLUE}Removing egg-info directories...${NC}"
+        rm -rf *.egg-info
+    fi
+fi
+
 # Create virtual environment if it doesn't exist
 if [ ! -d ".venv" ]; then
     echo -e "${BLUE}Creating virtual environment...${NC}"
@@ -94,6 +125,23 @@ fi
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install package"
     exit 1
+fi
+
+# Create necessary directories
+echo -e "${BLUE}Creating necessary directories...${NC}"
+mkdir -p logs
+# Set permissions to allow writing from any user (since symlinks run as root)
+chmod 777 logs
+# Create log file with proper permissions
+touch logs/app.log
+chmod 666 logs/app.log
+# If using symlinks, ensure proper ownership
+if [ "$CREATE_SYMLINKS" = true ]; then
+    # Get the current user and group
+    CURRENT_USER=$(whoami)
+    CURRENT_GROUP=$(id -gn)
+    # Set ownership of logs directory and file
+    sudo chown -R $CURRENT_USER:$CURRENT_GROUP logs
 fi
 
 # Create systemd service if requested
@@ -137,10 +185,26 @@ EOF
     echo -e "  ${BLUE}sudo systemctl start medialab-manager${NC}"
 fi
 
+# Create symlinks if requested
+if [ "$CREATE_SYMLINKS" = true ]; then
+    echo -e "${BLUE}Creating system-wide symlinks...${NC}"
+    sudo ln -sf "$(pwd)/.venv/bin/mvm" /usr/local/bin/mvm
+    sudo ln -sf "$(pwd)/.venv/bin/mvm-service" /usr/local/bin/mvm-service
+    echo -e "${GREEN}Symlinks created!${NC}"
+fi
+
 echo -e "${GREEN}Installation complete!${NC}"
 echo -e "${GREEN}You can now use the following commands:${NC}"
-echo -e "  ${BLUE}mvm${NC} - The CLI tool"
-echo -e "  ${BLUE}mvm-service${NC} - The web service"
+if [ "$CREATE_SYMLINKS" = true ]; then
+    echo -e "  ${BLUE}mvm${NC} - The CLI tool (available system-wide)"
+    echo -e "  ${BLUE}mvm-service${NC} - The web service (available system-wide)"
+else
+    echo -e "  ${BLUE}.venv/bin/mvm${NC} - The CLI tool"
+    echo -e "  ${BLUE}.venv/bin/mvm-service${NC} - The web service"
+    echo -e "  Or activate the virtual environment first:"
+    echo -e "    ${BLUE}source .venv/bin/activate${NC}"
+    echo -e "    Then use: ${BLUE}mvm${NC} or ${BLUE}mvm-service${NC}"
+fi
 echo
 echo -e "Try it out with: ${BLUE}mvm --help${NC}"
 if [ "$INSTALL_SYSTEMD" = false ]; then
