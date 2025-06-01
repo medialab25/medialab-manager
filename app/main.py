@@ -59,6 +59,22 @@ logging.basicConfig(
     ]
 )
 
+def write_pid_file():
+    """Write the current process ID to a file"""
+    pid_dir = Path.home() / "medialab-manager"
+    pid_dir.mkdir(parents=True, exist_ok=True)
+    pid_file = pid_dir / "medialab-manager.pid"
+    with open(pid_file, "w") as f:
+        f.write(str(os.getpid()))
+
+def remove_pid_file():
+    """Remove the PID file"""
+    pid_file = Path.home() / "medialab-manager" / "medialab-manager.pid"
+    try:
+        pid_file.unlink()
+    except Exception:
+        pass
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
@@ -66,9 +82,15 @@ async def lifespan(app: FastAPI):
     MainBase.metadata.create_all(bind=main_engine)
     MediaBase.metadata.create_all(bind=media_engine)
     
+    # Write PID file
+    write_pid_file()
+    
     start_scheduler()
     yield
     stop_scheduler()
+    
+    # Remove PID file
+    remove_pid_file()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
