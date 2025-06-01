@@ -62,8 +62,9 @@ logging.basicConfig(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
-    # Create database tables
-    Base.metadata.create_all(bind=engine)
+    # Create database tables for both databases
+    MainBase.metadata.create_all(bind=main_engine)
+    MediaBase.metadata.create_all(bind=media_engine)
     
     start_scheduler()
     yield

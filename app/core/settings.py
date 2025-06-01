@@ -5,14 +5,18 @@ from typing import Dict, Any
 import os
 
 class DatabaseSettings(BaseSettings):
-    SQLITE_PATH: str = "data"
+    MAIN_DB_PATH: str = "data/main.db"
+    MEDIA_DB_PATH: str = "data/media.db"
 
     @classmethod
     def from_config(cls):
         try:
             with open("config.json") as f:
                 config = json.load(f)
-                return cls(SQLITE_PATH=config["DATABASE"]["SQLITE_PATH"])
+                return cls(
+                    MAIN_DB_PATH=config["DATABASE"]["MAIN_DB_PATH"],
+                    MEDIA_DB_PATH=config["DATABASE"]["MEDIA_DB_PATH"]
+                )
         except (FileNotFoundError, KeyError):
             return cls()
 
