@@ -260,6 +260,17 @@ async def disk_manager(request: Request):
         }
     )
 
+@app.get("/torrent-manager")
+async def torrent_manager(request: Request):
+    return templates.TemplateResponse(
+        "pages/torrent_manager.html",
+        {
+            "request": request,
+            "user": None,  # Replace with actual user when auth is implemented
+            "messages": []
+        }
+    )
+
 def run_service(debug: bool = None):
     """Run the FastAPI service with uvicorn"""
     if debug is not None:

@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+
+{% block title %}Torrent Manager - MediaLab Manager{% endblock %}
+
+{% block header_title %}Torrent Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+    .torrent-manager {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Disk Usage Section */
+    .disk-usage-section {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .disk-usage-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .disk-usage-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    .disk-usage-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+
+    .disk-usage-card {
+        background: #f8fafc;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+    }
+
+    .disk-usage-card h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin: 0 0 0.75rem 0;
+    }
+
+    .progress-container {
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+        height: 0.5rem;
+        background-color: #e2e8f0;
+        border-radius: 0.25rem;
+        overflow: hidden;
+    }
+
+    .progress {
+        height: 100%;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        border-radius: 0.25rem;
+        transition: width 0.3s ease;
+    }
+
+    .progress-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    /* Torrent List Section */
+    .torrent-list-section {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .torrent-list-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .torrent-list-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    .torrent-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .torrent-list {
+        max-height: calc(100vh - 400px);
+        overflow-y: auto;
+    }
+
+    .torrent-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .torrent-item:last-child {
+        border-bottom: none;
+    }
+
+    .torrent-item:hover {
+        background-color: #f8fafc;
+    }
+
+    .torrent-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid var(--border-color);
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .torrent-checkbox:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .torrent-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .torrent-name {
+        font-weight: 500;
+        color: var(--text-color);
+        margin: 0 0 0.25rem 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .torrent-meta {
+        display: flex;
+        gap: 1.5rem;
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .torrent-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .torrent-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        background-color: #f1f5f9;
+        color: var(--text-muted);
+    }
+
+    .torrent-status.active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .torrent-status.paused {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .torrent-status.completed {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .torrent-progress {
+        width: 100px;
+        height: 0.375rem;
+        background-color: #e2e8f0;
+        border-radius: 0.25rem;
+        overflow: hidden;
+    }
+
+    .torrent-progress-bar {
+        height: 100%;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        border-radius: 0.25rem;
+        transition: width 0.3s ease;
+    }
+
+    .action-button {
+        padding: 0.5rem 1rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-button:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .action-button.secondary {
+        background-color: #f1f5f9;
+        color: var(--text-color);
+    }
+
+    .action-button.secondary:hover {
+        background-color: #e2e8f0;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        width: 90%;
+        max-width: 400px;
+        transform: translateY(-20px);
+        transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal {
+        transform: translateY(0);
+    }
+
+    .modal-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        color: var(--text-color);
+    }
+
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .modal-button {
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .modal-button.primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .modal-button.primary:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .modal-button.secondary {
+        background-color: #f1f5f9;
+        color: var(--text-color);
+    }
+
+    .modal-button.secondary:hover {
+        background-color: #e2e8f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="torrent-manager">
+    <!-- Disk Usage Section -->
+    <div class="disk-usage-section">
+        <div class="disk-usage-header">
+            <h3>Download Drive Usage</h3>
+        </div>
+        <div class="disk-usage-grid">
+            <div class="disk-usage-card">
+                <h4>Main Download Drive</h4>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 75%"></div>
+                    </div>
+                    <div class="progress-labels">
+                        <span>Used: 750GB</span>
+                        <span>Free: 250GB</span>
+                    </div>
+                </div>
+            </div>
+            <div class="disk-usage-card">
+                <h4>Cache Drive</h4>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 45%"></div>
+                    </div>
+                    <div class="progress-labels">
+                        <span>Used: 450GB</span>
+                        <span>Free: 550GB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Torrent List Section -->
+    <div class="torrent-list-section">
+        <div class="torrent-list-header">
+            <h3>Active Downloads</h3>
+            <div class="torrent-actions">
+                <button class="action-button secondary">Pause All</button>
+                <button class="action-button">Remove Selected</button>
+            </div>
+        </div>
+        <div class="torrent-list">
+            <!-- Sample Torrent Items -->
+            <div class="torrent-item">
+                <input type="checkbox" class="torrent-checkbox">
+                <div class="torrent-info">
+                    <h4 class="torrent-name">Breaking.Bad.S01.1080p.BluRay.x264-SHORTBREHD</h4>
+                    <div class="torrent-meta">
+                        <span>Size: 45.2 GB</span>
+                        <span>Downloaded: 32.1 GB</span>
+                        <span>Speed: 2.5 MB/s</span>
+                    </div>
+                </div>
+                <div class="torrent-progress">
+                    <div class="torrent-progress-bar" style="width: 71%"></div>
+                </div>
+                <div class="torrent-status active">Active</div>
+            </div>
+            <div class="torrent-item">
+                <input type="checkbox" class="torrent-checkbox">
+                <div class="torrent-info">
+                    <h4 class="torrent-name">Game.of.Thrones.S08.2160p.UHD.BluRay.x265-TERMINAL</h4>
+                    <div class="torrent-meta">
+                        <span>Size: 89.7 GB</span>
+                        <span>Downloaded: 89.7 GB</span>
+                        <span>Speed: 0 MB/s</span>
+                    </div>
+                </div>
+                <div class="torrent-progress">
+                    <div class="torrent-progress-bar" style="width: 100%"></div>
+                </div>
+                <div class="torrent-status completed">Completed</div>
+            </div>
+            <div class="torrent-item">
+                <input type="checkbox" class="torrent-checkbox">
+                <div class="torrent-info">
+                    <h4 class="torrent-name">The.Mandalorian.S03.1080p.DSNP.WEB-DL.DDP5.1.Atmos.x264-NTb</h4>
+                    <div class="torrent-meta">
+                        <span>Size: 28.4 GB</span>
+                        <span>Downloaded: 15.8 GB</span>
+                        <span>Speed: 0 MB/s</span>
+                    </div>
+                </div>
+                <div class="torrent-progress">
+                    <div class="torrent-progress-bar" style="width: 55%"></div>
+                </div>
+                <div class="torrent-status paused">Paused</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirmationModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Confirm Action</h3>
+        </div>
+        <div class="modal-body">
+            <p id="modalMessage">Are you sure you want to remove the selected torrent(s)?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-button secondary" id="modalCancel">Cancel</button>
+            <button class="modal-button primary" id="modalConfirm">Confirm</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle checkbox selection
+        const checkboxes = document.querySelectorAll('.torrent-checkbox');
+        const removeButton = document.querySelector('.action-button:not(.secondary)');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+                removeButton.style.opacity = anyChecked ? '1' : '0.5';
+                removeButton.style.cursor = anyChecked ? 'pointer' : 'not-allowed';
+            });
+        });
+
+        // Modal elements
+        const modal = document.getElementById('confirmationModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalConfirm = document.getElementById('modalConfirm');
+
+        // Function to show modal
+        function showModal(message) {
+            modalMessage.textContent = message;
+            modal.classList.add('active');
+        }
+
+        // Function to hide modal
+        function hideModal() {
+            modal.classList.remove('active');
+        }
+
+        // Handle modal cancel
+        modalCancel.addEventListener('click', hideModal);
+
+        // Handle modal overlay click
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                hideModal();
+            }
+        });
+
+        // Handle remove selected button
+        removeButton.addEventListener('click', function () {
+            const selectedTorrents = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.closest('.torrent-item'));
+
+            if (selectedTorrents.length > 0) {
+                const message = `Are you sure you want to remove ${selectedTorrents.length} selected torrent(s)?`;
+                showModal(message);
+
+                // Handle confirmation
+                modalConfirm.onclick = function () {
+                    selectedTorrents.forEach(item => item.remove());
+                    hideModal();
+                };
+            }
+        });
+
+        // Handle pause all button
+        const pauseButton = document.querySelector('.action-button.secondary');
+        pauseButton.addEventListener('click', function () {
+            const isPaused = pauseButton.textContent === 'Resume All';
+            pauseButton.textContent = isPaused ? 'Pause All' : 'Resume All';
+
+            document.querySelectorAll('.torrent-status.active').forEach(status => {
+                status.textContent = isPaused ? 'Active' : 'Paused';
+                status.className = `torrent-status ${isPaused ? 'active' : 'paused'}`;
+            });
+        });
+    });
+</script>
+{% endblock %}
