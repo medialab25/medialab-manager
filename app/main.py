@@ -33,7 +33,8 @@ from app.models.event_types import EventType, SubEventType
 # Configure logging
 logger = logging.getLogger(__name__)
 
-log_file_path = '/var/log/medialab-manager/medialab-manager.log'
+# Use the log file path from settings
+log_file_path = str(settings.LOG_FILE)
 
 # Create the log directory if it doesn't exist, but if permissions fail create a log file in the current users home directory
 log_dir = Path(log_file_path).parent

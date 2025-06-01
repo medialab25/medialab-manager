@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 from pathlib import Path
 import json
 from typing import Dict, Any
+import os
 
 class DatabaseSettings(BaseSettings):
     SQLITE_PATH: str = "data"
@@ -23,7 +24,7 @@ class Settings(BaseSettings):
     
     # Application settings
     VERSION: str = "0.1.0"
-    LOG_FILE: Path = Path("logs/app.log")
+    LOG_FILE: Path = Path(os.path.expanduser("~/medialab-manager.log"))
     PROJECT_NAME: str = "MediaLab Manager"
     DESCRIPTION: str = "A FastAPI application for managing media files."
     

@@ -117,9 +117,13 @@ echo -e "${BLUE}Installing MediaLab Manager...${NC}"
 if [ "$INSTALL_MODE" = "dev" ]; then
     echo -e "${YELLOW}Installing in development mode${NC}"
     pip install -e .
+    # Install email validator for Pydantic
+    pip install "pydantic[email]"
 else
     echo -e "${YELLOW}Installing in production mode${NC}"
     pip install .
+    # Install email validator for Pydantic
+    pip install "pydantic[email]"
 fi
 
 if [ $? -ne 0 ]; then
@@ -129,20 +133,10 @@ fi
 
 # Create necessary directories
 echo -e "${BLUE}Creating necessary directories...${NC}"
-mkdir -p logs
-# Set permissions to allow writing from any user (since symlinks run as root)
-chmod 777 logs
-# Create log file with proper permissions
-touch logs/app.log
-chmod 666 logs/app.log
-# If using symlinks, ensure proper ownership
-if [ "$CREATE_SYMLINKS" = true ]; then
-    # Get the current user and group
-    CURRENT_USER=$(whoami)
-    CURRENT_GROUP=$(id -gn)
-    # Set ownership of logs directory and file
-    sudo chown -R $CURRENT_USER:$CURRENT_GROUP logs
-fi
+# Create log file in user's home directory
+LOG_FILE="$HOME/medialab-manager.log"
+touch "$LOG_FILE"
+chmod 644 "$LOG_FILE"
 
 # Create systemd service if requested
 if [ "$INSTALL_SYSTEMD" = true ]; then
