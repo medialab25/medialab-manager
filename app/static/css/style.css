@@ -48,7 +48,7 @@ body {
     border-right: 1px solid var(--border-color);
     position: fixed;
     height: 100vh;
-    overflow-y: auto;
+    /*overflow-y: hidden;*/
     box-shadow: var(--shadow);
     z-index: 20;
     transition: transform var(--transition-speed);
