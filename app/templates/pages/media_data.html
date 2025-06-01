@@ -112,6 +112,30 @@
                         </div>
                     </div>
                 </div>
+                <!-- Misc Files Section -->
+                <div class="season-group">
+                    <div class="season-header" onclick="toggleSeason(this)">
+                        <h4>Misc Files</h4>
+                        <span class="episode-count">Associated Files</span>
+                        <button class="expand-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="season-content">
+                        <div class="file-list">
+                            {{ file_item("Breaking Bad - Behind the Scenes.mkv", "Behind the Scenes", "", [
+                            {"quality": "1080p", "in_cache": false}
+                            ], "📋") }}
+                            {{ file_item("Breaking Bad - Interviews.mkv", "Cast Interviews", "", [
+                            {"quality": "1080p", "in_cache": true}
+                            ], "📋") }}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -143,6 +167,30 @@
                     {{ file_item("Inception (2010) - Special Features.mkv", "Special Features", "", [
                     {"quality": "1080p", "in_cache": false, "pending": true}
                     ], "🎬") }}
+                </div>
+                <!-- Misc Files Section -->
+                <div class="season-group">
+                    <div class="season-header" onclick="toggleSeason(this)">
+                        <h4>Misc Files</h4>
+                        <span class="episode-count">Associated Files</span>
+                        <button class="expand-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="season-content">
+                        <div class="file-list">
+                            {{ file_item("Inception - Behind the Scenes.mkv", "Behind the Scenes", "", [
+                            {"quality": "1080p", "in_cache": false}
+                            ], "📋") }}
+                            {{ file_item("Inception - Making of Documentary.mkv", "Making of Documentary", "", [
+                            {"quality": "1080p", "in_cache": true}
+                            ], "📋") }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
