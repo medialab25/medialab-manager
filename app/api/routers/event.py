@@ -22,7 +22,7 @@ def create_event(
         type=event.type,
         sub_type=event.sub_type,
         status=event.status,
-        title=event.title,
+        description=event.description,
         details=event.details
     )
 
@@ -43,7 +43,7 @@ def list_events(
     filter: EventFilter = Depends(),
     skip: int = 0,
     limit: int = 100,
-    sort_by: str = Query("timestamp", description="Field to sort by (id, timestamp, type, status, title)"),
+    sort_by: str = Query("timestamp", description="Field to sort by (id, timestamp, type, status, description)"),
     sort_order: str = Query("desc", description="Sort order (asc or desc)"),
     db: Session = Depends(get_db)
 ):
@@ -51,7 +51,7 @@ def list_events(
     if sort_order.lower() not in ["asc", "desc"]:
         raise HTTPException(status_code=400, detail="sort_order must be 'asc' or 'desc'")
     
-    valid_sort_fields = ["id", "timestamp", "type", "status", "title"]
+    valid_sort_fields = ["id", "timestamp", "type", "status", "description"]
     if sort_by not in valid_sort_fields:
         raise HTTPException(
             status_code=400, 

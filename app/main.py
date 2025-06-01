@@ -14,7 +14,7 @@ from urllib.parse import urlencode, parse_qs
 from logging.handlers import RotatingFileHandler
 
 from app.core.settings import settings
-from app.core.database import engine, Base, get_db
+from app.core.database import engine, Base, get_db, MainBase, main_engine, MediaBase, media_engine
 from app.api.routers.notify import router as notification_router
 from app.api.routers.event import router as event_router
 from app.api.routers.tasks import router as tasks_router

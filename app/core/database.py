@@ -42,6 +42,10 @@ def setup_database(db_path: str) -> tuple[create_engine, sessionmaker, declarati
 
 # Setup main database
 main_engine, MainSessionLocal, MainBase = setup_database(settings.DATABASE.MAIN_DB_PATH)
+# Alias main_engine as engine for compatibility
+engine = main_engine
+# Alias MainBase as Base for compatibility
+Base = MainBase
 
 # Setup media database
 media_engine, MediaSessionLocal, MediaBase = setup_database(settings.DATABASE.MEDIA_DB_PATH)
@@ -49,6 +53,22 @@ media_engine, MediaSessionLocal, MediaBase = setup_database(settings.DATABASE.ME
 # Type variable for generic model type
 T = TypeVar('T', bound=MainBase)
 M = TypeVar('M', bound=MediaBase)
+
+# Export all necessary database components
+__all__ = [
+    'engine',
+    'main_engine',
+    'media_engine',
+    'Base',
+    'MainBase',
+    'MediaBase',
+    'MainSessionLocal',
+    'MediaSessionLocal',
+    'get_db',
+    'get_media_db',
+    'DBManager',
+    'MediaDBManager'
+]
 
 class DBManager(Generic[T]):
     def __init__(self, model: Type[T], db: Session):
