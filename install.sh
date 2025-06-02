@@ -63,13 +63,13 @@ if [ "$INSTALL_DEPS" = true ]; then
     echo -e "${BLUE}Installing system dependencies...${NC}"
     if command -v apt-get &> /dev/null; then
         sudo apt-get update
-        sudo apt-get install -y python3-venv python3-pip python3-full
+        sudo apt-get install -y python3-venv python3-pip python3-full smartmontools hdparm
     elif command -v dnf &> /dev/null; then
-        sudo dnf install -y python3-venv python3-pip python3-full
+        sudo dnf install -y python3-venv python3-pip python3-full smartmontools hdparm
     elif command -v yum &> /dev/null; then
-        sudo yum install -y python3-venv python3-pip python3-full
+        sudo yum install -y python3-venv python3-pip python3-full smartmontools hdparm
     else
-        echo -e "${YELLOW}Warning: Could not detect package manager. Please install python3-venv and python3-pip manually.${NC}"
+        echo -e "${YELLOW}Warning: Could not detect package manager. Please install python3-venv, python3-pip, smartmontools, and hdparm manually.${NC}"
     fi
 fi
 
