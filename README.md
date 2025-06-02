@@ -85,3 +85,36 @@ sudo systemctl status medialab-manager
 sudo systemctl stop medialab-manager
 sudo systemctl start medialab-manager
 ```
+
+### Sudo Access Setup
+
+If your tasks require sudo privileges, you'll need to configure sudo access for the service user. Here's how to set it up:
+
+1. Create a sudoers file for the service:
+```bash
+sudo visudo -f /etc/sudoers.d/medialab-manager
+```
+
+2. Add the following line (replace `media` with your service user and adjust the paths):
+```
+media ALL=(ALL) NOPASSWD: /usr/bin/snapraid, /path/to/other/script.sh
+```
+
+3. Set the correct permissions:
+```bash
+sudo chmod 440 /etc/sudoers.d/medialab-manager
+```
+
+Important security notes:
+- Only grant sudo access to specific commands that absolutely need it
+- Use absolute paths in the sudoers file
+- Regularly audit sudo access
+- Document which commands have sudo access and why
+- Consider using a dedicated service user with limited permissions
+
+### Available Commands
+
+```bash
+mvm
+mvm-service
+```

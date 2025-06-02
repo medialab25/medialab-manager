@@ -31,7 +31,7 @@ def run_snapraid(message: str = "Starting SnapRAID sync") -> str:
     # Run snapraid sync command and capture its output
     try:
         # Run snapraid sync command
-        snapraid_result = subprocess.run(['snapraid', 'sync'], 
+        snapraid_result = subprocess.run(['sudo', 'snapraid', 'sync'], 
             capture_output=True, 
             text=True, 
             check=True)

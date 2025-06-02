@@ -167,6 +167,28 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
+    # Create sudoers file for the service
+    echo -e "${BLUE}Setting up sudo access for the service...${NC}"
+    SUDOERS_FILE="/etc/sudoers.d/medialab-manager"
+    
+    # Check if snapraid is installed
+    if command -v snapraid &> /dev/null; then
+        SNAPRAID_PATH=$(which snapraid)
+        echo -e "${GREEN}Found snapraid at: $SNAPRAID_PATH${NC}"
+        
+        # Create sudoers file
+        sudo tee "$SUDOERS_FILE" > /dev/null << EOF
+# MediaLab Manager service sudo access
+$CURRENT_USER ALL=(ALL) NOPASSWD: $SNAPRAID_PATH
+EOF
+        
+        # Set correct permissions
+        sudo chmod 440 "$SUDOERS_FILE"
+        echo -e "${GREEN}Created sudoers file with snapraid access${NC}"
+    else
+        echo -e "${YELLOW}Warning: snapraid not found. Skipping sudo setup.${NC}"
+    fi
+
     # Reload systemd and enable the service
     sudo systemctl daemon-reload
     sudo systemctl enable medialab-manager
