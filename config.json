@@ -16,12 +16,12 @@
             "name": "SnapRAID Backup",
             "description": "Backup the SnapRAID data to the backup server",
             "group": "backup",
-            "enabled": false,
+            "enabled": true,
             "task_type": "cron",
-            "function_name": "snapraid_task",
-            "cron_hour": "*",
-            "cron_minute": "*",
-            "cron_second": "*/5"
+            "function_name": "snapraid",
+            "cron_hour": "0",
+            "cron_minute": "0",
+            "cron_second": "0"
         }
     },
     "MEDIA_DATA": {

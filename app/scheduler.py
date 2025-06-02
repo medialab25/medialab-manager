@@ -11,7 +11,7 @@ import logging
 
 # from app.api.managers.sync_manager import SyncManager
 from app.core.settings import settings
-from app.tasks import test_task
+from app.tasks import run_snapraid, test_task
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +149,7 @@ def sync_task():
 
 # Register example tasks
 register_task("sync", sync_task)
-register_task("snapraid_task", test_task.dummy_task)
+register_task("snapraid", run_snapraid.run_snapraid)
+register_task("test_task", test_task.dummy_task)
 
 # You can add more task functions here 

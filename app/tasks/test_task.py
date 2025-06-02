@@ -1,7 +1,6 @@
 import subprocess
 import sys
 import time
-from app.api.managers.event_manager import EventManager
 from app.models.event_types import EventType, SubEventType
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import EventManagerUtil
