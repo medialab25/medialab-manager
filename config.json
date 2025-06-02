@@ -12,13 +12,13 @@
         "SMTP_FROM": "MediaLab Admin <admin@spongnet.uk>",
         "SMTP_TO": "medialab25@icloud.com"
     },
-    "TASK_FILTER": {
-        "tasks": {
+    "TASK_FILTERS": {
+        "tasks_filter": {
             "name": "Tasks",
-            "type": "Task",
-            "sub_type": "Task"
+            "type": "task",
+            "sub_type": "task_run"
         },
-        "events": {
+        "test_filter": {
             "name": "Events",
             "type": "Event",
             "sub_type": "Event"

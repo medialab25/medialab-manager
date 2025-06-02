@@ -73,6 +73,15 @@
         background: #0056b3;
     }
 
+    .filter-form .reset-btn {
+        background: #6c757d;
+        margin-left: 0.5rem;
+    }
+
+    .filter-form .reset-btn:hover {
+        background: #5a6268;
+    }
+
     .events-table {
         width: 100%;
         border-collapse: collapse;
@@ -372,11 +381,11 @@
                 <input type="text" id="type" name="type" value="{{ request.query_params.get('type', '') }}"
                     placeholder="e.g. system,user,application">
                 <div id="typeFilterDropdown" class="type-filter-dropdown">
-                    <div class="type-filter-item" onclick="selectType('system')">System Events</div>
-                    <div class="type-filter-item" onclick="selectType('user')">User Events</div>
-                    <div class="type-filter-item" onclick="selectType('application')">Application Events</div>
-                    <div class="type-filter-item" onclick="selectType('security')">Security Events</div>
-                    <div class="type-filter-item" onclick="selectType('notification')">Notification Events</div>
+                    {% for filter_name, filter_data in task_filters.items() %}
+                    <div class="type-filter-item"
+                        onclick="selectFilter('{{ filter_data.type }}', '{{ filter_data.sub_type }}')">{{
+                        filter_data.name }}</div>
+                    {% endfor %}
                 </div>
                 <span class="error-message">Please enter a valid type</span>
             </div>
@@ -409,6 +418,7 @@
             </select>
         </div>
         <button type="submit">Apply Filters</button>
+        <button type="button" class="reset-btn" onclick="resetFilters()">Reset</button>
     </form>
 
     <!-- Events Table -->
@@ -511,11 +521,26 @@
         dropdown.classList.toggle('show');
     }
 
-    function selectType(type) {
-        const input = document.getElementById('type');
-        input.value = type;
+    function selectFilter(type, subType) {
+        const typeInput = document.getElementById('type');
+        const subTypeInput = document.getElementById('sub_type');
+        typeInput.value = type;
+        subTypeInput.value = subType;
         const dropdown = document.getElementById('typeFilterDropdown');
         dropdown.classList.remove('show');
+        // Automatically submit the form
+        document.querySelector('.filter-form').submit();
+    }
+
+    function resetFilters() {
+        // Clear all input fields
+        document.getElementById('type').value = '';
+        document.getElementById('sub_type').value = '';
+        document.getElementById('start_date').value = '';
+        document.getElementById('end_date').value = '';
+        document.getElementById('status').value = '';
+        // Submit the form to apply the reset
+        document.querySelector('.filter-form').submit();
     }
 
     // Close dropdown when clicking outside

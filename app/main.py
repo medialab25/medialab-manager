@@ -12,6 +12,7 @@ import argparse
 from sqlalchemy.orm import Session
 from urllib.parse import urlencode, parse_qs
 from logging.handlers import RotatingFileHandler
+import json
 
 from app.core.settings import settings
 from app.core.database import engine, Base, get_db, MainBase, main_engine, MediaBase, media_engine
@@ -199,6 +200,12 @@ async def events(
     total = db.query(Event).count()
     has_next = total > page * per_page
 
+    # Load task filters from config
+    config_path = Path("config.json")
+    with open(config_path) as f:
+        config = json.load(f)
+        task_filters = config.get("TASK_FILTERS", {})
+
     return templates.TemplateResponse(
         "pages/events.html",
         {
@@ -207,7 +214,8 @@ async def events(
             "messages": [],
             "events": events,
             "page": page,
-            "has_next": has_next
+            "has_next": has_next,
+            "task_filters": task_filters  # Pass the task filters from config
         }
     )
 
