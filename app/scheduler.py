@@ -129,6 +129,32 @@ def remove_task(task_id: str) -> None:
     """Remove a task from the scheduler"""
     scheduler.remove_job(task_id)
 
+def run_task_now(task_id: str) -> None:
+    """Run a task immediately"""
+    if task_id not in settings.TASKS:
+        raise ValueError(f"Task '{task_id}' not found in settings")
+    
+    task_data = settings.TASKS[task_id]
+    function_name = task_data.get("function_name", task_id)
+    
+    try:
+        # Get the task function
+        task_func = get_task_function(function_name)
+        
+        # Run the task immediately
+        scheduler.add_job(
+            task_func,
+            trigger='date',
+            run_date=datetime.now(),
+            id=f"{task_id}_immediate",
+            replace_existing=True
+        )
+        
+        logger.info(f"Task '{task_id}' started immediately")
+    except Exception as e:
+        logger.error(f"Error running task '{task_id}': {str(e)}", exc_info=True)
+        raise
+
 def sync_task():
     """Run the sync task"""
     try:

@@ -76,6 +76,160 @@
         color: #6c757d;
         font-style: italic;
     }
+
+    .run-now-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .run-now-btn:hover {
+        background-color: #218838;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .run-now-btn:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .run-now-btn i {
+        font-size: 0.9em;
+    }
+
+    .run-now-btn.running {
+        background-color: #17a2b8;
+    }
+
+    .run-now-btn.running i {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 400px;
+        transform: translateY(-20px);
+        transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal {
+        transform: translateY(0);
+    }
+
+    .modal-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-title {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #212529;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-message {
+        margin: 0;
+        color: #495057;
+    }
+
+    .modal-footer {
+        padding: 16px 20px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .modal-btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .modal-btn-cancel {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+
+    .modal-btn-cancel:hover {
+        background-color: #dee2e6;
+    }
+
+    .modal-btn-confirm {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .modal-btn-confirm:hover {
+        background-color: #218838;
+    }
 </style>
 {% endblock %}
 
@@ -92,6 +246,7 @@
                     <th>Name</th>
                     <th>Description</th>
                     <th style="width: 200px">Last Run</th>
+                    <th style="width: 50px">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -104,6 +259,12 @@
                     <td class="task-name">{{ task.name }}</td>
                     <td class="task-description">{{ task.description }}</td>
                     <td class="task-last-run">{{ task.last_run|default('Never', true) }}</td>
+                    <td>
+                        <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if
+                            not task.enabled %}disabled{% endif %} title="Run Now">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -114,10 +275,48 @@
     <div class="no-tasks">No tasks configured</div>
     {% endif %}
 </div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirmationModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirm Task Run</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-message" id="modalMessage"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="modal-btn modal-btn-confirm" id="confirmButton">Run Task</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    let currentTaskId = null;
+
+    function showModal() {
+        document.getElementById('confirmationModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('confirmationModal').classList.remove('active');
+        currentTaskId = null;
+    }
+
+    function confirmRunTask(taskId, taskName) {
+        currentTaskId = taskId;
+        document.getElementById('modalMessage').textContent = `Are you sure you want to run "${taskName}" now?`;
+        document.getElementById('confirmButton').onclick = () => {
+            closeModal();
+            runTaskNow(taskId);
+        };
+        showModal();
+    }
+
     async function toggleTask(checkbox) {
         const taskId = checkbox.dataset.taskId;
         const enabled = checkbox.checked;
@@ -135,6 +334,10 @@
                 throw new Error('Failed to toggle task');
             }
 
+            // Enable/disable the Run Now button based on task status
+            const runNowBtn = checkbox.closest('tr').querySelector('.run-now-btn');
+            runNowBtn.disabled = !enabled;
+
             // Show success message
             const message = enabled ? 'Task enabled' : 'Task disabled';
             alert(message);
@@ -144,5 +347,50 @@
             alert('Failed to update task status');
         }
     }
+
+    async function runTaskNow(taskId) {
+        const button = document.querySelector(`.run-now-btn[onclick*="${taskId}"]`);
+        const icon = button.querySelector('i');
+
+        button.disabled = true;
+        button.classList.add('running');
+        icon.classList.remove('fa-play');
+        icon.classList.add('fa-sync');
+
+        try {
+            const response = await fetch(`/api/tasks/${taskId}/run`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to run task');
+            }
+        } catch (error) {
+            console.error('Error running task:', error);
+            alert('Failed to run task');
+        } finally {
+            button.disabled = false;
+            button.classList.remove('running');
+            icon.classList.remove('fa-sync');
+            icon.classList.add('fa-play');
+        }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('confirmationModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.getElementById('confirmationModal').classList.contains('active')) {
+            closeModal();
+        }
+    });
 </script>
 {% endblock %}

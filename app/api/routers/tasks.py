@@ -5,7 +5,7 @@ from datetime import datetime
 
 from app.core.database import get_db
 from app.core.settings import settings
-from app.scheduler import add_task, remove_task, TaskConfig
+from app.scheduler import add_task, remove_task, TaskConfig, run_task_now
 
 router = APIRouter()
 
@@ -52,4 +52,16 @@ def toggle_task(task_id: str, enabled: bool):
     else:
         remove_task(task_id)
     
-    return {"status": "success", "enabled": enabled} 
+    return {"status": "success", "enabled": enabled}
+
+@router.post("/{task_id}/run")
+def run_task(task_id: str):
+    """Run a task immediately"""
+    if task_id not in settings.TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    try:
+        run_task_now(task_id)
+        return {"status": "success", "message": f"Task {task_id} started"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) 
