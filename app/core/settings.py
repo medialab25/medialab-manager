@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # Server settings
     HOST: str = "0.0.0.0"
     PORT: int = 4800
-    DEBUG_PORT: int = 4801
+    DEBUG_PORT: int = 4800
     DEBUG: bool = False
     
     # Application settings
