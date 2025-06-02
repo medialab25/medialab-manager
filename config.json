@@ -3,8 +3,8 @@
     "VERSION": "0.1.0",
     "DESCRIPTION": "MediaLab Management System",
     "DATABASE": {
-        "MAIN_DB_PATH": "/var/lib/medialab-manager/medialab.db",
-        "MEDIA_DB_PATH": "/var/lib/medialab-manager/media.db"
+        "MAIN_DB_PATH": "data/medialab.db",
+        "MEDIA_DB_PATH": "data/media.db"
     },
     "NOTIFICATION": {
         "SMTP_RELAY": "192.168.2.1",
