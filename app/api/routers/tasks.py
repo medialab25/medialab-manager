@@ -2,11 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Dict, List
 from datetime import datetime
+from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.api.managers.task_manager import TaskManager
 
 router = APIRouter()
+
+class TaskToggleRequest(BaseModel):
+    enabled: bool
 
 @router.get("/")
 def list_tasks_endpoint(db: Session = Depends(get_db)):
@@ -15,11 +19,11 @@ def list_tasks_endpoint(db: Session = Depends(get_db)):
     return task_manager.list_tasks()
 
 @router.post("/{task_id}/toggle")
-def toggle_task_endpoint(task_id: str, enabled: bool, db: Session = Depends(get_db)):
+def toggle_task_endpoint(task_id: str, request: TaskToggleRequest, db: Session = Depends(get_db)):
     """Toggle a task's enabled status"""
     task_manager = TaskManager(db=db)
     try:
-        return task_manager.toggle_task(task_id, enabled)
+        return task_manager.toggle_task(task_id, request.enabled)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

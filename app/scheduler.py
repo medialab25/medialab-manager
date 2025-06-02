@@ -107,7 +107,8 @@ def register_task(name: str, func: Callable, create_events: bool = True) -> None
 def get_task_function(name: str) -> Callable:
     """Get a registered task function by name"""
     if name not in task_registry:
-        raise ValueError(f"Task function '{name}' not registered")
+        logger.warning(f"Task function '{name}' not registered")
+        return None
     return task_registry[name]
 
 def start_scheduler():
@@ -116,7 +117,7 @@ def start_scheduler():
         scheduler.start()
         # Add tasks from settings
         for task_id, task_data in settings.TASKS.items():
-            if task_data.get("enabled", False):
+            if task_data.get("enabled", False) and task_data.get("task_type") != "manual":
                 config = TaskConfig(
                     task_id=task_id,
                     task_type=task_data.get("task_type", "interval"),
@@ -133,13 +134,16 @@ def stop_scheduler():
         scheduler.shutdown()
 
 def add_task(task_id: str, task_config: TaskConfig) -> None:
-    """Add a new task to the scheduler"""
-    # Get the task function
+    """Add a task to the scheduler"""
     task_func = get_task_function(task_config.function_name)
     if not task_func:
-        raise ValueError(f"Task function '{task_config.function_name}' not registered")
-    
-    # Create the appropriate trigger
+        logger.warning(f"Skipping task '{task_id}' - function '{task_config.function_name}' not registered")
+        return
+
+    # Wrap the task function with our event logging wrapper
+    wrapped_func = task_wrapper(task_id, task_func)
+
+    # Create the appropriate trigger based on task type
     if task_config.task_type == "interval":
         trigger = IntervalTrigger(
             hours=task_config.hours,
@@ -153,19 +157,19 @@ def add_task(task_id: str, task_config: TaskConfig) -> None:
         )
     elif task_config.task_type == "date":
         if not task_config.run_date:
-            raise ValueError("run_date is required for date type tasks")
+            raise ValueError("run_date is required for date tasks")
         trigger = DateTrigger(run_date=task_config.run_date)
     else:
         raise ValueError(f"Invalid task type: {task_config.task_type}")
-    
+
     # Add the job to the scheduler
     scheduler.add_job(
-        task_func,
+        wrapped_func,
         trigger=trigger,
         id=task_id,
+        replace_existing=True,
         args=task_config.args,
-        kwargs=task_config.kwargs,
-        replace_existing=True
+        kwargs=task_config.kwargs
     )
 
 def remove_task(task_id: str) -> None:
@@ -174,29 +178,12 @@ def remove_task(task_id: str) -> None:
 
 def run_task_now(task_id: str) -> None:
     """Run a task immediately"""
-    if task_id not in settings.TASKS:
-        raise ValueError(f"Task '{task_id}' not found in settings")
+    task_func = get_task_function(task_id)
+    if not task_func:
+        raise ValueError(f"Task function '{task_id}' not registered")
     
-    task_data = settings.TASKS[task_id]
-    function_name = task_data.get("function_name", task_id)
-    
-    try:
-        # Get the task function
-        task_func = get_task_function(function_name)
-        
-        # Run the task immediately
-        scheduler.add_job(
-            task_func,
-            trigger='date',
-            run_date=datetime.now(),
-            id=f"{task_id}_immediate",
-            replace_existing=True
-        )
-        
-        logger.info(f"Task '{task_id}' started immediately")
-    except Exception as e:
-        logger.error(f"Error running task '{task_id}': {str(e)}", exc_info=True)
-        raise
+    wrapped_func = task_wrapper(task_id, task_func)
+    wrapped_func()
 
 def sync_task():
     """Run the sync task"""

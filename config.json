@@ -34,7 +34,16 @@
             "cron_hour": "0",
             "cron_minute": "0",
             "cron_second": "0"
+        },
+        "spindown-disks": {
+            "name": "Spindown Disk",
+            "description": "Spindown the disk",
+            "group": "disk",
+            "enabled": true,
+            "task_type": "manual",
+            "function_name": "spindown_disks"
         }
+
     },
     "MEDIA_DATA": {
         "storage": {

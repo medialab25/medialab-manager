@@ -230,6 +230,14 @@
     .modal-btn-confirm:hover {
         background-color: #218838;
     }
+
+    .manual-task-indicator {
+        color: #6c757d;
+        font-size: 1.2em;
+        display: inline-block;
+        width: 20px;
+        text-align: center;
+    }
 </style>
 {% endblock %}
 
@@ -253,15 +261,19 @@
                 {% for task in group_tasks %}
                 <tr>
                     <td>
+                        {% if task.task_type != 'manual' %}
                         <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" {% if task.enabled
                             %}checked{% endif %} onchange="toggleTask(this)">
+                        {% else %}
+                        <span class="manual-task-indicator" title="Manual task">⚡</span>
+                        {% endif %}
                     </td>
                     <td class="task-name">{{ task.name }}</td>
                     <td class="task-description">{{ task.description }}</td>
                     <td class="task-last-run">{{ task.last_run|default('Never', true) }}</td>
                     <td>
                         <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if
-                            not task.enabled %}disabled{% endif %} title="Run Now">
+                            not task.enabled and task.task_type !='manual' %}disabled{% endif %} title="Run Now">
                             <i class="fas fa-play"></i>
                         </button>
                     </td>
@@ -337,10 +349,6 @@
             // Enable/disable the Run Now button based on task status
             const runNowBtn = checkbox.closest('tr').querySelector('.run-now-btn');
             runNowBtn.disabled = !enabled;
-
-            // Show success message
-            const message = enabled ? 'Task enabled' : 'Task disabled';
-            alert(message);
         } catch (error) {
             console.error('Error toggling task:', error);
             checkbox.checked = !enabled; // Revert checkbox state
