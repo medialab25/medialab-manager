@@ -16,14 +16,14 @@ def dummy_task(message: str = "Hello from dummy task!") -> str:
         str: The input message
     """
     # Add event before task execution
-    with EventManagerUtil.get_event_manager() as event_manager:
-        event_manager.add_event(
-            type="notify",
-            sub_type="email",
-            status="info",
-            description="Starting dummy task execution",
-            details=f"Task will process message: {message}"
-        )
+#    with EventManagerUtil.get_event_manager() as event_manager:
+#        event_manager.add_event(
+#            type="notify",
+#            sub_type="email",
+#            status="info",#
+#            description="Starting dummy task execution",
+#            details=f"Task will process message: {message}"
+#        )
     
    # time.sleep(20)  # Add 20 second delay
     print(f"Executing dummy task with message: {message}")
@@ -45,15 +45,15 @@ def dummy_task(message: str = "Hello from dummy task!") -> str:
         print(f"Error running cat command: {e}", file=sys.stderr)
 
     # Add event after task completion
-    with EventManagerUtil.get_event_manager() as event_manager:
-        event_manager.add_event_with_output(
-            type="notify",
-            sub_type="email",
-            status="success",
-            description="Dummy task completed successfully",
-            details=f"Processed message: {message}",
-            attachment_data=cat_result.stdout.encode('utf-8'),  # Convert string to bytes
-            attachment_mime_type=AttachDataMimeType.TEXT
-        )
+#    with EventManagerUtil.get_event_manager() as event_manager:
+ #       event_manager.add_event_with_output(
+  #          type="notify",
+   #         sub_type="email",
+    #        status="success",
+     #       description="Dummy task completed successfully",
+      #      details=f"Processed message: {message}",
+       #     attachment_data=cat_result.stdout.encode('utf-8'),  # Convert string to bytes
+        #    attachment_mime_type=AttachDataMimeType.TEXT
+        #)
     
     return message

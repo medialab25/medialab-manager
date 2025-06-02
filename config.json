@@ -50,8 +50,8 @@
             "enabled": true,
             "task_type": "interval",
             "function_name": "test_task",
-            "minutes": 5,
-            "seconds": 0
+            "minutes": 0,
+            "seconds": 5
         }
     },
     "MEDIA_DATA": {

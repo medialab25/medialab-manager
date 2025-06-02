@@ -405,5 +405,12 @@
             closeModal();
         }
     });
+
+    // Add event listeners for task toggles
+    document.querySelectorAll('.task-toggle').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            toggleTask(this);
+        });
+    });
 </script>
 {% endblock %}
