@@ -5,6 +5,7 @@ import httpx
 
 from app.core.settings import settings
 from app.views.logs import router as logs_router
+from app.api.routers.tasks import list_tasks  # Import the list_tasks function
 
 router = APIRouter()
 router.include_router(logs_router)
@@ -25,15 +26,13 @@ async def dashboard(request: Request):
 @router.get("/tasks")
 async def tasks(request: Request):
     """Tasks page view"""
-    async with httpx.AsyncClient() as client:
-        response = await client.get("http://localhost:4800/api/tasks")
-        tasks = response.json() if response.status_code == 200 else {}
+    tasks_data = list_tasks()  # Call the list_tasks function directly
     
     return templates.TemplateResponse(
         "pages/tasks.html",
         {
             "request": request,
             "title": "Tasks",
-            "tasks": tasks
+            "tasks": tasks_data
         }
     ) 
