@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     # Server settings
     HOST: str = "0.0.0.0"
     PORT: int = 4800
+    DEBUG_PORT: int = 4801
     DEBUG: bool = False
     
     # Application settings
@@ -53,5 +54,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        env_prefix = "MEDIALAB_"  # This allows setting PORT via MEDIALAB_PORT environment variable
 
 settings = Settings.from_config() 

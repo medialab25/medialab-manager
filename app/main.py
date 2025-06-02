@@ -300,10 +300,12 @@ def run_service(debug: bool = None):
     if debug is not None:
         settings.DEBUG = debug
     
+    port = settings.DEBUG_PORT if settings.DEBUG else settings.PORT
+    
     uvicorn.run(
         "app.main:app",
         host=settings.HOST,
-        port=settings.PORT,
+        port=port,
         reload=settings.DEBUG,
         log_level="debug" if settings.DEBUG else "info"
     )
