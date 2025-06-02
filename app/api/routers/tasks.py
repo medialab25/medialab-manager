@@ -4,64 +4,30 @@ from typing import Dict, List
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.settings import settings
-from app.scheduler import add_task, remove_task, TaskConfig, run_task_now
+from app.api.managers.task_manager import TaskManager
 
 router = APIRouter()
 
 @router.get("/")
-def list_tasks():
-    """List all tasks grouped by their group"""
-    tasks = {}
-    
-    for task_id, task_data in settings.TASKS.items():
-        group = task_data.get("group", "other")
-        if group not in tasks:
-            tasks[group] = []
-            
-        tasks[group].append({
-            "id": task_id,
-            "name": task_data.get("name", task_id),
-            "description": task_data.get("description", ""),
-            "enabled": task_data.get("enabled", False),
-            "last_run": None  # TODO: Implement last run tracking
-        })
-    
-    return tasks
+def list_tasks_endpoint(db: Session = Depends(get_db)):
+    """API endpoint to list all tasks"""
+    task_manager = TaskManager(db=db)
+    return task_manager.list_tasks()
 
 @router.post("/{task_id}/toggle")
-def toggle_task(task_id: str, enabled: bool):
+def toggle_task_endpoint(task_id: str, enabled: bool, db: Session = Depends(get_db)):
     """Toggle a task's enabled status"""
-    if task_id not in settings.TASKS:
-        raise HTTPException(status_code=404, detail="Task not found")
-    
-    task_data = settings.TASKS[task_id]
-    task_data["enabled"] = enabled
-    
-    # Update the task in the scheduler
-    if enabled:
-        config = TaskConfig(
-            task_id=task_id,
-            task_type=task_data.get("task_type", "interval"),
-            function_name=task_data.get("function_name", task_id),
-            cron_hour=task_data.get("cron_hour", "*"),
-            cron_minute=task_data.get("cron_minute", "*"),
-            cron_second=task_data.get("cron_second", "*")
-        )
-        add_task(task_id, config)
-    else:
-        remove_task(task_id)
-    
-    return {"status": "success", "enabled": enabled}
+    task_manager = TaskManager(db=db)
+    try:
+        return task_manager.toggle_task(task_id, enabled)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/{task_id}/run")
-def run_task(task_id: str):
+def run_task_endpoint(task_id: str, db: Session = Depends(get_db)):
     """Run a task immediately"""
-    if task_id not in settings.TASKS:
-        raise HTTPException(status_code=404, detail="Task not found")
-    
+    task_manager = TaskManager(db=db)
     try:
-        run_task_now(task_id)
-        return {"status": "success", "message": f"Task {task_id} started"}
-    except Exception as e:
+        return task_manager.run_task(task_id)
+    except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e)) 

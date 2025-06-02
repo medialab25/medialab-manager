@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from datetime import datetime
 import httpx
+from sqlalchemy.orm import Session
 
 from app.core.settings import settings
+from app.core.database import get_db
 from app.views.logs import router as logs_router
-from app.api.routers.tasks import list_tasks  # Import the list_tasks function
+from app.api.managers.task_manager import TaskManager
 
 router = APIRouter()
 router.include_router(logs_router)
@@ -24,9 +26,10 @@ async def dashboard(request: Request):
     )
 
 @router.get("/tasks")
-async def tasks(request: Request):
+async def tasks(request: Request, db: Session = Depends(get_db)):
     """Tasks page view"""
-    tasks_data = list_tasks()  # Call the list_tasks function directly
+    task_manager = TaskManager(db=db)
+    tasks_data = task_manager.list_tasks()
     
     return templates.TemplateResponse(
         "pages/tasks.html",

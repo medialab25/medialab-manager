@@ -12,6 +12,8 @@ import logging
 # from app.api.managers.sync_manager import SyncManager
 from app.core.settings import settings
 from app.tasks import run_snapraid, test_task
+from app.utils.event_utils import EventManagerUtil
+from app.models.event_types import EventType, SubEventType
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +59,50 @@ class Task:
 # Dictionary to store registered task functions
 task_registry: Dict[str, Callable] = {}
 
-def register_task(name: str, func: Callable) -> None:
+def create_task_event(task_id: str, status: str = "started") -> None:
+    """Create a task event in the database"""
+    try:
+        with EventManagerUtil.get_event_manager() as event_manager:
+            event_manager.add_event(
+                type=EventType.TASK,
+                sub_type=task_id,
+                status=status,
+                description=f"Task {task_id} {status}",
+                details=f"Task {task_id} {status} at {datetime.now()}"
+            )
+    except Exception as e:
+        logger.error(f"Error creating task event: {str(e)}", exc_info=True)
+
+def task_wrapper(task_id: str, func: Callable) -> Callable:
+    """Wrapper function that creates events before and after task execution"""
+    def wrapped(*args, **kwargs):
+        try:
+            create_task_event(task_id)
+            # Check if the function is a coroutine
+            if asyncio.iscoroutinefunction(func):
+                # Create event loop if it doesn't exist
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                # Run the async function
+                result = loop.run_until_complete(func(*args, **kwargs))
+            else:
+                # Run the sync function directly
+                result = func(*args, **kwargs)
+            return result
+        except Exception as e:
+            logger.error(f"Error in task {task_id}: {str(e)}", exc_info=True)
+            raise e
+    return wrapped
+
+def register_task(name: str, func: Callable, create_events: bool = True) -> None:
     """Register a task function with the scheduler"""
-    task_registry[name] = func
+    if create_events:
+        task_registry[name] = task_wrapper(name, func)
+    else:
+        task_registry[name] = func
 
 def get_task_function(name: str) -> Callable:
     """Get a registered task function by name"""

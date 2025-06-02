@@ -11,7 +11,6 @@ class SubEventType(str, Enum):
     EMAIL = "Email"
     NTFY = "Ntfy"
     SNAPRAID = "Snapraid"
-    TASK_RUN = "Task Run"
     
 class Status(str, Enum):
     """Status enum for event status values."""

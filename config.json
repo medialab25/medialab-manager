@@ -15,8 +15,7 @@
     "TASK_FILTERS": {
         "tasks_filter": {
             "name": "Tasks",
-            "type": "task",
-            "sub_type": "task_run"
+            "type": "task"
         },
         "test_filter": {
             "name": "Events",

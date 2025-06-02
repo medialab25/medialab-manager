@@ -351,6 +351,8 @@
     async function runTaskNow(taskId) {
         const button = document.querySelector(`.run-now-btn[onclick*="${taskId}"]`);
         const icon = button.querySelector('i');
+        const row = button.closest('tr');
+        const lastRunCell = row.querySelector('.task-last-run');
 
         button.disabled = true;
         button.classList.add('running');
@@ -367,6 +369,13 @@
 
             if (!response.ok) {
                 throw new Error('Failed to run task');
+            }
+
+            // Fetch updated task info to get the new last run time
+            const taskResponse = await fetch(`/api/tasks/${taskId}`);
+            if (taskResponse.ok) {
+                const taskData = await taskResponse.json();
+                lastRunCell.textContent = taskData.last_run || 'Never';
             }
         } catch (error) {
             console.error('Error running task:', error);

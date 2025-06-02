@@ -9,6 +9,7 @@ from app.utils.file_utils import get_attachment_data, AttachDataMimeType, MIME_T
 from typing import List, Optional, Dict, Any
 from sqlalchemy import desc, asc
 from app.models.event_types import EventType, SubEventType
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -132,4 +133,24 @@ class EventManager:
         sort_func = desc if sort_order.lower() == "desc" else asc
         query = query.order_by(sort_func(sort_field))
         
-        return query.offset(skip).limit(limit).all() 
+        return query.offset(skip).limit(limit).all()
+
+    def get_last_task_run(self, sub_type: str) -> Optional[datetime]:
+        """Get the last run time for a task
+        
+        Args:
+            task_id: The ID of the task
+            
+        Returns:
+            Optional[datetime]: The timestamp of the last task run, or None if no runs found
+        """
+        if not self.db:
+            return None
+            
+        # Query for the most recent task run event
+        event = self.db.query(Event).filter(
+            Event.type == EventType.TASK,
+            Event.sub_type == sub_type
+        ).order_by(Event.timestamp.desc()).first()
+        
+        return event.timestamp if event else None 

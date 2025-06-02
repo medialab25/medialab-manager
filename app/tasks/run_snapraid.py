@@ -20,6 +20,8 @@ def run_snapraid(message: str = "Starting SnapRAID sync") -> str:
     # Add start event
     create_event(
         status="info",
+        event_type="backup",
+        sub_type="snapraid",
         description="Starting SnapRAID sync operation",
         details=f"Task will process: {message}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
     )
@@ -47,6 +49,8 @@ def run_snapraid(message: str = "Starting SnapRAID sync") -> str:
         # Add success event
         create_event(
             status="success",
+            event_type="backup",
+            sub_type="snapraid",
             description="SnapRAID sync completed successfully",
             details=f"Processed: {message}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
             attachment_data=snapraid_result.stdout.encode('utf-8'),
@@ -61,6 +65,8 @@ def run_snapraid(message: str = "Starting SnapRAID sync") -> str:
         # Add error event
         create_event(
             status="error",
+            event_type="backup",
+            sub_type="snapraid",
             description="SnapRAID sync failed",
             details=f"Error: {str(e)}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
             attachment_data=e.stderr.encode('utf-8') if e.stderr else str(e).encode('utf-8'),
