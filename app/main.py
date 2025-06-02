@@ -263,6 +263,17 @@ async def torrent_manager(request: Request):
         }
     )
 
+@app.get("/admin")
+async def admin(request: Request):
+    return templates.TemplateResponse(
+        "pages/admin.html",
+        {
+            "request": request,
+            "user": None,  # Replace with actual user when auth is implemented
+            "messages": []
+        }
+    )
+
 def run_service(debug: bool = None):
     """Run the FastAPI service with uvicorn"""
     if debug is not None:

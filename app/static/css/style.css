@@ -128,6 +128,12 @@ body {
     transform: translateX(4px);
 }
 
+.sidebar-nav a i {
+    margin-right: 0.75rem;
+    width: 1rem;
+    text-align: center;
+}
+
 /* Main Content */
 .main-content {
     flex: 1;
@@ -161,6 +167,28 @@ body {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.admin-cog {
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-cog:hover {
+    color: var(--primary-color);
+    background-color: #f1f5f9;
+    transform: rotate(45deg);
 }
 
 .menu-toggle {
