@@ -1,7 +1,6 @@
 import subprocess
 import sys
 import time
-from app.models.event_types import EventType, SubEventType
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import EventManagerUtil
 
@@ -19,8 +18,8 @@ def dummy_task(message: str = "Hello from dummy task!") -> str:
     # Add event before task execution
     with EventManagerUtil.get_event_manager() as event_manager:
         event_manager.add_event(
-            type=EventType.NOTIFY.value,
-            sub_type=SubEventType.EMAIL.value,
+            type="notify",
+            sub_type="email",
             status="info",
             description="Starting dummy task execution",
             details=f"Task will process message: {message}"
@@ -48,8 +47,8 @@ def dummy_task(message: str = "Hello from dummy task!") -> str:
     # Add event after task completion
     with EventManagerUtil.get_event_manager() as event_manager:
         event_manager.add_event_with_output(
-            type=EventType.NOTIFY.value,
-            sub_type=SubEventType.EMAIL.value,
+            type="notify",
+            sub_type="email",
             status="success",
             description="Dummy task completed successfully",
             details=f"Processed message: {message}",

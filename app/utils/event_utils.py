@@ -8,11 +8,11 @@ from app.utils.file_utils import AttachDataMimeType
 
 
 def create_event(
-    status: Status,
+    status: str,
     description: str,
     details: str,
-    event_type: EventType = EventType.NONE,
-    sub_type: SubEventType = SubEventType.NONE,
+    event_type: str = "None",
+    sub_type: str = "None",
     attachment_data: Optional[bytes] = None,
     attachment_mime_type: Optional[AttachDataMimeType] = None
 ) -> None:
@@ -23,17 +23,17 @@ def create_event(
         status: Event status
         description: Event description
         details: Event details
-        event_type: Type of event (defaults to BACKUP)
-        sub_type: Sub-type of event (defaults to SNAPRAID)
+        event_type: Type of event (defaults to None)
+        sub_type: Sub-type of event (defaults to None)
         attachment_data: Optional binary attachment data
         attachment_mime_type: Optional MIME type of the attachment
     """
     with EventManagerUtil.get_event_manager() as event_manager:
         if attachment_data:
             event_manager.add_event_with_output(
-                type=event_type.value,
-                sub_type=sub_type.value,
-                status=status.value,
+                type=event_type,
+                sub_type=sub_type,
+                status=status,
                 description=description,
                 details=details,
                 attachment_data=attachment_data,
@@ -41,9 +41,9 @@ def create_event(
             )
         else:
             event_manager.add_event(
-                type=event_type.value,
-                sub_type=sub_type.value,
-                status=status.value,
+                type=event_type,
+                sub_type=sub_type,
+                status=status,
                 description=description,
                 details=details
             )

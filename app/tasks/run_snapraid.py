@@ -1,7 +1,6 @@
 import subprocess
 import sys
 import time
-from app.models.event_types import Status
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import create_event
 
@@ -20,7 +19,7 @@ def run_snapraid(message: str = "Starting SnapRAID sync") -> str:
     
     # Add start event
     create_event(
-        status=Status.INFO.value,
+        status="info",
         description="Starting SnapRAID sync operation",
         details=f"Task will process: {message}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
     )
@@ -47,7 +46,7 @@ def run_snapraid(message: str = "Starting SnapRAID sync") -> str:
         
         # Add success event
         create_event(
-            status=Status.SUCCESS.value,
+            status="success",
             description="SnapRAID sync completed successfully",
             details=f"Processed: {message}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
             attachment_data=snapraid_result.stdout.encode('utf-8'),
@@ -61,7 +60,7 @@ def run_snapraid(message: str = "Starting SnapRAID sync") -> str:
         
         # Add error event
         create_event(
-            status=Status.ERROR.value,
+            status="error",
             description="SnapRAID sync failed",
             details=f"Error: {str(e)}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
             attachment_data=e.stderr.encode('utf-8') if e.stderr else str(e).encode('utf-8'),

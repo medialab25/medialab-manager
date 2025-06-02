@@ -109,11 +109,11 @@ class EventManager:
         
         # Apply filters
         if filter.type:
-            types = [t.strip() for t in filter.type.split(',')]
-            query = query.filter(Event.type.in_(types))
+            types = [t.strip().lower() for t in filter.type.split(',')]
+            query = query.filter(Event.type.ilike(f"%{types[0]}%"))
         if filter.sub_type:
-            sub_types = [t.strip() for t in filter.sub_type.split(',')]
-            query = query.filter(Event.sub_type.in_(sub_types))
+            sub_types = [t.strip().lower() for t in filter.sub_type.split(',')]
+            query = query.filter(Event.sub_type.ilike(f"%{sub_types[0]}%"))
         if filter.status:
             query = query.filter(Event.status == filter.status)
         if filter.description:

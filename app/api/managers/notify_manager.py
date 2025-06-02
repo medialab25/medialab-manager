@@ -156,8 +156,8 @@ class NotifyManager:
             details["error"] = error
 
         self.event_manager.add_event(
-            type=EventType.NOTIFY.value,
-            sub_type=SubEventType.EMAIL.value,
+            type="notify",
+            sub_type="email",
             status=status,
             description=description,
             details=json.dumps(details),

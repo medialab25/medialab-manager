@@ -171,52 +171,12 @@ async def events(
     status: str = None,
     db: Session = Depends(get_db)
 ):
-    # Validate event type if provided
-    if type:
-        try:
-            # Try to convert to EventType enum
-            event_type = EventType(type)
-            type = event_type.value
-        except ValueError:
-            # If invalid type, return empty results without warning
-            return templates.TemplateResponse(
-                "pages/events.html",
-                {
-                    "request": request,
-                    "user": None,
-                    "messages": [],
-                    "events": [],
-                    "page": page,
-                    "has_next": False
-                }
-            )
-
-    # Validate sub_type if provided
-    if sub_type:
-        try:
-            # Try to convert to SubEventType enum
-            event_sub_type = SubEventType(sub_type)
-            sub_type = event_sub_type.value
-        except ValueError:
-            # If invalid sub_type, return empty results without warning
-            return templates.TemplateResponse(
-                "pages/events.html",
-                {
-                    "request": request,
-                    "user": None,
-                    "messages": [],
-                    "events": [],
-                    "page": page,
-                    "has_next": False
-                }
-            )
-
     # Convert query parameters to filter
     filter_params = {}
     if type:
-        filter_params["type"] = type
+        filter_params["type"] = type.lower()
     if sub_type:
-        filter_params["sub_type"] = sub_type
+        filter_params["sub_type"] = sub_type.lower()
     if start_date:
         filter_params["start_date"] = datetime.fromisoformat(start_date)
     if end_date:
