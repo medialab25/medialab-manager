@@ -38,6 +38,9 @@ class TaskManager:
                 task.group = task_data.get("group", "other")
                 task.task_type = task_data.get("task_type", "interval")
                 task.function_name = task_data.get("function_name", task_id)
+                task.hours = task_data.get("hours", 0)
+                task.minutes = task_data.get("minutes", 0)
+                task.seconds = task_data.get("seconds", 0)
                 task.cron_hour = task_data.get("cron_hour", "*")
                 task.cron_minute = task_data.get("cron_minute", "*")
                 task.cron_second = task_data.get("cron_second", "*")
@@ -51,6 +54,9 @@ class TaskManager:
                     enabled=task_data.get("enabled", False),
                     task_type=task_data.get("task_type", "interval"),
                     function_name=task_data.get("function_name", task_id),
+                    hours=task_data.get("hours", 0),
+                    minutes=task_data.get("minutes", 0),
+                    seconds=task_data.get("seconds", 0),
                     cron_hour=task_data.get("cron_hour", "*"),
                     cron_minute=task_data.get("cron_minute", "*"),
                     cron_second=task_data.get("cron_second", "*")

@@ -38,6 +38,7 @@ class TaskConfig:
     function_name: str
     hours: Optional[int] = 0
     minutes: Optional[int] = 0
+    seconds: Optional[int] = 0
     cron_hour: Optional[str] = "*"
     cron_minute: Optional[str] = "*"
     cron_second: Optional[str] = "*"
@@ -122,9 +123,12 @@ def start_scheduler():
                     task_id=task_id,
                     task_type=task_data.get("task_type", "interval"),
                     function_name=task_data.get("function_name", task_id),
-                    cron_hour=task_data.get("cron_hour", 0),
-                    cron_minute=task_data.get("cron_minute", 0),
-                    cron_second=task_data.get("cron_second", 0)
+                    hours=task_data.get("hours", 0),
+                    minutes=task_data.get("minutes", 0),
+                    seconds=task_data.get("seconds", 0),
+                    cron_hour=task_data.get("cron_hour", "*"),
+                    cron_minute=task_data.get("cron_minute", "*"),
+                    cron_second=task_data.get("cron_second", "*")
                 )
                 add_task(task_id, config)
 
@@ -147,7 +151,8 @@ def add_task(task_id: str, task_config: TaskConfig) -> None:
     if task_config.task_type == "interval":
         trigger = IntervalTrigger(
             hours=task_config.hours,
-            minutes=task_config.minutes
+            minutes=task_config.minutes,
+            seconds=task_config.seconds
         )
     elif task_config.task_type == "cron":
         trigger = CronTrigger(
