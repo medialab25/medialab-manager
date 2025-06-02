@@ -411,10 +411,12 @@
                 <option value="">All</option>
                 <option value="success" {% if request.query_params.get('status')=='success' %}selected{% endif %}>
                     Success</option>
-                <option value="failed" {% if request.query_params.get('status')=='failed' %}selected{% endif %}>Failed
+                <option value="error" {% if request.query_params.get('status')=='error' %}selected{% endif %}>Error
                 </option>
-                <option value="pending" {% if request.query_params.get('status')=='pending' %}selected{% endif %}>
-                    Pending</option>
+                <option value="info" {% if request.query_params.get('status')=='info' %}selected{% endif %}>Info
+                </option>
+                <option value="started" {% if request.query_params.get('status')=='started' %}selected{% endif %}>
+                    Started</option>
             </select>
         </div>
         <button type="submit">Apply Filters</button>

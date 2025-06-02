@@ -35,7 +35,7 @@
             "cron_minute": "0",
             "cron_second": "0"
         },
-        "spindown-disks": {
+        "spindown_disks": {
             "name": "Spindown Disk",
             "description": "Spindown the disk",
             "group": "disk",

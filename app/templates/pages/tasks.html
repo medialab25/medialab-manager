@@ -261,11 +261,11 @@
                 {% for task in group_tasks %}
                 <tr>
                     <td>
-                        {% if task.task_type != 'manual' %}
-                        <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" {% if task.enabled
-                            %}checked{% endif %} onchange="toggleTask(this)">
+                        {% if task.task_type == 'manual' %}
+                        <i class="fas fa-user-clock manual-task-indicator" title="Manual Task"></i>
                         {% else %}
-                        <span class="manual-task-indicator" title="Manual task">⚡</span>
+                        <input type="checkbox" class="task-toggle" data-task-id="{{ task.id }}" {% if task.enabled
+                            %}checked{% endif %}>
                         {% endif %}
                     </td>
                     <td class="task-name">{{ task.name }}</td>

@@ -1,19 +1,19 @@
 from enum import Enum
 
 class EventType(str, Enum):
-    NONE = "None"
-    NOTIFY = "Notify"
-    BACKUP = "Backup"
-    TASK = "Task"
+    NONE = "none"
+    NOTIFY = "notify"
+    BACKUP = "backup"
+    TASK = "task"
 
 class SubEventType(str, Enum):
-    NONE = "None"
-    EMAIL = "Email"
-    NTFY = "Ntfy"
-    SNAPRAID = "Snapraid"
+    NONE = "none"
+    EMAIL = "email"
+    NTFY = "ntfy"
+    SNAPRAID = "snapraid"
     
 class Status(str, Enum):
     """Status enum for event status values."""
-    INFO = "Info"
-    SUCCESS = "Success"
-    ERROR = "Error" 
+    INFO = "info"
+    SUCCESS = "success"
+    ERROR = "error" 
