@@ -38,3 +38,4 @@ data/
 # Dev Container
 #.devcontainer/ 
 medialab.db
+medialab-manager.pid
