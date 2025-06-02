@@ -178,13 +178,13 @@ async def events(
             event_type = EventType(type)
             type = event_type.value
         except ValueError:
-            # If invalid type, return empty results instead of error
+            # If invalid type, return empty results without warning
             return templates.TemplateResponse(
                 "pages/events.html",
                 {
                     "request": request,
                     "user": None,
-                    "messages": [{"type": "warning", "text": f"Invalid event type: {type}"}],
+                    "messages": [],
                     "events": [],
                     "page": page,
                     "has_next": False
@@ -198,13 +198,13 @@ async def events(
             event_sub_type = SubEventType(sub_type)
             sub_type = event_sub_type.value
         except ValueError:
-            # If invalid sub_type, return empty results instead of error
+            # If invalid sub_type, return empty results without warning
             return templates.TemplateResponse(
                 "pages/events.html",
                 {
                     "request": request,
                     "user": None,
-                    "messages": [{"type": "warning", "text": f"Invalid sub-type: {sub_type}"}],
+                    "messages": [],
                     "events": [],
                     "page": page,
                     "has_next": False

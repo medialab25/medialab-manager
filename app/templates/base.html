@@ -52,9 +52,9 @@
             <!-- Main Content Area -->
             <main class="content">
                 {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
+                {% for msg in messages %}
+                <div class="alert alert-{{ msg.type }}">
+                    {{ msg.text }}
                 </div>
                 {% endfor %}
                 {% endif %}

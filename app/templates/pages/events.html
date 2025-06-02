@@ -16,6 +16,7 @@
         align-items: center;
         gap: 1rem;
         flex-wrap: wrap;
+        position: relative;
     }
 
     .filter-form .form-group {
@@ -23,6 +24,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        position: relative;
     }
 
     .filter-form label {
@@ -36,6 +38,24 @@
         padding: 0.25rem 0.5rem;
         border: 1px solid #ddd;
         border-radius: 4px;
+    }
+
+    .filter-form input:invalid,
+    .filter-form select:invalid {
+        border-color: #dc3545;
+    }
+
+    .filter-form .error-message {
+        position: absolute;
+        top: -20px;
+        left: 0;
+        color: #dc3545;
+        font-size: 0.875rem;
+        display: none;
+    }
+
+    .filter-form input:invalid+.error-message {
+        display: block;
     }
 
     .filter-form button {
@@ -297,11 +317,13 @@
             <label for="type">Type:</label>
             <input type="text" id="type" name="type" value="{{ request.query_params.get('type', '') }}"
                 placeholder="e.g. system,user,application">
+            <span class="error-message">Please enter a valid type</span>
         </div>
         <div class="form-group">
             <label for="sub_type">Sub Type:</label>
             <input type="text" id="sub_type" name="sub_type" value="{{ request.query_params.get('sub_type', '') }}"
                 placeholder="e.g. email,ntfy">
+            <span class="error-message">Please enter a valid sub type</span>
         </div>
         <div class="form-group">
             <label for="start_date">Start Date:</label>
@@ -341,6 +363,11 @@
             </tr>
         </thead>
         <tbody>
+            {% if events|length == 0 %}
+            <tr>
+                <td colspan="7" style="text-align:center; color:#888; font-style:italic;">No events found.</td>
+            </tr>
+            {% else %}
             {% for event in events %}
             <tr>
                 <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
@@ -360,6 +387,7 @@
                 </td>
             </tr>
             {% endfor %}
+            {% endif %}
         </tbody>
     </table>
 
