@@ -6,6 +6,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
     .filter-form {
         background: #f5f5f5;
@@ -306,6 +307,57 @@
         border-radius: 4px;
         white-space: nowrap;
     }
+
+    /* Type Filter Dropdown Styles */
+    .type-filter-container {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .type-filter-icon {
+        cursor: pointer;
+        padding: 0.25rem;
+        color: #666;
+        font-size: 1rem;
+        transition: color 0.2s ease;
+    }
+
+    .type-filter-icon:hover {
+        color: #007bff;
+    }
+
+    .type-filter-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        min-width: 200px;
+    }
+
+    .type-filter-dropdown.show {
+        display: block;
+    }
+
+    .type-filter-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .type-filter-item:hover {
+        background: #f5f5f5;
+    }
+
+    .type-filter-item.selected {
+        background: #e9ecef;
+    }
 </style>
 {% endblock %}
 
@@ -314,10 +366,20 @@
     <!-- Filter Form -->
     <form class="filter-form" method="get">
         <div class="form-group">
-            <label for="type">Type:</label>
-            <input type="text" id="type" name="type" value="{{ request.query_params.get('type', '') }}"
-                placeholder="e.g. system,user,application">
-            <span class="error-message">Please enter a valid type</span>
+            <div class="type-filter-container">
+                <span class="type-filter-icon" onclick="toggleTypeFilter()"><i class="fas fa-filter"></i></span>
+                <label for="type">Type:</label>
+                <input type="text" id="type" name="type" value="{{ request.query_params.get('type', '') }}"
+                    placeholder="e.g. system,user,application">
+                <div id="typeFilterDropdown" class="type-filter-dropdown">
+                    <div class="type-filter-item" onclick="selectType('system')">System Events</div>
+                    <div class="type-filter-item" onclick="selectType('user')">User Events</div>
+                    <div class="type-filter-item" onclick="selectType('application')">Application Events</div>
+                    <div class="type-filter-item" onclick="selectType('security')">Security Events</div>
+                    <div class="type-filter-item" onclick="selectType('notification')">Notification Events</div>
+                </div>
+                <span class="error-message">Please enter a valid type</span>
+            </div>
         </div>
         <div class="form-group">
             <label for="sub_type">Sub Type:</label>
@@ -442,6 +504,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
 <script>
     let pendingDownloadBlob = null;
+
+    // Type Filter Functions
+    function toggleTypeFilter() {
+        const dropdown = document.getElementById('typeFilterDropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    function selectType(type) {
+        const input = document.getElementById('type');
+        input.value = type;
+        const dropdown = document.getElementById('typeFilterDropdown');
+        dropdown.classList.remove('show');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (event) {
+        const dropdown = document.getElementById('typeFilterDropdown');
+        const icon = document.querySelector('.type-filter-icon');
+        if (!dropdown.contains(event.target) && !icon.contains(event.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
 
     function showAttachment(eventId) {
         const modal = document.getElementById('attachmentModal');
