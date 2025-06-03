@@ -75,16 +75,15 @@ class TaskManager:
             if group not in tasks:
                 tasks[group] = []
                 
-            # Get the last run time for this task
-            last_run = self.event_manager.get_last_task_run(task.task_id) if self.event_manager else None
-                
             tasks[group].append({
                 "id": task.task_id,
                 "name": task.name,
                 "description": task.description,
                 "enabled": task.enabled,
                 "task_type": task.task_type,
-                "last_run": last_run.strftime("%Y-%m-%d %H:%M:%S") if last_run else None
+                "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
+                "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
+                "last_status": task.last_status
             })
         
         return tasks
@@ -111,7 +110,28 @@ class TaskManager:
             raise ValueError("Task not found")
         
         try:
+            # Update task status to running
+            task.last_start_time = datetime.now()
+            task.last_status = "running"
+            self.db.commit()
+            
             run_task_now(task_id)
             return {"status": "success", "message": f"Task {task_id} started"}
         except Exception as e:
-            raise ValueError(str(e)) 
+            # Update task status to error
+            task.last_status = "error"
+            task.last_end_time = datetime.now()
+            self.db.commit()
+            raise ValueError(str(e))
+
+    def update_task_status(self, task_id: str, status: str) -> None:
+        """Update a task's status"""
+        task = self.db.query(Task).filter(Task.task_id == task_id).first()
+        if not task:
+            return
+        
+        task.last_status = status
+        if status in ["success", "error"]:
+            task.last_end_time = datetime.now()
+        
+        self.db.commit() 

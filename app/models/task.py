@@ -19,6 +19,9 @@ class Task(Base):
     cron_hour = Column(String(10), default="*")
     cron_minute = Column(String(10), default="*")
     cron_second = Column(String(10), default="*")
+    last_start_time = Column(DateTime, nullable=True)
+    last_end_time = Column(DateTime, nullable=True)
+    last_status = Column(String(10), nullable=True)  # success/error/running
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
@@ -26,6 +29,10 @@ class Task(Base):
         CheckConstraint(
             "task_type IN ('interval', 'cron', 'manual')",
             name='valid_task_type'
+        ),
+        CheckConstraint(
+            "last_status IN ('success', 'error', 'running', NULL)",
+            name='valid_last_status'
         ),
     )
 
