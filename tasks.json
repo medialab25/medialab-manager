@@ -33,6 +33,48 @@
             "enabled": true,
             "task_type": "external"
         },
+        "sync_rach_data": {
+            "name": "Sync Rach Data",
+            "description": "Sync Rach Data",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "cron",
+            "function_name": "sync_data_cloud",
+            "cron_hour": "0",
+            "cron_minute": "0",
+            "cron_second": "0",
+            "params": {
+                "backup_path": "/srv/system-backups/rach-files",
+                "bucket_name": "rach-files"
+            }
+        },
+        "sync_system_data": {
+            "name": "Sync System Data",
+            "description": "Sync System Data",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "cron",
+            "function_name": "sync_data_cloud",
+            "cron_hour": "0",
+            "cron_minute": "0",
+            "cron_second": "0",
+            "params": {
+                "backup_path": "/srv/system-backups/system-files",
+                "bucket_name": "system-files"
+            }
+        },
+        "sync_system_vault": {
+            "name": "Sync System Vault",
+            "description": "Sync System Vault",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "manual",
+            "function_name": "sync_data_cloud",
+            "params": {
+                "backup_path": "/srv/system-backups/system-vault",
+                "bucket_name": "system-vault"
+            }
+        },
         "daily_test": {
             "name": "Daily Test Task",
             "description": "Test task that runs daily",
