@@ -3,6 +3,9 @@ from pathlib import Path
 import json
 from typing import Dict, Any
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DatabaseSettings(BaseSettings):
     MAIN_DB_PATH: str = "data/main.db"
@@ -38,16 +41,29 @@ class Settings(BaseSettings):
     
     # Task settings
     TASKS: Dict[str, Dict[str, Any]] = {}
+    TASK_FILTERS: Dict[str, Dict[str, Any]] = {}
+    TASKS_FILE: str = "tasks.json"
     
     @classmethod
     def from_config(cls):
         try:
             with open("config.json") as f:
                 config = json.load(f)
-                return cls(
+                settings = cls(
                     DATABASE=DatabaseSettings.from_config(),
-                    TASKS=config.get("TASKS", {})
+                    TASKS_FILE=config.get("TASKS_FILE", "tasks.json")
                 )
+                
+                # Load tasks and filters from the tasks file
+                try:
+                    with open(settings.TASKS_FILE) as f:
+                        tasks_config = json.load(f)
+                        settings.TASKS = tasks_config.get("TASKS", {})
+                        settings.TASK_FILTERS = tasks_config.get("TASK_FILTERS", {})
+                except FileNotFoundError:
+                    logger.warning(f"Tasks file {settings.TASKS_FILE} not found")
+                
+                return settings
         except FileNotFoundError:
             return cls()
     

@@ -59,6 +59,7 @@ curl -X POST "http://localhost:4800/tasks/{task_id}/notify-error?error_message=F
 
 ### Create Event
 ```bash
+# Basic event creation
 curl -X POST "http://localhost:4800/api/events/" \
      -H "Content-Type: application/json" \
      -d '{
@@ -68,7 +69,21 @@ curl -X POST "http://localhost:4800/api/events/" \
            "description": "Backup completed",
            "details": "Backup completed successfully at 2024-03-20 10:00:00"
          }'
+
+# Create event with attachment
+curl -X POST "http://localhost:4800/api/events/" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "type": "system",
+           "sub_type": "backup",
+           "status": "success",
+           "description": "Backup completed",
+           "details": "Backup completed successfully at 2024-03-20 10:00:00"
+         }' \
+     -F "attachment=@/path/to/your/file.txt"
 ```
+
+The attachment can be any file type. The API will automatically detect the MIME type and store it with the event. You can later retrieve the attachment using the Get Event Attachment endpoint.
 
 ### Get Event by ID
 ```bash

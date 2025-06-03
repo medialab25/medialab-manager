@@ -19,6 +19,20 @@
             "task_type": "manual",
             "function_name": "spindown_disks"
         },
+        "starr-gate": {
+            "name": "Starr-Gate",
+            "description": "Starr-Gate",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "external"
+        },
+        "black-starr": {
+            "name": "Black-Starr",
+            "description": "Black-Starr",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "external"
+        },
         "daily_test": {
             "name": "Daily Test Task",
             "description": "Test task that runs daily",
@@ -70,6 +84,17 @@
             "task_type": "external",
             "last_run": null,
             "last_status": "pending"
+        }
+    },
+    "TASK_FILTERS": {
+        "tasks_filter": {
+            "name": "Tasks",
+            "type": "task"
+        },
+        "test_filter": {
+            "name": "Events",
+            "type": "Event",
+            "sub_type": "Event"
         }
     }
 }

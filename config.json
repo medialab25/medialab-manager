@@ -12,17 +12,6 @@
         "SMTP_FROM": "MediaLab Admin <admin@spongnet.uk>",
         "SMTP_TO": "medialab25@icloud.com"
     },
-    "TASK_FILTERS": {
-        "tasks_filter": {
-            "name": "Tasks",
-            "type": "task"
-        },
-        "test_filter": {
-            "name": "Events",
-            "type": "Event",
-            "sub_type": "Event"
-        }
-    },
     "TASKS_FILE": "tasks.json",
     "MEDIA_DATA": {
         "storage": {

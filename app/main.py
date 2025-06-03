@@ -200,12 +200,6 @@ async def events(
     total = db.query(Event).count()
     has_next = total > page * per_page
 
-    # Load task filters from config
-    config_path = Path("config.json")
-    with open(config_path) as f:
-        config = json.load(f)
-        task_filters = config.get("TASK_FILTERS", {})
-
     return templates.TemplateResponse(
         "pages/events.html",
         {
@@ -215,7 +209,7 @@ async def events(
             "events": events,
             "page": page,
             "has_next": has_next,
-            "task_filters": task_filters  # Pass the task filters from config
+            "task_filters": settings.TASK_FILTERS  # Get task filters from settings
         }
     )
 
