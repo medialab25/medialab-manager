@@ -74,8 +74,13 @@ def create_task_event(task_id: str, status: str = "started") -> None:
     except Exception as e:
         logger.error(f"Error creating task event: {str(e)}", exc_info=True)
 
-def task_wrapper(task_id: str, func: Callable) -> Callable:
+def task_wrapper(task_id: str, func: Callable, default_args: List[Any] = None, default_parameters: Dict[str, Any] = None) -> Callable:
     """Wrapper function that creates events before and after task execution"""
+    if default_args is None:
+        default_args = []
+    if default_parameters is None:
+        default_parameters = {}
+
     def wrapped(*args, **kwargs):
         try:
             # Check if task is enabled in database
@@ -94,6 +99,10 @@ def task_wrapper(task_id: str, func: Callable) -> Callable:
                 return
                 
             create_task_event(task_id)
+            # Merge default args/kwargs with provided ones
+            merged_args = list(default_args) + list(args)
+            merged_kwargs = {**default_parameters, **kwargs}
+            
             # Check if the function is a coroutine
             if asyncio.iscoroutinefunction(func):
                 # Create event loop if it doesn't exist
@@ -103,20 +112,32 @@ def task_wrapper(task_id: str, func: Callable) -> Callable:
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
                 # Run the async function
-                result = loop.run_until_complete(func(*args, **kwargs))
+                result = loop.run_until_complete(func(*merged_args, **merged_kwargs))
             else:
                 # Run the sync function directly
-                result = func(*args, **kwargs)
+                result = func(*merged_args, **merged_kwargs)
             return result
         except Exception as e:
             logger.error(f"Error in task {task_id}: {str(e)}", exc_info=True)
             raise e
     return wrapped
 
-def register_task(name: str, func: Callable, create_events: bool = True) -> None:
-    """Register a task function with the scheduler"""
+def register_task(name: str, func: Callable, create_events: bool = True, default_args: List[Any] = None, default_parameters: Dict[str, Any] = None, task_id_prefix: str = None) -> None:
+    """Register a task function with the scheduler
+    
+    Args:
+        name: The name of the task
+        func: The function to execute
+        create_events: Whether to create events for this task
+        default_args: Default positional arguments to pass to the task
+        default_parameters: Default keyword arguments to pass to the task
+        task_id_prefix: Optional prefix for the task ID to allow multiple registrations of the same function
+    """
+    # Create a unique task ID if prefix is provided
+    task_id = f"{task_id_prefix}_{name}" if task_id_prefix else name
+    
     # Always wrap with task_wrapper to check enabled status
-    task_registry[name] = task_wrapper(name, func)
+    task_registry[task_id] = task_wrapper(task_id, func, default_args, default_parameters)
 
 def get_task_function(name: str) -> Callable:
     """Get a registered task function by name"""
@@ -135,18 +156,37 @@ def start_scheduler():
             if task_data.get("task_type") == "manual":
                 continue
                 
-            config = TaskConfig(
-                task_id=task_id,
-                task_type=task_data.get("task_type", "interval"),
-                function_name=task_data.get("function_name", task_id),
-                hours=task_data.get("hours", 0),
-                minutes=task_data.get("minutes", 0),
-                seconds=task_data.get("seconds", 0),
-                cron_hour=task_data.get("cron_hour", "*"),
-                cron_minute=task_data.get("cron_minute", "*"),
-                cron_second=task_data.get("cron_second", "*")
+            # Get the task function
+            task_func = get_task_function(task_data.get("function_name", task_id))
+            if not task_func:
+                logger.warning(f"Skipping task '{task_id}' - function '{task_data.get('function_name', task_id)}' not registered")
+                continue
+
+            # Create the appropriate trigger based on task type
+            if task_data.get("task_type") == "interval":
+                trigger = IntervalTrigger(
+                    hours=task_data.get("hours", 0),
+                    minutes=task_data.get("minutes", 0),
+                    seconds=task_data.get("seconds", 0)
+                )
+            elif task_data.get("task_type") == "cron":
+                trigger = CronTrigger(
+                    hour=task_data.get("cron_hour", "*"),
+                    minute=task_data.get("cron_minute", "*"),
+                    second=task_data.get("cron_second", "*")
+                )
+            else:
+                logger.warning(f"Invalid task type for task '{task_id}': {task_data.get('task_type')}")
+                continue
+
+            # Add the job to the scheduler with parameters from config
+            scheduler.add_job(
+                task_func,
+                trigger=trigger,
+                id=task_id,
+                replace_existing=True,
+                kwargs=task_data.get("params", {})  # Use params from config
             )
-            add_task(task_id, config)
 
 def stop_scheduler():
     """Stop the scheduler"""
@@ -223,7 +263,7 @@ def sync_task():
 # Register example tasks
 register_task("sync", sync_task)
 register_task("snapraid", run_snapraid.run_snapraid)
-register_task("test_task", test_task.dummy_task, create_events=False)
+register_task("test_task", test_task.dummy_task, create_events=False)  # Register once, used by multiple config entries
 register_task("spindown_disks", spindown_disks.spindown_disks)
 
 # You can add more task functions here 
