@@ -137,6 +137,20 @@
             "cron_hour": "0",
             "cron_minute": "0",
             "cron_second": "0"
+        },
+        "backup_system": {
+            "name": "System Backup",
+            "description": "Run the system backup script",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "cron",
+            "function_name": "run_script",
+            "cron_hour": "0",
+            "cron_minute": "0",
+            "cron_second": "0",
+            "params": {
+                "script_path": "/srv/system-backups/backup_system.sh"
+            }
         }
     },
     "TASK_FILTERS": {
