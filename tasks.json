@@ -84,6 +84,17 @@
             "task_type": "external",
             "last_run": null,
             "last_status": "pending"
+        },
+        "opnsense_backup": {
+            "name": "OPNsense Backup",
+            "description": "Backup OPNsense configuration to local storage",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "cron",
+            "function_name": "backup_opnsense",
+            "cron_hour": "0",
+            "cron_minute": "0",
+            "cron_second": "0"
         }
     },
     "TASK_FILTERS": {
