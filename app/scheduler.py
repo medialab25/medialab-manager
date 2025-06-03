@@ -152,8 +152,8 @@ def start_scheduler():
         scheduler.start()
         # Add tasks from settings
         for task_id, task_data in settings.TASKS.items():
-            # Skip manual tasks
-            if task_data.get("task_type") == "manual":
+            # Skip manual and external tasks
+            if task_data.get("task_type") in ["manual", "external"]:
                 continue
                 
             # Get the task function
@@ -236,6 +236,11 @@ def remove_task(task_id: str) -> None:
 
 def run_task_now(task_id: str) -> None:
     """Run a task immediately"""
+    # Check if task is external
+    task_data = settings.TASKS.get(task_id)
+    if task_data and task_data.get("task_type") == "external":
+        raise ValueError(f"Cannot run external task '{task_id}' directly")
+        
     task_func = get_task_function(task_id)
     if not task_func:
         raise ValueError(f"Task function '{task_id}' not registered")
