@@ -244,47 +244,47 @@
 {% block content %}
 <div class="tasks-container">
     {% if tasks %}
-    {% for group, group_tasks in tasks.items() %}
-    <div class="task-group">
-        <div class="task-group-header">{{ group }}</div>
-        <table class="tasks-table">
-            <thead>
-                <tr>
-                    <th style="width: 50px">Status</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th style="width: 200px">Last Run</th>
-                    <th style="width: 50px">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for task in group_tasks %}
-                <tr>
-                    <td>
-                        {% if task.task_type == 'manual' %}
-                        <i class="fas fa-user-clock manual-task-indicator" title="Manual Task"></i>
-                        {% elif task.task_type == 'external' %}
-                        <i class="fas fa-external-link-alt manual-task-indicator" title="External Task"></i>
-                        {% else %}
-                        <input type="checkbox" class="task-toggle" data-task-id="{{ task.id }}" {% if task.enabled
-                            %}checked{% endif %}>
-                        {% endif %}
-                    </td>
-                    <td class="task-name">{{ task.name }}</td>
-                    <td class="task-description">{{ task.description }}</td>
-                    <td class="task-last-run">{{ task.last_run|default('Never', true) }}</td>
-                    <td>
-                        <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if
-                            not task.enabled and task.task_type !='manual' %}disabled{% endif %} title="Run Now">
-                            <i class="fas fa-play"></i>
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endfor %}
+    <table class="tasks-table">
+        <thead>
+            <tr>
+                <th style="width: 50px">Status</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th style="width: 200px">Last Run</th>
+                <th style="width: 50px">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group, group_tasks in tasks.items() %}
+            <tr>
+                <td colspan="5" class="task-group-header">{{ group }}</td>
+            </tr>
+            {% for task in group_tasks %}
+            <tr>
+                <td>
+                    {% if task.task_type == 'manual' %}
+                    <i class="fas fa-user-clock manual-task-indicator" title="Manual Task"></i>
+                    {% elif task.task_type == 'external' %}
+                    <i class="fas fa-external-link-alt manual-task-indicator" title="External Task"></i>
+                    {% else %}
+                    <input type="checkbox" class="task-toggle" data-task-id="{{ task.id }}" {% if task.enabled
+                        %}checked{% endif %}>
+                    {% endif %}
+                </td>
+                <td class="task-name">{{ task.name }}</td>
+                <td class="task-description">{{ task.description }}</td>
+                <td class="task-last-run">{{ task.last_run|default('Never', true) }}</td>
+                <td>
+                    <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if not
+                        task.enabled and task.task_type !='manual' %}disabled{% endif %} title="Run Now">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
     <div class="no-tasks">No tasks configured</div>
     {% endif %}
