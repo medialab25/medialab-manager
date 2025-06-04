@@ -70,6 +70,43 @@
         white-space: nowrap;
     }
 
+    .task-status {
+        font-size: 0.85em;
+        font-weight: 500;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: capitalize;
+        white-space: nowrap;
+        display: inline-block;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .task-status.success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .task-status.error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .task-status.running {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .task-status.none {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+
+    .task-status.started {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
     .no-tasks {
         text-align: center;
         padding: 40px;
@@ -251,6 +288,7 @@
                 <th>Name</th>
                 <th>Description</th>
                 <th style="width: 200px">Last Run</th>
+                <th style="width: 100px">Last Status</th>
                 <th style="width: 50px">Actions</th>
             </tr>
         </thead>
@@ -273,7 +311,12 @@
                 </td>
                 <td class="task-name">{{ task.name }}</td>
                 <td class="task-description">{{ task.description }}</td>
-                <td class="task-last-run">{{ task.last_run|default('Never', true) }}</td>
+                <td class="task-last-run">{{ task.last_start_time|default('Never', true) }}</td>
+                <td>
+                    <span class="task-status {{ task.last_status|default('none', true) }}">
+                        {{ task.last_status|default('Never Run', true) }}
+                    </span>
+                </td>
                 <td>
                     <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if not
                         task.enabled and task.task_type !='manual' %}disabled{% endif %} title="Run Now">
