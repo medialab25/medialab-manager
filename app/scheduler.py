@@ -240,11 +240,12 @@ def run_task_now(task_id: str) -> None:
     task_data = settings.TASKS.get(task_id)
     if task_data and task_data.get("task_type") == "external":
         raise ValueError(f"Cannot run external task '{task_id}' directly")
-        
-    task_func = get_task_function(task_id)
+
+    function_name = task_data.get("function_name", task_id) if task_data else task_id
+    task_func = get_task_function(function_name)
     if not task_func:
-        raise ValueError(f"Task function '{task_id}' not registered")
-    
+        raise ValueError(f"Task function '{function_name}' not registered")
+
     task_func()  # The function is already wrapped with enabled check
 
 def sync_task():
