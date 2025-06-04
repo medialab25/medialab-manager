@@ -17,21 +17,21 @@ requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 # Configuration
 BACKUP_DIR = "/srv/system-backups/opnsense-remote"
-LOG_FILE = "/var/log/opnsense_backup.log"
+#LOG_FILE = "/var/log/opnsense_backup.log"
 API_KEY = "k3EJWEzDM5PvDpIZTlOMn0hYvARuWGNbUDE6lltAipN8i4Xs+2IHzv2/i/PWJ3ts/+YD3bXJpJmZtuTU"
 API_SECRET = "CL+zsLuPzz5IY+zFeX9ot6LK96KXK44Oqu024oCbn8dShAkIJtl5+kU4QrbS0nlYK3cQviUiVzDybvJy"
 OPNSENSE_HOST = "192.168.2.1"
 MAX_BACKUPS = 30
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE),
-        logging.StreamHandler()
-    ]
-)
+#logging.basicConfig(
+#    level=logging.INFO,
+#    format='%(asctime)s - %(message)s',
+#    handlers=[
+#        logging.FileHandler(LOG_FILE),
+#        logging.StreamHandler()
+#    ]
+#)
 logger = logging.getLogger(__name__)
 
 def load_environment_variables() -> None:

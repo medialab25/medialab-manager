@@ -11,7 +11,7 @@ import logging
 
 # from app.api.managers.sync_manager import SyncManager
 from app.core.settings import settings
-from app.tasks import run_snapraid, test_task, spindown_disks, sync_data_cloud
+from app.tasks import backup_opnsense, run_script, run_snapraid, test_task, spindown_disks, sync_data_cloud
 from app.utils.event_utils import EventManagerUtil
 from app.models.event_types import EventType, SubEventType
 
@@ -270,6 +270,8 @@ register_task("sync", sync_task)
 register_task("snapraid", run_snapraid.run_snapraid)
 register_task("test_task", test_task.dummy_task, create_events=False)  # Register once, used by multiple config entries
 register_task("spindown_disks", spindown_disks.spindown_disks)
-register_task("sync_rach_data", sync_data_cloud.sync_data_cloud)
+register_task("sync_data_cloud", sync_data_cloud.sync_data_cloud)
+register_task("backup_opnsense", backup_opnsense.backup_opnsense)
+register_task("run_script", run_script.run_script_task)
 
 # You can add more task functions here 
