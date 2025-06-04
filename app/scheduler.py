@@ -93,7 +93,7 @@ def create_task_event(task_id: str, status: str = "started") -> None:
     except Exception as e:
         logger.error(f"Error creating task event: {str(e)}", exc_info=True)
 
-def task_wrapper(task_id: str, func: Callable, default_args: List[Any] = None, default_parameters: Dict[str, Any] = None) -> Callable:
+def task_wrapper(func_task_id: str, func: Callable, default_args: List[Any] = None, default_parameters: Dict[str, Any] = None) -> Callable:
     """Wrapper function that creates events before and after task execution"""
     if default_args is None:
         default_args = []
@@ -104,6 +104,11 @@ def task_wrapper(task_id: str, func: Callable, default_args: List[Any] = None, d
         try:
             # Check if task is enabled in database
             try:
+                if args and len(args) > 0:
+                    task_id = args[0]
+                else:
+                    task_id = kwargs.get('task_id', func_task_id)
+                    
                 from app.core.database import MainSessionLocal
                 db = MainSessionLocal()
                 from app.models.task import Task
@@ -211,6 +216,7 @@ def start_scheduler():
                 trigger=trigger,
                 id=task_id,
                 replace_existing=True,
+                args=[task_id],
                 kwargs=task_data.get("params", {})  # Use params from config
             )
 
@@ -272,7 +278,7 @@ def run_task_now(task_id: str) -> None:
     if not task_func:
         raise ValueError(f"Task function '{function_name}' not registered")
 
-    task_func()  # The function is already wrapped with enabled check
+    task_func(task_id)  # The function is already wrapped with enabled check
 
 def sync_task():
     """Run the sync task"""
