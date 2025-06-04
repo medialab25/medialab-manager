@@ -27,7 +27,7 @@ class Task(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "task_type IN ('interval', 'cron', 'manual')",
+            "task_type IN ('interval', 'cron', 'manual', 'external')",
             name='valid_task_type'
         ),
         CheckConstraint(

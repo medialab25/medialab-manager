@@ -263,6 +263,8 @@
                     <td>
                         {% if task.task_type == 'manual' %}
                         <i class="fas fa-user-clock manual-task-indicator" title="Manual Task"></i>
+                        {% elif task.task_type == 'external' %}
+                        <i class="fas fa-external-link-alt manual-task-indicator" title="External Task"></i>
                         {% else %}
                         <input type="checkbox" class="task-toggle" data-task-id="{{ task.id }}" {% if task.enabled
                             %}checked{% endif %}>
