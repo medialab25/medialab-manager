@@ -12,13 +12,12 @@ class TaskManager:
     def __init__(self, db: Session = None):
         self.db = db
         self.event_manager = EventManager(db=db) if db else None
-        if db:
-            self._sync_tasks_from_config()
 
-    def _sync_tasks_from_config(self):
+    @staticmethod
+    def sync_tasks_from_config(db: Session):
         """Sync tasks from config to database on startup"""
         # Get all existing tasks from database
-        existing_tasks = {task.task_id: task for task in self.db.query(Task).all()}
+        existing_tasks = {task.task_id: task for task in db.query(Task).all()}
         
         # Get all task IDs from config
         config_task_ids = set(settings.TASKS.keys())
@@ -26,7 +25,7 @@ class TaskManager:
         # Remove tasks that no longer exist in config
         for task_id in list(existing_tasks.keys()):
             if task_id not in config_task_ids:
-                self.db.delete(existing_tasks[task_id])
+                db.delete(existing_tasks[task_id])
         
         # Add or update tasks from config
         for task_id, task_data in settings.TASKS.items():
@@ -61,9 +60,9 @@ class TaskManager:
                     cron_minute=task_data.get("cron_minute", "*"),
                     cron_second=task_data.get("cron_second", "*")
                 )
-                self.db.add(task)
+                db.add(task)
         
-        self.db.commit()
+        db.commit()
 
     def list_tasks(self) -> Dict:
         """List all tasks grouped by their group"""

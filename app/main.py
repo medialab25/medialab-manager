@@ -86,6 +86,14 @@ async def lifespan(app: FastAPI):
     # Write PID file
     write_pid_file()
     
+    # Sync tasks from config
+    db = next(get_db())
+    try:
+        from app.api.managers.task_manager import TaskManager
+        TaskManager.sync_tasks_from_config(db)
+    finally:
+        db.close()
+    
     start_scheduler()
     yield
     stop_scheduler()
