@@ -82,9 +82,9 @@
             "enabled": true,
             "task_type": "cron",
             "function_name": "test_task",
-            "cron_hour": "0",
-            "cron_minute": "0",
-            "cron_second": "0",
+            "cron_hour": "*",
+            "cron_minute": "*",
+            "cron_second": "*/5",
             "params": {
                 "message": "Daily test task executed successfully"
             }
