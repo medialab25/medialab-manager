@@ -134,4 +134,26 @@ class TaskManager:
         if status in ["success", "error"]:
             task.last_end_time = datetime.now()
         
-        self.db.commit() 
+        self.db.commit()
+
+    def get_task_last_run(self, task_id: str) -> Dict:
+        """Get the last run information for a task
+        
+        Args:
+            task_id: The ID of the task
+            
+        Returns:
+            Dict: Dictionary containing last run information
+        """
+        task = self.db.query(Task).filter(Task.task_id == task_id).first()
+        if not task:
+            raise ValueError("Task not found")
+            
+        return {
+            "task_id": task.task_id,
+            "name": task.name,
+            "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
+            "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
+            "last_status": task.last_status,
+            "duration": (task.last_end_time - task.last_start_time).total_seconds() if task.last_end_time and task.last_start_time else None
+        } 

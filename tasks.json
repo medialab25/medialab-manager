@@ -79,7 +79,7 @@
             "name": "Daily Test Task",
             "description": "Test task that runs daily",
             "group": "test",
-            "enabled": false,
+            "enabled": true,
             "task_type": "cron",
             "function_name": "test_task",
             "cron_hour": "0",

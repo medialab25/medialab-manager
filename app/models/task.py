@@ -37,4 +37,14 @@ class Task(Base):
     )
 
     def __repr__(self):
-        return f"<Task(task_id={self.task_id}, name={self.name}, enabled={self.enabled})>" 
+        return f"<Task(task_id={self.task_id}, name={self.name}, enabled={self.enabled})>"
+
+    def get_last_run_time(self) -> str:
+        """Get the last run time in a formatted string
+        
+        Returns:
+            str: Formatted last run time or 'Never' if not run yet
+        """
+        if self.last_start_time:
+            return self.last_start_time.strftime("%Y-%m-%d %H:%M:%S")
+        return "Never" 

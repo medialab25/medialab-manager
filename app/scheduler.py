@@ -61,8 +61,27 @@ class Task:
 task_registry: Dict[str, Callable] = {}
 
 def create_task_event(task_id: str, status: str = "started") -> None:
-    """Create a task event in the database"""
+    """Create a task event in the database and update task status"""
     try:
+        # Update task status in database
+        from app.core.database import MainSessionLocal
+        from app.models.task import Task
+        from datetime import datetime
+        
+        db = MainSessionLocal()
+        try:
+            task = db.query(Task).filter(Task.task_id == task_id).first()
+            if task:
+                if status == "started":
+                    task.last_start_time = datetime.now()
+                elif status in ["success", "error"]:
+                    task.last_end_time = datetime.now()
+                task.last_status = status
+                db.commit()
+        finally:
+            db.close()
+            
+        # Create event
         with EventManagerUtil.get_event_manager() as event_manager:
             event_manager.add_event(
                 type=EventType.TASK,
@@ -88,7 +107,7 @@ def task_wrapper(task_id: str, func: Callable, default_args: List[Any] = None, d
                 from app.core.database import MainSessionLocal
                 db = MainSessionLocal()
                 from app.models.task import Task
-                task = db.query(Task).filter(Task.task_id == task_id).first()
+                task = db.query(Task).filter(Task.task_id == task_id).first()                
                 db.close()
                 
                 if not task or not task.enabled:
@@ -98,7 +117,9 @@ def task_wrapper(task_id: str, func: Callable, default_args: List[Any] = None, d
                 logger.error(f"Error checking task status in database: {str(e)}")
                 return
                 
-            create_task_event(task_id)
+            # Notify task start
+            create_task_event(task_id, "started")
+            
             # Merge default args/kwargs with provided ones
             merged_args = list(default_args) + list(args)
             merged_kwargs = {**default_parameters, **kwargs}
@@ -116,8 +137,13 @@ def task_wrapper(task_id: str, func: Callable, default_args: List[Any] = None, d
             else:
                 # Run the sync function directly
                 result = func(*merged_args, **merged_kwargs)
+                
+            # Notify task success
+            create_task_event(task_id, "success")
             return result
         except Exception as e:
+            # Notify task error
+            create_task_event(task_id, "error")
             logger.error(f"Error in task {task_id}: {str(e)}", exc_info=True)
             raise e
     return wrapped

@@ -98,4 +98,15 @@ def notify_task_error_endpoint(task_id: str, error_message: str = None, db: Sess
         )
         return {"status": "success", "message": f"Task {task_id} error notification sent"}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{task_id}/last-run")
+def get_task_last_run(task_id: str, db: Session = Depends(get_db)):
+    """Get the last run information for a task"""
+    task_manager = TaskManager(db=db)
+    try:
+        return task_manager.get_task_last_run(task_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
