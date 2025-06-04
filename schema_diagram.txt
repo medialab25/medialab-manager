@@ -1,0 +1,64 @@
+Database Schema Diagram
+======================
+
++----------------+     +----------------+     +----------------+
+|   MediaFiles   |     |  MediaTitles   |     |   Qualities    |
++----------------+     +----------------+     +----------------+
+| file_id (PK)   |     | title_id (PK)  |     | quality_id (PK)|
+| title_id (FK)  |---->| title_name     |     | quality_name   |
+| quality_id (FK)|     +----------------+     +----------------+
+| media_type_id  |            ^                      ^
+| library_id     |            |                      |
+| storage_group  |            |                      |
+| file_type_id   |            |                      |
++----------------+            |                      |
+        |                     |                      |
+        v                     v                      v
++----------------+     +----------------+     +----------------+
+|  StorageGroups |     |   Libraries    |     |  MediaTypes    |
++----------------+     +----------------+     +----------------+
+| storage_group  |     | library_id (PK)|     | media_type_id  |
+| _id (PK)       |     | library_name   |     | media_type_name|
+| storage_group  |     +----------------+     +----------------+
+| _name          |
++----------------+
+        ^
+        |
+        v
++----------------+
+|   FileTypes    |
++----------------+
+| file_type_id   |
+| file_type_name |
++----------------+
+
+Legend:
+-------
+PK = Primary Key
+FK = Foreign Key
+--> = One-to-Many Relationship
+
+Example Data Flow:
+-----------------
+1. A media file (MediaFiles) belongs to one title (MediaTitles)
+2. Each file has one quality (Qualities)
+3. Files are stored in one storage group (StorageGroups)
+4. Files belong to one library (Libraries)
+5. Files have one media type (MediaTypes)
+6. Files have one file type (FileTypes)
+
+Sample Record:
+-------------
+MediaFiles:
+- file_id: 1
+- title_id: 1 (YStone)
+- quality_id: 1 (hd)
+- media_type_id: 1 (tv)
+- library_id: 1 (source)
+- storage_group_id: 1 (tv-hd)
+- file_type_id: 1 (Video)
+- absolute_file_path: /srv/storage/media/tv-hd/YStone/ep1.mkv
+- season_episode: S01E02
+- cache_status: incache
+- file_parent: NULL
+- rel_file_path: Ystone/ep1.mkv 
