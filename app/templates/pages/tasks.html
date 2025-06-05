@@ -388,6 +388,22 @@
         </div>
     </div>
 </div>
+
+<!-- Error Modal -->
+<div class="modal-overlay" id="errorModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Task Error</h3>
+            <button class="modal-close" onclick="closeErrorModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-message" id="errorModalMessage"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="closeErrorModal()">Close</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -401,6 +417,15 @@
     function closeModal() {
         document.getElementById('confirmationModal').classList.remove('active');
         currentTaskId = null;
+    }
+
+    function showErrorModal(message) {
+        document.getElementById('errorModalMessage').textContent = message;
+        document.getElementById('errorModal').classList.add('active');
+    }
+
+    function closeErrorModal() {
+        document.getElementById('errorModal').classList.remove('active');
     }
 
     function confirmRunTask(taskId, taskName) {
@@ -436,7 +461,7 @@
         } catch (error) {
             console.error('Error toggling task:', error);
             checkbox.checked = !enabled; // Revert checkbox state
-            alert('Failed to update task status');
+            showErrorModal('Failed to update task status');
         }
     }
 
@@ -460,14 +485,15 @@
             });
 
             if (!response.ok) {
-                throw new Error('Failed to run task');
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to run task');
             }
 
             // Refresh the entire page to get updated task list
             window.location.reload();
         } catch (error) {
             console.error('Error running task:', error);
-            alert('Failed to run task');
+            showErrorModal(error.message || 'Failed to run task');
         } finally {
             button.disabled = false;
             button.classList.remove('running');
@@ -476,17 +502,28 @@
         }
     }
 
-    // Close modal when clicking outside
+    // Close modals when clicking outside
     document.getElementById('confirmationModal').addEventListener('click', function (e) {
         if (e.target === this) {
             closeModal();
         }
     });
 
-    // Close modal with Escape key
+    document.getElementById('errorModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeErrorModal();
+        }
+    });
+
+    // Close modals with Escape key
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && document.getElementById('confirmationModal').classList.contains('active')) {
-            closeModal();
+        if (e.key === 'Escape') {
+            if (document.getElementById('confirmationModal').classList.contains('active')) {
+                closeModal();
+            }
+            if (document.getElementById('errorModal').classList.contains('active')) {
+                closeErrorModal();
+            }
         }
     });
 

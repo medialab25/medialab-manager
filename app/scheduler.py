@@ -125,23 +125,32 @@ def task_wrapper(func_task_id: str, func: Callable, default_args: List[Any] = No
             # Notify task start
             create_task_event(task_id, "started")
             
-            # Merge default args/kwargs with provided ones
-            merged_args = list(default_args) + list(args)
-            merged_kwargs = {**default_parameters, **kwargs}
+            # Get function signature to check if it accepts arguments
+            import inspect
+            sig = inspect.signature(func)
             
-            # Check if the function is a coroutine
-            if asyncio.iscoroutinefunction(func):
-                # Create event loop if it doesn't exist
-                try:
-                    loop = asyncio.get_event_loop()
-                except RuntimeError:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                # Run the async function
-                result = loop.run_until_complete(func(*merged_args, **merged_kwargs))
+            # Only merge args/kwargs if the function accepts them
+            if len(sig.parameters) > 0:
+                # Merge default args/kwargs with provided ones
+                merged_args = list(default_args) + list(args)
+                merged_kwargs = {**default_parameters, **kwargs}
+                
+                # Check if the function is a coroutine
+                if asyncio.iscoroutinefunction(func):
+                    # Create event loop if it doesn't exist
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    # Run the async function
+                    result = loop.run_until_complete(func(*merged_args, **merged_kwargs))
+                else:
+                    # Run the sync function directly
+                    result = func(*merged_args, **merged_kwargs)
             else:
-                # Run the sync function directly
-                result = func(*merged_args, **merged_kwargs)
+                # Function doesn't accept arguments, call it directly
+                result = func()
                 
             # Notify task success
             create_task_event(task_id, "success")

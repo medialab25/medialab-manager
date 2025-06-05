@@ -152,7 +152,7 @@ def backup_opnsense() -> str:
                 description="Backup failed",
                 details=error_msg
             )
-        return error_msg
+        raise Exception(error_msg)
     
     # Load environment variables
     load_environment_variables()
@@ -169,7 +169,7 @@ def backup_opnsense() -> str:
                 description="Backup failed",
                 details=error_msg
             )
-        return error_msg
+        raise Exception(error_msg)
     
     # Get latest backup from API
     if get_latest_backup():
@@ -198,7 +198,7 @@ def backup_opnsense() -> str:
                 description="Backup failed",
                 details=error_msg
             )
-        return error_msg
+        raise Exception(error_msg)
 
 if __name__ == "__main__":
     backup_opnsense() 
