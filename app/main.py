@@ -275,17 +275,6 @@ async def events_page(
         }
     )
 
-@app.get("/media-manage")
-async def media_manage(request: Request):
-    return templates.TemplateResponse(
-        "pages/media_manage.html",
-        {
-            "request": request,
-            "user": None,  # Replace with actual user when auth is implemented
-            "messages": []
-        }
-    )
-
 @app.get("/media-data")
 async def media_data(request: Request):
     return templates.TemplateResponse(
