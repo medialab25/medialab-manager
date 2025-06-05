@@ -167,26 +167,36 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-    # Create sudoers file for the service
-    echo -e "${BLUE}Setting up sudo access for the service...${NC}"
-    SUDOERS_FILE="/etc/sudoers.d/medialab-manager"
+    # Setup sudoers file for required commands
+    SUDOERS_ENTRIES=()
     
-    # Check if snapraid is installed
+    # Check for snapraid
     if command -v snapraid &> /dev/null; then
         SNAPRAID_PATH=$(which snapraid)
         echo -e "${GREEN}Found snapraid at: $SNAPRAID_PATH${NC}"
-        
-        # Create sudoers file
-        sudo tee "$SUDOERS_FILE" > /dev/null << EOF
-# MediaLab Manager service sudo access
-$CURRENT_USER ALL=(ALL) NOPASSWD: $SNAPRAID_PATH
-EOF
-        
-        # Set correct permissions
-        sudo chmod 440 "$SUDOERS_FILE"
-        echo -e "${GREEN}Created sudoers file with snapraid access${NC}"
+        SUDOERS_ENTRIES+=("$CURRENT_USER ALL=(ALL) NOPASSWD: $SNAPRAID_PATH")
     else
         echo -e "${YELLOW}Warning: snapraid not found. Skipping sudo setup.${NC}"
+    fi
+
+    # Check for restic
+    if command -v restic &> /dev/null; then
+        RESTIC_PATH=$(which restic)
+        echo -e "${GREEN}Found restic at: $RESTIC_PATH${NC}"
+        SUDOERS_ENTRIES+=("$CURRENT_USER ALL=(ALL) NOPASSWD: $RESTIC_PATH")
+    else
+        echo -e "${YELLOW}Warning: restic not found. Skipping sudo setup.${NC}"
+    fi
+
+    # Create sudoers file if we have any entries
+    if [ ${#SUDOERS_ENTRIES[@]} -gt 0 ]; then
+        sudo tee "$SUDOERS_FILE" > /dev/null << EOF
+# MediaLab Manager service sudo access
+Defaults:${CURRENT_USER} env_keep += "RESTIC_PASSWORD"
+${SUDOERS_ENTRIES[*]}
+EOF
+        sudo chmod 440 "$SUDOERS_FILE"
+        echo -e "${GREEN}Created sudoers file with required access${NC}"
     fi
 
     # Reload systemd and enable the service

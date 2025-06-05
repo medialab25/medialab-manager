@@ -113,6 +113,23 @@
                 "password": "media",
                 "additional_args": []
             }
+        },
+        "test_backup_stacks": {
+            "name": "Test Backup Stacks",
+            "description": "Test task for backing up specified Docker stacks",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "manual",
+            "function_name": "backup_stacks",
+            "params": {
+                "stacks": [
+                    "app-server"
+                ],
+                "backup_path": "/srv/data",
+                "restic_repo": "/home/media/test-restic",
+                "password": "media",
+                "additional_args": []
+            }
         }
     },
     "TASK_FILTERS": {

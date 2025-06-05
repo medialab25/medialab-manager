@@ -13,6 +13,7 @@ import logging
 from app.core.settings import settings
 from app.tasks import backup_opnsense, run_script, run_snapraid, test_task, spindown_disks, sync_data_cloud
 from app.tasks.restic_backup import restic_backup
+from app.tasks.backup_stacks import backup_stacks
 from app.utils.event_utils import EventManagerUtil
 from app.models.event_types import EventType, SubEventType
 
@@ -326,5 +327,6 @@ register_task("backup_opnsense", backup_opnsense.backup_opnsense)
 register_task("run_script", run_script.run_script_task)
 register_task("run_media_systems_script", run_script.run_media_systems_script_task)
 register_task("restic_backup", restic_backup)
+register_task("backup_stacks", backup_stacks)
 
 # You can add more task functions here 
