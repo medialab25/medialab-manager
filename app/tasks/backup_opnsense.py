@@ -57,11 +57,7 @@ def test_api_connection() -> bool:
     
     try:
         # Test basic API connectivity
-        response = session.get(f"https://{OPNSENSE_HOST}/api/core/system/version")
-        response.raise_for_status()
-        
-        # Test backup API endpoint
-        response = session.get(f"https://{OPNSENSE_HOST}/api/core/backup/list")
+        response = session.get(f"https://{OPNSENSE_HOST}/api/core/firmware/status")
         response.raise_for_status()
         
         logger.info("API connection test successful")
