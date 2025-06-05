@@ -168,6 +168,7 @@ WantedBy=multi-user.target
 EOF
 
     # Setup sudoers file for required commands
+    SUDOERS_FILE="/etc/sudoers.d/medialab-manager"
     SUDOERS_ENTRIES=()
     
     # Check for snapraid
@@ -199,11 +200,14 @@ EOF
 
     # Create sudoers file if we have any entries
     if [ ${#SUDOERS_ENTRIES[@]} -gt 0 ]; then
-        sudo tee "$SUDOERS_FILE" > /dev/null << EOF
-# MediaLab Manager service sudo access
-Defaults:${CURRENT_USER} env_keep += "RESTIC_PASSWORD"
-${SUDOERS_ENTRIES[*]}
-EOF
+        # Create sudoers file with proper formatting
+        {
+            echo "# MediaLab Manager service sudo access"
+            echo "Defaults:${CURRENT_USER} env_keep += \"RESTIC_PASSWORD\""
+            printf "%s\n" "${SUDOERS_ENTRIES[@]}"
+        } | sudo tee "$SUDOERS_FILE" > /dev/null
+        
+        # Set proper permissions
         sudo chmod 440 "$SUDOERS_FILE"
         echo -e "${GREEN}Created sudoers file with required access${NC}"
     fi
