@@ -243,6 +243,7 @@
         cursor: pointer;
         padding: 0;
         line-height: 1;
+        readable
     }
 
     .modal-body {
@@ -335,21 +336,34 @@
                 <td class="task-description">{{ task.description }}</td>
                 <td class="task-schedule">
                     {% if task.task_type == 'manual' %}
-                    Manual
+                    Manual Task
                     {% elif task.task_type == 'external' %}
-                    External
+                    External Task
                     {% elif task.task_type == 'interval' %}
+                    {% if task.hours or task.minutes or task.seconds %}
                     Every
-                    {% if task.hours %} {{ task.hours }}h{% endif %}
-                    {% if task.minutes %} {{ task.minutes }}m{% endif %}
-                    {% if task.seconds %} {{ task.seconds }}s{% endif %}
-                    {% elif task.task_type == 'cron' %}
-                    {{ task.cron_hour|default('*', true) }}:{{ task.cron_minute|default('00', true) }}:{{
-                    task.cron_second|default('00', true) }}
+                    {% if task.hours %}{{ task.hours }} hour{% if task.hours != 1 %}s{% endif %}{% endif %}
+                    {% if task.hours and (task.minutes or task.seconds) %}, {% endif %}
+                    {% if task.minutes %}{{ task.minutes }} minute{% if task.minutes != 1 %}s{% endif %}{% endif %}
+                    {% if task.minutes and task.seconds %}, {% endif %}
+                    {% if task.seconds and task.seconds > 0 %}{{ task.seconds }} second{% if task.seconds != 1 %}s{%
+                    endif %}{% endif %}
                     {% else %}
-                    Not set
+                    Not scheduled
                     {% endif %}
-                </td>
+                    {% elif task.task_type == 'cron' %}
+                    {% if task.cron_hour == '*' and task.cron_minute == '*' %}
+                    Every minute
+                    {% elif task.cron_hour == '*' %}
+                    {% set minute = task.cron_minute|default('00', true) %}
+                    Every hour at minute {{ '%02d'|format(minute|int) }}
+                    {% else %}
+                    {% set hour = task.cron_hour|default('00', true)|int %}
+                    {% set minute = task.cron_minute|default('00', true)|int %}
+                    {% set period = 'AM' if hour < 12 else 'PM' %} {% set display_hour=hour if hour <=12 else hour - 12
+                        %} {% set display_hour=12 if display_hour==0 else display_hour %} Daily at {{ display_hour
+                        }}:{{ '%02d' |format(minute) }} {{ period }} {% endif %} {% else %} Not scheduled {% endif %}
+                        </td>
                 <td class="task-last-run">{{ task.last_start_time|default('Never', true) }}</td>
                 <td>
                     <span class="task-status {{ task.last_status|default('none', true) }}">
