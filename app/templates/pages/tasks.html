@@ -358,7 +358,8 @@
                 </td>
                 <td>
                     <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if not
-                        task.enabled and task.task_type !='manual' %}disabled{% endif %} title="Run Now">
+                        task.enabled and task.task_type !='manual' or task.task_type=='external' %}disabled{% endif %}
+                        title="Run Now">
                         <i class="fas fa-play"></i>
                     </button>
                 </td>
