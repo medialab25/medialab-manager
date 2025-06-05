@@ -113,8 +113,8 @@
             "task_type": "manual",
             "function_name": "sync_data_cloud",
             "params": {
-                "backup_path": "/srv/system-backups/system-vault",
-                "bucket_name": "system-vault"
+                "backup_path": "/srv/storage/system-vault/",
+                "bucket_name": "e2:system-vault"
             }
         },
         "spindown_disks": {
