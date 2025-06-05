@@ -367,6 +367,24 @@
     .type-filter-item.selected {
         background: #e9ecef;
     }
+
+    .table-container {
+        max-height: 70vh;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+    }
+
+    .events-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .events-table th {
+        position: sticky;
+        top: 0;
+        background: #f5f5f5;
+        z-index: 1;
+    }
 </style>
 {% endblock %}
 
@@ -424,56 +442,53 @@
     </form>
 
     <!-- Events Table -->
-    <table class="events-table">
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Type</th>
-                <th>Sub Type</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Details</th>
-                <th>Attachment</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if events|length == 0 %}
-            <tr>
-                <td colspan="7" style="text-align:center; color:#888; font-style:italic;">No events found.</td>
-            </tr>
-            {% else %}
-            {% for event in events %}
-            <tr>
-                <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                <td>{{ event.type }}</td>
-                <td>{{ event.sub_type if event.sub_type else '' }}</td>
-                <td>{{ event.description }}</td>
-                <td>{{ event.status }}</td>
-                <td>
-                    {% if event.details %}
-                    <button class="details-btn" onclick="showJsonViewer('{{ event.id }}')">View Details</button>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if event.has_attachment %}
-                    <button class="attachment-btn" onclick="showAttachment('{{ event.id }}')">View Attachment</button>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-            {% endif %}
-        </tbody>
-    </table>
+    <div class="table-container">
+        <table class="events-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Sub Type</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                    <th>Attachment</th>
+                </tr>
+            </thead>
+            <tbody id="eventsTableBody">
+                {% if events|length == 0 %}
+                <tr>
+                    <td colspan="7" style="text-align:center; color:#888; font-style:italic;">No events found.</td>
+                </tr>
+                {% else %}
+                {% for event in events %}
+                <tr>
+                    <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ event.type }}</td>
+                    <td>{{ event.sub_type if event.sub_type else '' }}</td>
+                    <td>{{ event.description }}</td>
+                    <td>{{ event.status }}</td>
+                    <td>
+                        {% if event.details %}
+                        <button class="details-btn" onclick="showJsonViewer('{{ event.id }}')">View Details</button>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if event.has_attachment %}
+                        <button class="attachment-btn" onclick="showAttachment('{{ event.id }}')">View
+                            Attachment</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
 
-    <!-- Pagination -->
-    <div class="pagination">
-        {% if page > 1 %}
-        <a href="?page={{ page - 1 }}&{{ request.query_params|remove_param('page') }}">Previous</a>
-        {% endif %}
-        <span>Page {{ page }}</span>
-        {% if has_next %}
-        <a href="?page={{ page + 1 }}&{{ request.query_params|remove_param('page') }}">Next</a>
-        {% endif %}
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" style="text-align: center; padding: 1rem; margin-top: 1rem;">
+        <span style="color: #666;">Loading more events...</span>
     </div>
 
     <!-- Attachment Modal -->
@@ -516,6 +531,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
 <script>
     let pendingDownloadBlob = null;
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMore = true;
+    let currentFilters = {};
 
     // Type Filter Functions
     function toggleTypeFilter() {
@@ -535,14 +554,22 @@
     }
 
     function resetFilters() {
-        // Clear all input fields
         document.getElementById('type').value = '';
         document.getElementById('sub_type').value = '';
         document.getElementById('start_date').value = '';
         document.getElementById('end_date').value = '';
         document.getElementById('status').value = '';
-        // Submit the form to apply the reset
-        document.querySelector('.filter-form').submit();
+
+        currentPage = 1;
+        hasMore = true;
+        currentFilters = {};
+
+        // Clear existing table content
+        const tbody = document.getElementById('eventsTableBody');
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#888; font-style:italic;">Loading...</td></tr>';
+
+        // Load first page
+        loadMoreEvents();
     }
 
     // Close dropdown when clicking outside
@@ -727,5 +754,135 @@
         const modal = document.getElementById('jsonViewerModal');
         modal.style.display = 'none';
     }
+
+    // Function to get current filter values
+    function getCurrentFilters() {
+        return {
+            type: document.getElementById('type').value,
+            sub_type: document.getElementById('sub_type').value,
+            start_date: document.getElementById('start_date').value,
+            end_date: document.getElementById('end_date').value,
+            status: document.getElementById('status').value
+        };
+    }
+
+    // Function to load more events
+    async function loadMoreEvents() {
+        if (isLoading || !hasMore) return;
+
+        isLoading = true;
+        document.getElementById('loadingIndicator').style.display = 'block';
+
+        try {
+            const filters = getCurrentFilters();
+            const queryParams = new URLSearchParams();
+
+            // Add page parameter
+            queryParams.append('page', (currentPage + 1).toString());
+
+            // Add filter parameters only if they have values
+            if (filters.type) queryParams.append('type', filters.type);
+            if (filters.sub_type) queryParams.append('sub_type', filters.sub_type);
+            if (filters.start_date) queryParams.append('start_date', filters.start_date);
+            if (filters.end_date) queryParams.append('end_date', filters.end_date);
+            if (filters.status) queryParams.append('status', filters.status);
+
+            console.log('Fetching events with params:', queryParams.toString()); // Debug log
+
+            const response = await fetch(`/api/events/?${queryParams}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || response.statusText);
+            }
+
+            const events = await response.json();
+            console.log('Loaded events:', events); // Debug log
+
+            // Check if we got any events
+            if (!events || events.length === 0) {
+                hasMore = false;
+                document.getElementById('loadingIndicator').style.display = 'none';
+                return;
+            }
+
+            const tbody = document.getElementById('eventsTableBody');
+
+            // Remove "No events found" message if it exists
+            const noEventsRow = tbody.querySelector('tr td[colspan="7"]');
+            if (noEventsRow) {
+                noEventsRow.parentElement.remove();
+            }
+
+            events.forEach(event => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(event.timestamp).toLocaleString()}</td>
+                    <td>${event.type}</td>
+                    <td>${event.sub_type || ''}</td>
+                    <td>${event.description}</td>
+                    <td>${event.status}</td>
+                    <td>
+                        ${event.details ? `<button class="details-btn" onclick="showJsonViewer('${event.id}')">View Details</button>` : ''}
+                    </td>
+                    <td>
+                        ${event.has_attachment ? `<button class="attachment-btn" onclick="showAttachment('${event.id}')">View Attachment</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            currentPage++;
+        } catch (error) {
+            console.error('Error loading more events:', error);
+            hasMore = false;
+            // Show error message in the table
+            const tbody = document.getElementById('eventsTableBody');
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#dc3545;">Error loading events: ${error.message}</td></tr>`;
+        } finally {
+            isLoading = false;
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+    }
+
+    // Set up intersection observer for infinite scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !isLoading && hasMore) {
+                console.log('Loading more events...'); // Debug log
+                loadMoreEvents();
+            }
+        });
+    }, {
+        rootMargin: '100px',
+        threshold: 0.1
+    });
+
+    // Start observing the loading indicator
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    observer.observe(loadingIndicator);
+
+    // Update form submission to reset pagination
+    document.querySelector('.filter-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        currentPage = 1;
+        hasMore = true;
+        currentFilters = getCurrentFilters();
+
+        // Clear existing table content
+        const tbody = document.getElementById('eventsTableBody');
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#888; font-style:italic;">Loading...</td></tr>';
+
+        // Load first page
+        loadMoreEvents();
+    });
+
+    // Initial load of events
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('DOM loaded, initializing...'); // Debug log
+        // Show loading indicator
+        document.getElementById('loadingIndicator').style.display = 'block';
+        // Load first page
+        loadMoreEvents();
+    });
 </script>
 {% endblock %}

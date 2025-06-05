@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Request, Depends, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from urllib.parse import urlencode, parse_qs
 from logging.handlers import RotatingFileHandler
 import json
+from typing import Optional
 
 from app.core.settings import settings
 from app.core.database import engine, Base, get_db, MainBase, main_engine, MediaBase, media_engine
@@ -169,8 +170,67 @@ async def home(request: Request, db: Session = Depends(get_db)):
         }
     )
 
+@app.get("/api/events/")
+async def get_events(
+    page: int = Query(1, ge=1),
+    type: Optional[str] = None,
+    sub_type: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    status: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    try:
+        # Convert query parameters to filter
+        filter_params = {}
+        if type:
+            filter_params["type"] = type.lower()
+        if sub_type:
+            filter_params["sub_type"] = sub_type.lower()
+        if start_date:
+            try:
+                filter_params["start_date"] = datetime.fromisoformat(start_date)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid start_date format")
+        if end_date:
+            try:
+                filter_params["end_date"] = datetime.fromisoformat(end_date)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid end_date format")
+        if status:
+            filter_params["status"] = status
+
+        # Create filter object
+        event_filter = EventFilter(**filter_params)
+
+        # Calculate pagination
+        per_page = 10
+        skip = (page - 1) * per_page
+
+        # Get events using EventManager
+        event_manager = EventManager(db)
+        events = event_manager.list_events(event_filter, skip, per_page, "timestamp", "desc")
+
+        # Convert events to JSON-serializable format
+        events_json = []
+        for event in events:
+            events_json.append({
+                "id": event.id,
+                "timestamp": event.timestamp.isoformat(),
+                "type": event.type,
+                "sub_type": event.sub_type,
+                "status": event.status,
+                "description": event.description,
+                "details": event.details,
+                "has_attachment": event.has_attachment
+            })
+
+        return events_json
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/events")
-async def events(
+async def events_page(
     request: Request,
     page: int = 1,
     type: str = None,
@@ -204,10 +264,6 @@ async def events(
     event_manager = EventManager(db)
     events = event_manager.list_events(event_filter, skip, per_page, "timestamp", "desc")
 
-    # Get total count for pagination
-    total = db.query(Event).count()
-    has_next = total > page * per_page
-
     return templates.TemplateResponse(
         "pages/events.html",
         {
@@ -215,8 +271,6 @@ async def events(
             "user": None,  # Replace with actual user when auth is implemented
             "messages": [],
             "events": events,
-            "page": page,
-            "has_next": has_next,
             "task_filters": settings.TASK_FILTERS  # Get task filters from settings
         }
     )
