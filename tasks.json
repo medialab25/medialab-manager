@@ -17,12 +17,35 @@
             "group": "backup",
             "enabled": true,
             "task_type": "cron",
-            "function_name": "run_script",
+            "function_name": "restic_backup",
             "cron_hour": "0",
             "cron_minute": "1",
             "cron_second": "0",
             "params": {
-                "script_path": "/srv/system-backups/backup_system.sh"
+                "include_file": "./data/medialab_system.includes",
+                "restic_repo": "/srv/system-backups/medialab-system",
+                "password": "media",
+                "additional_args": []
+            }
+        },
+        "backup_medialab_stacks": {
+            "name": "Backup Medialab Stacks",
+            "description": "Backup Medialab Stacks",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "cron",
+            "cron_hour": "0",
+            "cron_minute": "2",
+            "cron_second": "0",
+            "function_name": "backup_stacks",
+            "params": {
+                "stacks": [
+                    "app-server"
+                ],
+                "backup_path": "/srv/data",
+                "restic_repo": "/home/media/test-restic",
+                "password": "media",
+                "additional_args": []
             }
         },
         "sync_system_backups": {
@@ -99,37 +122,6 @@
             "enabled": true,
             "task_type": "manual",
             "function_name": "spindown_disks"
-        },
-        "restic_backup": {
-            "name": "Restic Backup",
-            "description": "Perform backup using Restic",
-            "group": "backup",
-            "enabled": true,
-            "task_type": "manual",
-            "function_name": "restic_backup",
-            "params": {
-                "backup_path": "/home/media/tst",
-                "restic_repo": "/home/media/test-restic",
-                "password": "media",
-                "additional_args": []
-            }
-        },
-        "test_backup_stacks": {
-            "name": "Test Backup Stacks",
-            "description": "Test task for backing up specified Docker stacks",
-            "group": "backup",
-            "enabled": true,
-            "task_type": "manual",
-            "function_name": "backup_stacks",
-            "params": {
-                "stacks": [
-                    "app-server"
-                ],
-                "backup_path": "/srv/data",
-                "restic_repo": "/home/media/test-restic",
-                "password": "media",
-                "additional_args": []
-            }
         }
     },
     "TASK_FILTERS": {

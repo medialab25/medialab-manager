@@ -5,6 +5,9 @@ from typing import List, Dict, Any
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import EventManagerUtil
 
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 def _run_restic_command(cmd: List[str], password: str, capture_output: bool = True) -> subprocess.CompletedProcess:
     """Run a Restic command and handle its output
     
@@ -25,7 +28,7 @@ def _run_restic_command(cmd: List[str], password: str, capture_output: bool = Tr
         print(f"Running command: {' '.join(cmd)}")
         
         result = subprocess.run(
-            cmd,
+            ['sudo'] + cmd,
             capture_output=capture_output,
             text=True,
             check=True,
@@ -56,6 +59,7 @@ def restic_backup(task_id: str, **kwargs) -> str:
         task_id (str): The ID of the task
         **kwargs: Additional parameters including:
             - backup_path (str): Path to the data to backup
+            - include_file (str): Path to a file containing paths to include in backup (relative to script location)
             - restic_repo (str): Path to the Restic repository
             - password (str): Password for the Restic repository
             - additional_args (List[str]): Additional arguments to pass to Restic
@@ -68,15 +72,19 @@ def restic_backup(task_id: str, **kwargs) -> str:
         subprocess.CalledProcessError: If the backup fails
     """
     backup_path = kwargs.get('backup_path')
+    include_file = kwargs.get('include_file')
     restic_repo = kwargs.get('restic_repo')
     password = kwargs.get('password')
     additional_args = kwargs.get('additional_args', [])
     
-    if not backup_path or not restic_repo or not password:
-        raise ValueError("backup_path, restic_repo, and password are required parameters")
+    if not restic_repo or not password:
+        raise ValueError("restic_repo and password are required parameters")
     
-    # Check if backup path exists
-    if not os.path.exists(backup_path):
+    if not backup_path and not include_file:
+        raise ValueError("Either backup_path or include_file must be provided")
+    
+    # Check if backup path exists if provided
+    if backup_path and not os.path.exists(backup_path):
         error_msg = f"Backup path does not exist: {backup_path}"
         print(error_msg, file=sys.stderr)
         with EventManagerUtil.get_event_manager() as event_manager:
@@ -88,6 +96,22 @@ def restic_backup(task_id: str, **kwargs) -> str:
                 details=error_msg
             )
         raise ValueError(error_msg)
+    
+    # Check if include file exists if provided and make it relative to script location
+    if include_file:
+        include_file = os.path.join(SCRIPT_DIR, include_file)
+        if not os.path.exists(include_file):
+            error_msg = f"Include file does not exist: {include_file}"
+            print(error_msg, file=sys.stderr)
+            with EventManagerUtil.get_event_manager() as event_manager:
+                event_manager.add_event(
+                    type="backup",
+                    sub_type=task_id,
+                    status="error",
+                    description="Restic backup failed",
+                    details=error_msg
+                )
+            raise ValueError(error_msg)
     
     # Check if repository directory exists, create if it doesn't
     repo_dir = os.path.dirname(restic_repo)
@@ -102,7 +126,7 @@ def restic_backup(task_id: str, **kwargs) -> str:
             sub_type=task_id,
             status="info",
             description="Starting Restic backup",
-            details=f"Backing up {backup_path} to {restic_repo}"
+            details=f"Backing up using {'include file' if include_file else backup_path} to {restic_repo}"
         )
     
     try:
@@ -125,7 +149,14 @@ def restic_backup(task_id: str, **kwargs) -> str:
         
         # Construct and run the backup command
         print("Starting backup...")
-        cmd = ['restic', 'backup', backup_path, '--repo', restic_repo] + additional_args
+        cmd = ['restic', 'backup', '--repo', restic_repo]
+        
+        if include_file:
+            cmd.extend(['--files-from', include_file])
+        else:
+            cmd.append(backup_path)
+            
+        cmd.extend(additional_args)
         result = _run_restic_command(cmd, password)
         
         # Add event for successful backup
@@ -135,7 +166,7 @@ def restic_backup(task_id: str, **kwargs) -> str:
                 sub_type=task_id,
                 status="success",
                 description="Restic backup completed successfully",
-                details=f"Backed up {backup_path} to {restic_repo}",
+                details=f"Backed up using {'include file' if include_file else backup_path} to {restic_repo}",
                 attachment_data=result.stdout.encode('utf-8'),
                 attachment_mime_type=AttachDataMimeType.TEXT
             )
