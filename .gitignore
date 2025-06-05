@@ -39,3 +39,4 @@ data/
 #.devcontainer/ 
 medialab.db
 medialab-manager.pid
+system-backups/

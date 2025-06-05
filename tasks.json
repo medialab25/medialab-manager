@@ -59,8 +59,9 @@
             "cron_second": "0",
             "function_name": "sync_data_cloud",
             "params": {
-                "backup_path": "/srv/system-backups/system-backups",
-                "bucket_name": "system-backups"
+                "backup_path": "/srv/system-backups",
+                "bucket_name": "system-backups",
+                "dry_run": true
             }
         },
         "sync_rach_data": {

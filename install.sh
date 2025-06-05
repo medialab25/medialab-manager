@@ -188,6 +188,15 @@ EOF
         echo -e "${YELLOW}Warning: restic not found. Skipping sudo setup.${NC}"
     fi
 
+    # Check for rclone
+    if command -v rclone &> /dev/null; then
+        RCLONE_PATH=$(which rclone)
+        echo -e "${GREEN}Found rclone at: $RCLONE_PATH${NC}"
+        SUDOERS_ENTRIES+=("$CURRENT_USER ALL=(ALL) NOPASSWD: $RCLONE_PATH")
+    else
+        echo -e "${YELLOW}Warning: rclone not found. Skipping sudo setup.${NC}"
+    fi
+
     # Create sudoers file if we have any entries
     if [ ${#SUDOERS_ENTRIES[@]} -gt 0 ]; then
         sudo tee "$SUDOERS_FILE" > /dev/null << EOF
