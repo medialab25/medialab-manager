@@ -1,0 +1,6 @@
+/etc/fstab
+/etc/exports
+/etc/snapraid.conf
+/etc/samba/
+/var/spool/cron/crontabs/
+

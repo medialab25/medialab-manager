@@ -34,7 +34,7 @@ wheels/
 test/merged/
 # Logs
 *.log
-data/
+/data/*.db
 # Dev Container
 #.devcontainer/ 
 medialab.db
