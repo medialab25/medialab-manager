@@ -315,5 +315,6 @@ register_task("spindown_disks", spindown_disks.spindown_disks)
 register_task("sync_data_cloud", sync_data_cloud.sync_data_cloud)
 register_task("backup_opnsense", backup_opnsense.backup_opnsense)
 register_task("run_script", run_script.run_script_task)
+register_task("run_media_systems_script", run_script.run_media_systems_script_task)
 
 # You can add more task functions here 
