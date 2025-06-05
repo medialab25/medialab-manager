@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import os
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import EventManagerUtil
 
@@ -9,7 +10,7 @@ def run_script_task(script_path: str) -> str:
     Runs a script and captures its output, adding events before and after execution.
     
     Args:
-        script_path (str): Path to the script to execute
+        script_path (str): Path to the script to execute. If relative, will be resolved from project root.
         
     Returns:
         str: The script's output
@@ -17,6 +18,12 @@ def run_script_task(script_path: str) -> str:
     Raises:
         subprocess.CalledProcessError: If the script execution fails
     """
+    # Handle relative vs absolute paths
+    if not os.path.isabs(script_path):
+        # Get the project root directory (assuming this file is in app/tasks)
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+        script_path = os.path.join(project_root, script_path)
+    
     # Add event before task execution
     with EventManagerUtil.get_event_manager() as event_manager:
         event_manager.add_event(
@@ -27,6 +34,8 @@ def run_script_task(script_path: str) -> str:
             details=f"Will execute script at: {script_path}"
         )
     
+    
+
     print(f"Executing script at: {script_path}")
     
     # Run the script and capture its output
