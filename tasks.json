@@ -40,11 +40,11 @@
             "function_name": "backup_stacks",
             "params": {
                 "stacks": [
-                    "app-server"
+                    "app-server",
+                    "media-server"
                 ],
                 "backup_path": "/srv/data",
-                "restic_repo": "/home/media/test-restic",
-                "password": "media",
+                "restic_repo": "/srv/system-backups",
                 "additional_args": []
             }
         },

@@ -22,15 +22,15 @@ def backup_stacks(task_id: str, **params: Dict[str, Any]) -> None:
     stacks = params.get('stacks', [])
     base_backup_path = params.get('backup_path')
     base_repo = params.get('restic_repo')
-    password = params.get('password')
+    password = params.get('password', 'media')
     additional_args = params.get('additional_args', [])
 
     if not stacks:
         logger.warning(f"No stacks specified for backup in task {task_id}")
         return
 
-    if not base_backup_path or not base_repo or not password:
-        logger.error(f"backup_path, restic_repo, and password are required parameters")
+    if not base_backup_path or not base_repo:
+        logger.error(f"backup_path and restic_repo are required parameters")
         return
 
     # Get full path to restic
@@ -81,7 +81,7 @@ def backup_stacks(task_id: str, **params: Dict[str, Any]) -> None:
             
             running_containers = result.stdout.strip().split('\n') if result.stdout.strip() else []
             
-            if running_containers:
+stacks            if running_containers:
                 logger.info(f"Stopping containers for {stack}...")
                 subprocess.run(["docker", "stop"] + running_containers, check=True)
                 

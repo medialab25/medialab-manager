@@ -61,7 +61,7 @@ def restic_backup(task_id: str, **kwargs) -> str:
             - backup_path (str): Path to the data to backup
             - include_file (str): Path to a file containing paths to include in backup (relative to script location)
             - restic_repo (str): Path to the Restic repository
-            - password (str): Password for the Restic repository
+            - password (str): Password for the Restic repository (defaults to 'media')
             - additional_args (List[str]): Additional arguments to pass to Restic
     
     Returns:
@@ -74,11 +74,11 @@ def restic_backup(task_id: str, **kwargs) -> str:
     backup_path = kwargs.get('backup_path')
     include_file = kwargs.get('include_file')
     restic_repo = kwargs.get('restic_repo')
-    password = kwargs.get('password')
+    password = kwargs.get('password', 'media')  # Default password is 'media'
     additional_args = kwargs.get('additional_args', [])
     
-    if not restic_repo or not password:
-        raise ValueError("restic_repo and password are required parameters")
+    if not restic_repo:
+        raise ValueError("restic_repo is a required parameter")
     
     if not backup_path and not include_file:
         raise ValueError("Either backup_path or include_file must be provided")
