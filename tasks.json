@@ -1,46 +1,53 @@
 {
     "TASKS": {
-        "snapraid": {
-            "name": "SnapRAID Backup",
-            "description": "Backup the SnapRAID data to the backup server",
+        "opnsense_backup": {
+            "name": "OPNsense Backup",
+            "description": "Backup OPNsense configuration to local storage (remotely)",
             "group": "backup",
-            "enabled": false,
+            "enabled": true,
             "task_type": "cron",
-            "function_name": "snapraid",
+            "function_name": "backup_opnsense",
             "cron_hour": "0",
             "cron_minute": "0",
             "cron_second": "0"
         },
-        "spindown_disks": {
-            "name": "Spindown Disk",
-            "description": "Spindown the disk",
-            "group": "disk",
-            "enabled": false,
-            "task_type": "manual",
-            "function_name": "spindown_disks"
-        },
-        "starr-gate": {
-            "name": "Starr-Gate",
-            "description": "Starr-Gate",
+        "backup_medialab_system": {
+            "name": "Medialab System Backup",
+            "description": "Backup local medialab and all docker stack data to local storage",
             "group": "backup",
-            "enabled": false,
-            "task_type": "external"
+            "enabled": true,
+            "task_type": "cron",
+            "function_name": "run_script",
+            "cron_hour": "0",
+            "cron_minute": "1",
+            "cron_second": "0",
+            "params": {
+                "script_path": "/srv/system-backups/backup_system.sh"
+            }
         },
-        "black-starr": {
-            "name": "Black-Starr",
-            "description": "Black-Starr",
+        "sync_system_backups": {
+            "name": "Sync System Backups",
+            "description": "Sync System Backups -> iDrive Bucket",
             "group": "backup",
-            "enabled": false,
-            "task_type": "external"
+            "enabled": true,
+            "task_type": "cron",
+            "cron_hour": "1",
+            "cron_minute": "0",
+            "cron_second": "0",
+            "function_name": "sync_data_cloud",
+            "params": {
+                "backup_path": "/srv/system-backups/system-backups",
+                "bucket_name": "system-backups"
+            }
         },
         "sync_rach_data": {
             "name": "Sync Rach Data",
-            "description": "Sync Rach Data",
+            "description": "Sync Rach Data to cloud from SMB share",
             "group": "backup",
-            "enabled": false,
+            "enabled": true,
             "task_type": "cron",
             "function_name": "sync_data_cloud",
-            "cron_hour": "0",
+            "cron_hour": "2",
             "cron_minute": "0",
             "cron_second": "0",
             "params": {
@@ -48,26 +55,36 @@
                 "bucket_name": "rach-files"
             }
         },
-        "sync_system_data": {
-            "name": "Sync System Data",
-            "description": "Sync System Data",
+        "snapraid": {
+            "name": "SnapRAID Backup",
+            "description": "Backup the SnapRAID data to the backup server",
             "group": "backup",
-            "enabled": false,
+            "enabled": true,
             "task_type": "cron",
-            "function_name": "sync_data_cloud",
-            "cron_hour": "0",
-            "cron_minute": "0",
-            "cron_second": "0",
-            "params": {
-                "backup_path": "/srv/system-backups/system-files",
-                "bucket_name": "system-files"
-            }
+            "function_name": "snapraid",
+            "cron_hour": "2",
+            "cron_minute": "1",
+            "cron_second": "0"
+        },
+        "starr-gate": {
+            "name": "Starr-Gate",
+            "description": "Starr-Gate",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "external"
+        },
+        "black-starr": {
+            "name": "Black-Starr",
+            "description": "Black-Starr",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "external"
         },
         "sync_system_vault": {
             "name": "Sync System Vault",
             "description": "Sync System Vault",
             "group": "backup",
-            "enabled": false,
+            "enabled": true,
             "task_type": "manual",
             "function_name": "sync_data_cloud",
             "params": {
@@ -75,82 +92,13 @@
                 "bucket_name": "system-vault"
             }
         },
-        "daily_test": {
-            "name": "Daily Test Task",
-            "description": "Test task that runs daily",
-            "group": "test",
+        "spindown_disks": {
+            "name": "Spindown Disk",
+            "description": "Spindown the disk",
+            "group": "disk",
             "enabled": true,
-            "task_type": "cron",
-            "function_name": "test_task",
-            "cron_hour": "0",
-            "cron_minute": "0",
-            "cron_second": "*/5",
-            "params": {
-                "message": "Daily test task executed successfully"
-            }
-        },
-        "hourly_test": {
-            "name": "Hourly Test Task",
-            "description": "Test task that runs hourly",
-            "group": "test",
-            "enabled": false,
-            "task_type": "cron",
-            "function_name": "test_task",
-            "cron_hour": "*",
-            "cron_minute": "0",
-            "cron_second": "0",
-            "params": {
-                "message": "Hourly test task executed successfully"
-            }
-        },
-        "weekly_test": {
-            "name": "Weekly Test Task",
-            "description": "Test task that runs weekly",
-            "group": "test",
-            "enabled": false,
-            "task_type": "cron",
-            "function_name": "test_task",
-            "cron_hour": "0",
-            "cron_minute": "0",
-            "cron_second": "0",
-            "cron_day_of_week": "mon",
-            "params": {
-                "message": "Weekly test task executed successfully"
-            }
-        },
-        "external_dummy": {
-            "name": "External Dummy Task",
-            "description": "An example external task that reports status",
-            "group": "external",
-            "enabled": false,
-            "task_type": "external",
-            "last_run": null,
-            "last_status": "pending"
-        },
-        "opnsense_backup": {
-            "name": "OPNsense Backup",
-            "description": "Backup OPNsense configuration to local storage",
-            "group": "backup",
-            "enabled": false,
-            "task_type": "cron",
-            "function_name": "backup_opnsense",
-            "cron_hour": "0",
-            "cron_minute": "0",
-            "cron_second": "0"
-        },
-        "backup_system": {
-            "name": "System Backup",
-            "description": "Run the system backup script",
-            "group": "backup",
-            "enabled": false,
-            "task_type": "cron",
-            "function_name": "run_script",
-            "cron_hour": "0",
-            "cron_minute": "0",
-            "cron_second": "0",
-            "params": {
-                "script_path": "/srv/system-backups/backup_system.sh"
-            }
+            "task_type": "manual",
+            "function_name": "spindown_disks"
         }
     },
     "TASK_FILTERS": {

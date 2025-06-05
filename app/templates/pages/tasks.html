@@ -19,11 +19,26 @@
     }
 
     .task-group-header {
-        background: #f8f9fa;
+        background: #e9ecef;
         padding: 15px 20px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid #dee2e6;
         font-weight: 600;
         text-transform: capitalize;
+        color: #495057;
+        font-size: 1.1em;
+        letter-spacing: 0.5px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .task-group-header::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 16px;
+        background: #6c757d;
+        margin-right: 10px;
+        vertical-align: middle;
+        border-radius: 2px;
     }
 
     .tasks-table {
@@ -66,6 +81,12 @@
 
     .task-last-run {
         color: #6c757d;
+        font-size: 0.9em;
+        white-space: nowrap;
+    }
+
+    .task-schedule {
+        color: #495057;
         font-size: 0.9em;
         white-space: nowrap;
     }
@@ -287,6 +308,7 @@
                 <th style="width: 50px">Status</th>
                 <th>Name</th>
                 <th>Description</th>
+                <th style="width: 150px">Schedule</th>
                 <th style="width: 200px">Last Run</th>
                 <th style="width: 100px">Last Status</th>
                 <th style="width: 50px">Actions</th>
@@ -295,7 +317,7 @@
         <tbody>
             {% for group, group_tasks in tasks.items() %}
             <tr>
-                <td colspan="5" class="task-group-header">{{ group }}</td>
+                <td colspan="7" class="task-group-header">{{ group }}</td>
             </tr>
             {% for task in group_tasks %}
             <tr>
@@ -311,6 +333,23 @@
                 </td>
                 <td class="task-name">{{ task.name }}</td>
                 <td class="task-description">{{ task.description }}</td>
+                <td class="task-schedule">
+                    {% if task.task_type == 'manual' %}
+                    Manual
+                    {% elif task.task_type == 'external' %}
+                    External
+                    {% elif task.task_type == 'interval' %}
+                    Every
+                    {% if task.hours %} {{ task.hours }}h{% endif %}
+                    {% if task.minutes %} {{ task.minutes }}m{% endif %}
+                    {% if task.seconds %} {{ task.seconds }}s{% endif %}
+                    {% elif task.task_type == 'cron' %}
+                    {{ task.cron_hour|default('*', true) }}:{{ task.cron_minute|default('00', true) }}:{{
+                    task.cron_second|default('00', true) }}
+                    {% else %}
+                    Not set
+                    {% endif %}
+                </td>
                 <td class="task-last-run">{{ task.last_start_time|default('Never', true) }}</td>
                 <td>
                     <span class="task-status {{ task.last_status|default('none', true) }}">

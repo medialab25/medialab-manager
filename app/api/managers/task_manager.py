@@ -74,7 +74,7 @@ class TaskManager:
             if group not in tasks:
                 tasks[group] = []
                 
-            tasks[group].append({
+            task_dict = {
                 "id": task.task_id,
                 "name": task.name,
                 "description": task.description,
@@ -83,7 +83,19 @@ class TaskManager:
                 "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
                 "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
                 "last_status": task.last_status
-            })
+            }
+
+            # Add schedule fields for interval and cron tasks
+            if task.task_type == "interval":
+                task_dict["hours"] = task.hours
+                task_dict["minutes"] = task.minutes
+                task_dict["seconds"] = task.seconds
+            elif task.task_type == "cron":
+                task_dict["cron_hour"] = task.cron_hour
+                task_dict["cron_minute"] = task.cron_minute
+                task_dict["cron_second"] = task.cron_second
+
+            tasks[group].append(task_dict)
         
         return tasks
 

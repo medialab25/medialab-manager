@@ -1,0 +1,67 @@
+"daily_test": {
+    "name": "Daily Test Task",
+    "description": "Test task that runs daily",
+    "group": "test",
+    "enabled": true,
+    "task_type": "cron",
+    "function_name": "test_task",
+    "cron_hour": "0",
+    "cron_minute": "0",
+    "cron_second": "*/5",
+    "params": {
+        "message": "Daily test task executed successfully"
+    }
+},
+"hourly_test": {
+    "name": "Hourly Test Task",
+    "description": "Test task that runs hourly",
+    "group": "test",
+    "enabled": false,
+    "task_type": "cron",
+    "function_name": "test_task",
+    "cron_hour": "*",
+    "cron_minute": "0",
+    "cron_second": "0",
+    "params": {
+        "message": "Hourly test task executed successfully"
+    }
+},
+"weekly_test": {
+    "name": "Weekly Test Task",
+    "description": "Test task that runs weekly",
+    "group": "test",
+    "enabled": false,
+    "task_type": "cron",
+    "function_name": "test_task",
+    "cron_hour": "0",
+    "cron_minute": "0",
+    "cron_second": "0",
+    "cron_day_of_week": "mon",
+    "params": {
+        "message": "Weekly test task executed successfully"
+    }
+},
+"external_dummy": {
+    "name": "External Dummy Task",
+    "description": "An example external task that reports status",
+    "group": "external",
+    "enabled": false,
+    "task_type": "external",
+    "last_run": null,
+    "last_status": "pending"
+},
+"sync_system_data": {
+    "name": "Sync System Data",
+    "description": "Sync System Data",
+    "group": "backup",
+    "enabled": false,
+    "task_type": "cron",
+    "function_name": "sync_data_cloud",
+    "cron_hour": "0",
+    "cron_minute": "0",
+    "cron_second": "0",
+    "params": {
+        "backup_path": "/srv/system-backups/system-files",
+        "bucket_name": "system-files"
+    }
+},
