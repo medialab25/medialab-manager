@@ -34,8 +34,6 @@ def run_script_task(script_path: str) -> str:
             details=f"Will execute script at: {script_path}"
         )
     
-    
-
     print(f"Executing script at: {script_path}")
     
     # Run the script and capture its output
