@@ -59,8 +59,8 @@
             "cron_second": "0",
             "function_name": "sync_data_cloud",
             "params": {
-                "backup_path": "/srv/system-backups",
-                "bucket_name": "system-backups",
+                "backup_path": "/srv/system-backups/",
+                "bucket_name": "e2:system-backups",
                 "dry_run": true
             }
         },
@@ -75,8 +75,9 @@
             "cron_minute": "0",
             "cron_second": "0",
             "params": {
-                "backup_path": "/srv/system-backups/rach-files",
-                "bucket_name": "rach-files"
+                "backup_path": "/srv/storage/data/rach/",
+                "bucket_name": "e2:rachfiles",
+                "dry_run": true
             }
         },
         "snapraid": {

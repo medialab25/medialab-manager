@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import time
+import os
 from typing import Dict, Any
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import create_event
@@ -58,6 +59,9 @@ def sync_data_cloud(task_id: str, **params: Dict[str, Any]) -> str:
         rclone_cmd = ['sudo', 'rclone', 'sync']
         if dry_run:
             rclone_cmd.append('--dry-run')
+        # Add config file path
+        config_path = os.path.join(os.path.dirname(__file__), 'data', 'rclone.conf')
+        rclone_cmd.extend(['--config', config_path])
         rclone_cmd.extend([backup_path, bucket_name])
         
         # Run rclone sync command
