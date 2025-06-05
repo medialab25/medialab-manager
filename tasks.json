@@ -99,6 +99,20 @@
             "enabled": true,
             "task_type": "manual",
             "function_name": "spindown_disks"
+        },
+        "restic_backup": {
+            "name": "Restic Backup",
+            "description": "Perform backup using Restic",
+            "group": "backup",
+            "enabled": true,
+            "task_type": "manual",
+            "function_name": "restic_backup",
+            "params": {
+                "backup_path": "/home/media/tst",
+                "restic_repo": "/home/media/test-restic",
+                "password": "media",
+                "additional_args": []
+            }
         }
     },
     "TASK_FILTERS": {

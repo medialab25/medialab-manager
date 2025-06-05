@@ -12,6 +12,7 @@ import logging
 # from app.api.managers.sync_manager import SyncManager
 from app.core.settings import settings
 from app.tasks import backup_opnsense, run_script, run_snapraid, test_task, spindown_disks, sync_data_cloud
+from app.tasks.restic_backup import restic_backup
 from app.utils.event_utils import EventManagerUtil
 from app.models.event_types import EventType, SubEventType
 
@@ -131,9 +132,13 @@ def task_wrapper(func_task_id: str, func: Callable, default_args: List[Any] = No
             
             # Only merge args/kwargs if the function accepts them
             if len(sig.parameters) > 0:
-                # Merge default args/kwargs with provided ones
+                # Get task configuration
+                task_data = settings.TASKS.get(task_id, {})
+                task_params = task_data.get("params", {})
+                
+                # Merge default args/kwargs with provided ones and task params
                 merged_args = list(default_args) + list(args)
-                merged_kwargs = {**default_parameters, **kwargs}
+                merged_kwargs = {**default_parameters, **task_params, **kwargs}
                 
                 # Check if the function is a coroutine
                 if asyncio.iscoroutinefunction(func):
@@ -267,8 +272,8 @@ def add_task(task_id: str, task_config: TaskConfig) -> None:
         trigger=trigger,
         id=task_id,
         replace_existing=True,
-        args=task_config.args,
-        kwargs=task_config.kwargs
+        args=[task_id],  # Always pass task_id as first argument
+        kwargs=task_config.kwargs  # Pass all other parameters as kwargs
     )
 
 def remove_task(task_id: str) -> None:
@@ -287,7 +292,11 @@ def run_task_now(task_id: str) -> None:
     if not task_func:
         raise ValueError(f"Task function '{function_name}' not registered")
 
-    task_func(task_id)  # The function is already wrapped with enabled check
+    # Get parameters from task configuration
+    params = task_data.get("params", {}) if task_data else {}
+    
+    # Run the task with parameters
+    task_func(task_id, **params)  # Pass task_id and parameters
 
 def sync_task():
     """Run the sync task"""
@@ -316,5 +325,6 @@ register_task("sync_data_cloud", sync_data_cloud.sync_data_cloud)
 register_task("backup_opnsense", backup_opnsense.backup_opnsense)
 register_task("run_script", run_script.run_script_task)
 register_task("run_media_systems_script", run_script.run_media_systems_script_task)
+register_task("restic_backup", restic_backup)
 
 # You can add more task functions here 
