@@ -1,0 +1,39 @@
+[cloudflare]
+type = s3
+provider = Cloudflare
+access_key_id = YOUR_ACCESS_KEY_ID
+secret_access_key = YOUR_SECRET_ACCESS_KEY
+endpoint = YOUR_ENDPOINT
+acl = private
+
+[cloud_gdrive_medialab]
+type = drive
+scope = drive
+token = YOUR_TOKEN
+team_drive = 
+
+[gdrive]
+type = drive
+scope = drive
+token = YOUR_TOKEN
+team_drive = 
+
+[mega]
+type = mega
+user = YOUR_EMAIL
+pass = YOUR_PASSWORD
+
+[icloud]
+type = iclouddrive
+apple_id = YOUR_APPLE_ID
+password = YOUR_PASSWORD
+cookies = YOUR_COOKIES
+trust_token = YOUR_TRUST_TOKEN
+
+[e2]
+type = s3
+provider = IDrive
+access_key_id = YOUR_ACCESS_KEY_ID
+secret_access_key = YOUR_SECRET_ACCESS_KEY
+acl = private
+endpoint = YOUR_ENDPOINT 

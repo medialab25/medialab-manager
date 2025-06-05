@@ -40,3 +40,6 @@ test/merged/
 medialab.db
 medialab-manager.pid
 system-backups/
+
+# Rclone configuration
+app/tasks/data/rclone.conf
