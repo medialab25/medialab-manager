@@ -81,7 +81,7 @@ def backup_stacks(task_id: str, **params: Dict[str, Any]) -> None:
             
             running_containers = result.stdout.strip().split('\n') if result.stdout.strip() else []
             
-stacks            if running_containers:
+            if running_containers:
                 logger.info(f"Stopping containers for {stack}...")
                 subprocess.run(["docker", "stop"] + running_containers, check=True)
                 
