@@ -11,6 +11,7 @@ import shutil
 from urllib3.exceptions import InsecureRequestWarning
 from app.utils.event_utils import EventManagerUtil
 from app.utils.file_utils import AttachDataMimeType
+import time
 
 # Disable SSL warnings since we're using self-signed certificates
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
@@ -126,6 +127,8 @@ def backup_opnsense() -> str:
     Returns:
         str: Status message about the backup operation
     """
+    start_time = time.time()
+    
     # Add event before task execution
     with EventManagerUtil.get_event_manager() as event_manager:
         event_manager.add_event(
@@ -133,20 +136,22 @@ def backup_opnsense() -> str:
             sub_type="opnsense",
             status="info",
             description="Starting OPNsense backup process",
-            details="Initiating backup of OPNsense configuration"
+            details=f"Initiating backup of OPNsense configuration\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
         )
     
     # Check if running on Linux
     if sys.platform != "linux":
         error_msg = "This script is designed for Linux"
         logger.error(error_msg)
+        end_time = time.time()
+        duration = end_time - start_time
         with EventManagerUtil.get_event_manager() as event_manager:
             event_manager.add_event(
                 type="backup",
                 sub_type="opnsense",
                 status="error",
                 description="Backup failed",
-                details=error_msg
+                details=f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
             )
         raise Exception(error_msg)
     
@@ -157,13 +162,15 @@ def backup_opnsense() -> str:
     if not test_api_connection():
         error_msg = "API connection test failed"
         logger.error(f"ERROR: {error_msg}")
+        end_time = time.time()
+        duration = end_time - start_time
         with EventManagerUtil.get_event_manager() as event_manager:
             event_manager.add_event(
                 type="backup",
                 sub_type="opnsense",
                 status="error",
                 description="Backup failed",
-                details=error_msg
+                details=f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
             )
         raise Exception(error_msg)
     
@@ -174,25 +181,29 @@ def backup_opnsense() -> str:
         # Clean up old backups after successful backup
         cleanup_old_backups()
         
+        end_time = time.time()
+        duration = end_time - start_time
         with EventManagerUtil.get_event_manager() as event_manager:
             event_manager.add_event(
                 type="backup",
                 sub_type="opnsense",
                 status="success",
                 description="Backup completed",
-                details=success_msg
+                details=f"{success_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
             )
         return success_msg
     else:
         error_msg = "Failed to get latest backup from API"
         logger.error(f"ERROR: {error_msg}")
+        end_time = time.time()
+        duration = end_time - start_time
         with EventManagerUtil.get_event_manager() as event_manager:
             event_manager.add_event(
                 type="backup",
                 sub_type="opnsense",
                 status="error",
                 description="Backup failed",
-                details=error_msg
+                details=f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
             )
         raise Exception(error_msg)
 

@@ -1,8 +1,32 @@
 import subprocess
 import sys
 import time
+from typing import Optional
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import EventManagerUtil
+
+
+def _create_event(status: str, description: str, details: str, attachment_data: Optional[bytes] = None) -> None:
+    """Helper function to create events with consistent parameters."""
+    with EventManagerUtil.get_event_manager() as event_manager:
+        if attachment_data:
+            event_manager.add_event_with_output(
+                type="notify",
+                sub_type="email",
+                status=status,
+                description=description,
+                details=details,
+                attachment_data=attachment_data,
+                attachment_mime_type=AttachDataMimeType.TEXT
+            )
+        else:
+            event_manager.add_event(
+                type="notify",
+                sub_type="email",
+                status=status,
+                description=description,
+                details=details
+            )
 
 
 def dummy_task(message: str = "Hello from dummy task!") -> str:
@@ -15,17 +39,15 @@ def dummy_task(message: str = "Hello from dummy task!") -> str:
     Returns:
         str: The input message
     """
-    # Add event before task execution
-#    with EventManagerUtil.get_event_manager() as event_manager:
-#        event_manager.add_event(
-#            type="notify",
-#            sub_type="email",
-#            status="info",#
-#            description="Starting dummy task execution",
-#            details=f"Task will process message: {message}"
-#        )
+    start_time = time.time()
     
-   # time.sleep(20)  # Add 20 second delay
+    # Add event before task execution
+    _create_event(
+        "info",
+        "Starting dummy task execution",
+        f"Task will process message: {message}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+    
     print(f"Executing dummy task with message: {message}")
     
     # Run cat command and capture its output
@@ -41,22 +63,37 @@ def dummy_task(message: str = "Hello from dummy task!") -> str:
         if cat_result.stderr:
             print("Cat Command Errors:", file=sys.stderr)
             print(cat_result.stderr, file=sys.stderr)
+            
+        # Calculate duration
+        end_time = time.time()
+        duration = end_time - start_time
+            
+        # Add event after task completion
+        _create_event(
+            "success",
+            "Dummy task completed successfully",
+            f"Processed message: {message}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            cat_result.stdout.encode('utf-8')
+        )
+            
     except subprocess.CalledProcessError as e:
-        print(f"Error running cat command: {e}", file=sys.stderr)
-
-    # Add event after task completion
-#    with EventManagerUtil.get_event_manager() as event_manager:
- #       event_manager.add_event_with_output(
-  #          type="notify",
-   #         sub_type="email",
-    #        status="success",
-     #       description="Dummy task completed successfully",
-      #      details=f"Processed message: {message}",
-       #     attachment_data=cat_result.stdout.encode('utf-8'),  # Convert string to bytes
-        #    attachment_mime_type=AttachDataMimeType.TEXT
-        #)
+        # Calculate duration even for failed operations
+        end_time = time.time()
+        duration = end_time - start_time
+        
+        error_msg = f"Error running cat command: {e}"
+        print(error_msg, file=sys.stderr)
+        
+        # Add event for failed execution
+        _create_event(
+            "error",
+            "Dummy task failed",
+            f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            str(e).encode('utf-8')
+        )
     
     return message
+
 
 def run_script_task(script_path: str) -> str:
     """
@@ -68,15 +105,14 @@ def run_script_task(script_path: str) -> str:
     Returns:
         str: The script's output
     """
+    start_time = time.time()
+    
     # Add event before task execution
-    with EventManagerUtil.get_event_manager() as event_manager:
-        event_manager.add_event(
-            type="notify",
-            sub_type="script",
-            status="info",
-            description="Starting script execution",
-            details=f"Will execute script at: {script_path}"
-        )
+    _create_event(
+        "info",
+        "Starting script execution",
+        f"Will execute script at: {script_path}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
+    )
     
     print(f"Executing script at: {script_path}")
     
@@ -94,34 +130,34 @@ def run_script_task(script_path: str) -> str:
             print("Script Errors:", file=sys.stderr)
             print(script_result.stderr, file=sys.stderr)
             
+        # Calculate duration
+        end_time = time.time()
+        duration = end_time - start_time
+            
         # Add event after successful execution
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event_with_output(
-                type="notify",
-                sub_type="script",
-                status="success",
-                description="Script executed successfully",
-                details=f"Executed script at: {script_path}",
-                attachment_data=script_result.stdout.encode('utf-8'),
-                attachment_mime_type=AttachDataMimeType.TEXT
-            )
+        _create_event(
+            "success",
+            "Script executed successfully",
+            f"Executed script at: {script_path}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            script_result.stdout.encode('utf-8')
+        )
             
         return script_result.stdout
         
     except subprocess.CalledProcessError as e:
+        # Calculate duration even for failed operations
+        end_time = time.time()
+        duration = end_time - start_time
+        
         error_msg = f"Error running script: {e}"
         print(error_msg, file=sys.stderr)
         
         # Add event for failed execution
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event_with_output(
-                type="notify",
-                sub_type="script",
-                status="error",
-                description="Script execution failed",
-                details=error_msg,
-                attachment_data=str(e).encode('utf-8'),
-                attachment_mime_type=AttachDataMimeType.TEXT
-            )
+        _create_event(
+            "error",
+            "Script execution failed",
+            f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            str(e).encode('utf-8')
+        )
             
         raise

@@ -1,7 +1,32 @@
 import subprocess
 import sys
+import time
+from typing import Optional
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import EventManagerUtil
+
+
+def _create_event(status: str, description: str, details: str, attachment_data: Optional[bytes] = None) -> None:
+    """Helper function to create events with consistent parameters."""
+    with EventManagerUtil.get_event_manager() as event_manager:
+        if attachment_data:
+            event_manager.add_event_with_output(
+                type="notify",
+                sub_type="backup",
+                status=status,
+                description=description,
+                details=details,
+                attachment_data=attachment_data,
+                attachment_mime_type=AttachDataMimeType.TEXT
+            )
+        else:
+            event_manager.add_event(
+                type="notify",
+                sub_type="backup",
+                status=status,
+                description=description,
+                details=details
+            )
 
 
 def backup_system_task() -> str:
@@ -14,17 +39,15 @@ def backup_system_task() -> str:
     Raises:
         subprocess.CalledProcessError: If the script execution fails
     """
+    start_time = time.time()
     script_path = "/srv/system-backups/backup_system.sh"
     
     # Add event before task execution
-    with EventManagerUtil.get_event_manager() as event_manager:
-        event_manager.add_event(
-            type="notify",
-            sub_type="backup",
-            status="info",
-            description="Starting system backup",
-            details=f"Will execute backup script at: {script_path}"
-        )
+    _create_event(
+        "info",
+        "Starting system backup",
+        f"Will execute backup script at: {script_path}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
+    )
     
     print(f"Executing backup script at: {script_path}")
     
@@ -42,35 +65,35 @@ def backup_system_task() -> str:
             print("Backup Script Errors:", file=sys.stderr)
             print(script_result.stderr, file=sys.stderr)
             
+        # Calculate duration
+        end_time = time.time()
+        duration = end_time - start_time
+            
         # Add event after successful execution
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event_with_output(
-                type="notify",
-                sub_type="backup",
-                status="success",
-                description="System backup completed successfully",
-                details=f"Backup script executed at: {script_path}",
-                attachment_data=script_result.stdout.encode('utf-8'),
-                attachment_mime_type=AttachDataMimeType.TEXT
-            )
+        _create_event(
+            "success",
+            "System backup completed successfully",
+            f"Backup script executed at: {script_path}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            script_result.stdout.encode('utf-8')
+        )
             
         return script_result.stdout
         
     except subprocess.CalledProcessError as e:
+        # Calculate duration even for failed operations
+        end_time = time.time()
+        duration = end_time - start_time
+        
         error_msg = f"Error running backup script: {e}"
         print(error_msg, file=sys.stderr)
         
         # Add event for failed execution
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event_with_output(
-                type="notify",
-                sub_type="backup",
-                status="error",
-                description="System backup failed",
-                details=error_msg,
-                attachment_data=str(e).encode('utf-8'),
-                attachment_mime_type=AttachDataMimeType.TEXT
-            )
+        _create_event(
+            "error",
+            "System backup failed",
+            f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            str(e).encode('utf-8')
+        )
             
         raise
 

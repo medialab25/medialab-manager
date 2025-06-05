@@ -1,12 +1,35 @@
 import subprocess
 import sys
 import os
-from typing import List, Dict, Any
+import time
+from typing import List, Dict, Any, Optional
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import EventManagerUtil
 
 # Get the directory where this script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def _create_event(status: str, description: str, details: str, task_id: str, attachment_data: Optional[bytes] = None) -> None:
+    """Helper function to create events with consistent parameters."""
+    with EventManagerUtil.get_event_manager() as event_manager:
+        if attachment_data:
+            event_manager.add_event_with_output(
+                type="backup",
+                sub_type=task_id,
+                status=status,
+                description=description,
+                details=details,
+                attachment_data=attachment_data,
+                attachment_mime_type=AttachDataMimeType.TEXT
+            )
+        else:
+            event_manager.add_event(
+                type="backup",
+                sub_type=task_id,
+                status=status,
+                description=description,
+                details=details
+            )
 
 def _run_restic_command(cmd: List[str], password: str, capture_output: bool = True) -> subprocess.CompletedProcess:
     """Run a Restic command and handle its output
@@ -71,6 +94,7 @@ def restic_backup(task_id: str, **kwargs) -> str:
         ValueError: If required parameters are missing or paths don't exist
         subprocess.CalledProcessError: If the backup fails
     """
+    start_time = time.time()
     backup_path = kwargs.get('backup_path')
     include_file = kwargs.get('include_file')
     restic_repo = kwargs.get('restic_repo')
@@ -78,23 +102,20 @@ def restic_backup(task_id: str, **kwargs) -> str:
     additional_args = kwargs.get('additional_args', [])
     
     if not restic_repo:
-        raise ValueError("restic_repo is a required parameter")
+        error_msg = "restic_repo is a required parameter"
+        _create_event("error", "Restic backup failed", error_msg, task_id)
+        raise ValueError(error_msg)
     
     if not backup_path and not include_file:
-        raise ValueError("Either backup_path or include_file must be provided")
+        error_msg = "Either backup_path or include_file must be provided"
+        _create_event("error", "Restic backup failed", error_msg, task_id)
+        raise ValueError(error_msg)
     
     # Check if backup path exists if provided
     if backup_path and not os.path.exists(backup_path):
         error_msg = f"Backup path does not exist: {backup_path}"
         print(error_msg, file=sys.stderr)
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event(
-                type="backup",
-                sub_type=task_id,
-                status="error",
-                description="Restic backup failed",
-                details=error_msg
-            )
+        _create_event("error", "Restic backup failed", error_msg, task_id)
         raise ValueError(error_msg)
     
     # Check if include file exists if provided and make it relative to script location
@@ -103,14 +124,7 @@ def restic_backup(task_id: str, **kwargs) -> str:
         if not os.path.exists(include_file):
             error_msg = f"Include file does not exist: {include_file}"
             print(error_msg, file=sys.stderr)
-            with EventManagerUtil.get_event_manager() as event_manager:
-                event_manager.add_event(
-                    type="backup",
-                    sub_type=task_id,
-                    status="error",
-                    description="Restic backup failed",
-                    details=error_msg
-                )
+            _create_event("error", "Restic backup failed", error_msg, task_id)
             raise ValueError(error_msg)
     
     # Check if repository directory exists, create if it doesn't
@@ -120,14 +134,12 @@ def restic_backup(task_id: str, **kwargs) -> str:
         os.makedirs(repo_dir, exist_ok=True)
     
     # Add event before backup
-    with EventManagerUtil.get_event_manager() as event_manager:
-        event_manager.add_event(
-            type="backup",
-            sub_type=task_id,
-            status="info",
-            description="Starting Restic backup",
-            details=f"Backing up using {'include file' if include_file else backup_path} to {restic_repo}"
-        )
+    _create_event(
+        "info",
+        "Starting Restic backup",
+        f"Backing up using {'include file' if include_file else backup_path} to {restic_repo}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+        task_id
+    )
     
     try:
         # Check if repository exists, if not initialize it
@@ -138,14 +150,13 @@ def restic_backup(task_id: str, **kwargs) -> str:
             # Repository doesn't exist or is not initialized
             print("Repository not found, initializing...")
             init_result = _run_restic_command(['restic', 'init', '--repo', restic_repo], password)
-            with EventManagerUtil.get_event_manager() as event_manager:
-                event_manager.add_event(
-                    type="backup",
-                    sub_type=task_id,
-                    status="info",
-                    description="Initialized Restic repository",
-                    details=f"Initialized repository at {restic_repo}"
-                )
+            _create_event(
+                "info",
+                "Initialized Restic repository",
+                f"Initialized repository at {restic_repo}",
+                task_id,
+                init_result.stdout.encode('utf-8')
+            )
         
         # Construct and run the backup command
         print("Starting backup...")
@@ -159,34 +170,36 @@ def restic_backup(task_id: str, **kwargs) -> str:
         cmd.extend(additional_args)
         result = _run_restic_command(cmd, password)
         
+        # Calculate duration
+        end_time = time.time()
+        duration = end_time - start_time
+        
         # Add event for successful backup
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event_with_output(
-                type="backup",
-                sub_type=task_id,
-                status="success",
-                description="Restic backup completed successfully",
-                details=f"Backed up using {'include file' if include_file else backup_path} to {restic_repo}",
-                attachment_data=result.stdout.encode('utf-8'),
-                attachment_mime_type=AttachDataMimeType.TEXT
-            )
+        _create_event(
+            "success",
+            "Restic backup completed successfully",
+            f"Backed up using {'include file' if include_file else backup_path} to {restic_repo}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            task_id,
+            result.stdout.encode('utf-8')
+        )
         
         return result.stdout
         
     except subprocess.CalledProcessError as e:
+        # Calculate duration even for failed operations
+        end_time = time.time()
+        duration = end_time - start_time
+        
         error_msg = f"Error running Restic backup: {e.stderr if e.stderr else str(e)}"
         print(error_msg, file=sys.stderr)
         
         # Add event for failed backup
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event_with_output(
-                type="backup",
-                sub_type=task_id,
-                status="error",
-                description="Restic backup failed",
-                details=error_msg,
-                attachment_data=str(e).encode('utf-8'),
-                attachment_mime_type=AttachDataMimeType.TEXT
-            )
+        _create_event(
+            "error",
+            "Restic backup failed",
+            f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            task_id,
+            str(e).encode('utf-8')
+        )
         
         raise 

@@ -61,7 +61,7 @@
             "params": {
                 "backup_path": "/srv/system-backups/",
                 "bucket_name": "e2:system-backups",
-                "dry_run": true
+                "dry_run": false
             }
         },
         "sync_rach_data": {
@@ -77,7 +77,7 @@
             "params": {
                 "backup_path": "/srv/storage/data/rach/",
                 "bucket_name": "e2:rachfiles",
-                "dry_run": true
+                "dry_run": false
             }
         },
         "snapraid": {

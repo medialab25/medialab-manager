@@ -1,8 +1,33 @@
 import subprocess
 import sys
 import os
+import time
+from typing import Optional
 from app.utils.file_utils import AttachDataMimeType
 from app.utils.event_utils import EventManagerUtil
+
+
+def _create_event(status: str, description: str, details: str, sub_type: str, attachment_data: Optional[bytes] = None) -> None:
+    """Helper function to create events with consistent parameters."""
+    with EventManagerUtil.get_event_manager() as event_manager:
+        if attachment_data:
+            event_manager.add_event_with_output(
+                type="notify",
+                sub_type=sub_type,
+                status=status,
+                description=description,
+                details=details,
+                attachment_data=attachment_data,
+                attachment_mime_type=AttachDataMimeType.TEXT
+            )
+        else:
+            event_manager.add_event(
+                type="notify",
+                sub_type=sub_type,
+                status=status,
+                description=description,
+                details=details
+            )
 
 
 def _run_script_base(script_path: str, sub_type: str, description_prefix: str) -> str:
@@ -20,15 +45,15 @@ def _run_script_base(script_path: str, sub_type: str, description_prefix: str) -
     Raises:
         subprocess.CalledProcessError: If the script execution fails
     """
+    start_time = time.time()
+    
     # Add event before task execution
-    with EventManagerUtil.get_event_manager() as event_manager:
-        event_manager.add_event(
-            type="notify",
-            sub_type=sub_type,
-            status="info",
-            description=f"{description_prefix} script execution",
-            details=f"Will execute script at: {script_path}"
-        )
+    _create_event(
+        "info",
+        f"{description_prefix} script execution",
+        f"Will execute script at: {script_path}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+        sub_type
+    )
     
     print(f"Executing script at: {script_path}")
     
@@ -44,33 +69,35 @@ def _run_script_base(script_path: str, sub_type: str, description_prefix: str) -
             print("Script Errors:", file=sys.stderr)
             print(script_result.stderr, file=sys.stderr)
             
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event_with_output(
-                type="notify",
-                sub_type=sub_type,
-                status="success",
-                description=f"{description_prefix} script executed successfully",
-                details=f"Executed script at: {script_path}",
-                attachment_data=script_result.stdout.encode('utf-8'),
-                attachment_mime_type=AttachDataMimeType.TEXT
-            )
+        # Calculate duration
+        end_time = time.time()
+        duration = end_time - start_time
+            
+        _create_event(
+            "success",
+            f"{description_prefix} script executed successfully",
+            f"Executed script at: {script_path}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            sub_type,
+            script_result.stdout.encode('utf-8')
+        )
             
         return script_result.stdout
         
     except subprocess.CalledProcessError as e:
+        # Calculate duration even for failed operations
+        end_time = time.time()
+        duration = end_time - start_time
+        
         error_msg = f"Error running script: {e}"
         print(error_msg, file=sys.stderr)
         
-        with EventManagerUtil.get_event_manager() as event_manager:
-            event_manager.add_event_with_output(
-                type="notify",
-                sub_type=sub_type,
-                status="error",
-                description=f"{description_prefix} script execution failed",
-                details=error_msg,
-                attachment_data=str(e).encode('utf-8'),
-                attachment_mime_type=AttachDataMimeType.TEXT
-            )
+        _create_event(
+            "error",
+            f"{description_prefix} script execution failed",
+            f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+            sub_type,
+            str(e).encode('utf-8')
+        )
             
         raise
 
