@@ -1,4 +1,7 @@
 {
+    "restic": {
+        "server": "192.168.10.10:4500"
+    },
     "tasks": [
         {
             "name": "dummy_task",
@@ -18,7 +21,7 @@
             "minutes": 5,
             "seconds": 0,
             "src_path": "/tmp/test_backup",
-            "repo_name": "/tmp/restic_test_repo",
+            "repo_name": "test-backup",
             "additional_args": ["--exclude", "*.tmp", "--exclude", "*.log"]
         },
         {
@@ -30,7 +33,7 @@
             "cron_minute": "0",
             "cron_second": "0",
             "src_path": "/tmp/test_backup",
-            "repo_name": "/tmp/restic_test_repo_cron",
+            "repo_name": "test-backup-cron",
             "additional_args": ["--exclude", "*.tmp", "--exclude", "*.log"]
         }
     ]
