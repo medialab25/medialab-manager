@@ -9,28 +9,15 @@ from apscheduler.triggers.cron import CronTrigger
 import logging
 from contextlib import asynccontextmanager
 from api.health import router as health_router
+from api.tasks import router as tasks_router
 from tasks.restic_backup import TaskConfig, restic_backup_task
+from task_manager import register_task, get_task_function, load_tasks
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
-
-# Dictionary to store registered task functions
-task_registry: Dict[str, Callable] = {}
-
-def register_task(name: str, func: Callable) -> None:
-    """Register a task function with the scheduler"""
-    task_registry[name] = func
-    logger.info(f"Registered task function: {name}")
-
-def get_task_function(name: str) -> Callable:
-    """Get a registered task function by name"""
-    if name not in task_registry:
-        logger.warning(f"Task function '{name}' not registered")
-        return None
-    return task_registry[name]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,6 +28,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Client Service", lifespan=lifespan)
 app.include_router(health_router)
+app.include_router(tasks_router, prefix="/api/tasks", tags=["tasks"])
 
 class HealthResponse(BaseModel):
     status: str
@@ -51,17 +39,10 @@ class HealthResponse(BaseModel):
             datetime: lambda v: v.isoformat()
         }
 
-def load_tasks() -> List[TaskConfig]:
-    try:
-        with open("config.json", "r") as f:
-            config = json.load(f)
-            return [TaskConfig(**task) for task in config.get("tasks", [])]
-    except Exception as e:
-        logger.error(f"Error loading tasks: {e}")
-        return []
-
-async def dummy_task():
+async def dummy_task(task_config: Optional[TaskConfig] = None):
     logger.info("Running dummy task")
+    if task_config:
+        logger.info(f"Task configuration: {task_config}")
 
 def setup_scheduler():
     tasks = load_tasks()
