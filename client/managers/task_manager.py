@@ -29,9 +29,24 @@ def load_tasks() -> List[TaskConfig]:
         server_port = os.getenv("SERVER_PORT", "4800")
         restic_server = os.getenv("RESTIC_SERVER", "192.168.10.10:4500")
         
-        # Since we're moving to environment variables, return an empty list for now
-        # Tasks will need to be configured through environment variables or a different mechanism
-        return []
+        # Check if stack backup is enabled
+        stack_backup_enabled = os.getenv("STACK_BACKUP_ENABLE", "true").lower() == "true"
+        
+        tasks = []
+        
+        # Only add backup_stacks task if enabled
+        if stack_backup_enabled:
+            backup_stacks_task = TaskConfig(
+                name="backup_stacks",
+                task_type="cron",
+                function_name="backup_stacks",
+                cron_hour=os.getenv("STACK_BACKUP_CRON_HOURS", "0"),
+                cron_minute=os.getenv("STACK_BACKUP_CRON_MINS", "0"),
+                cron_second=os.getenv("STACK_BACKUP_CRON_SECS", "0")
+            )
+            tasks.append(backup_stacks_task)
+        
+        return tasks
     except Exception as e:
         logger.error(f"Error loading tasks: {e}")
         return [] 

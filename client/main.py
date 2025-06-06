@@ -57,38 +57,37 @@ async def dummy_task(task_config: Optional[TaskConfig] = None):
 def setup_scheduler():
     tasks = load_tasks()
     for task in tasks:
-        if task.enabled:
-            task_func = get_task_function(task.function_name)
-            if not task_func:
-                logger.warning(f"Task function '{task.function_name}' not found for task {task.name}")
-                continue
+        task_func = get_task_function(task.function_name)
+        if not task_func:
+            logger.warning(f"Task function '{task.function_name}' not found for task {task.name}")
+            continue
 
-            # Create the appropriate trigger based on task type
-            if task.task_type == "interval":
-                trigger = IntervalTrigger(
-                    hours=task.hours,
-                    minutes=task.minutes,
-                    seconds=task.seconds
-                )
-            elif task.task_type == "cron":
-                trigger = CronTrigger(
-                    hour=task.cron_hour,
-                    minute=task.cron_minute,
-                    second=task.cron_second
-                )
-            else:
-                logger.warning(f"Invalid task type for task '{task.name}': {task.task_type}")
-                continue
-
-            # Add the job to the scheduler
-            scheduler.add_job(
-                task_func,
-                trigger=trigger,
-                id=task.name,
-                args=[task],
-                replace_existing=True
+        # Create the appropriate trigger based on task type
+        if task.task_type == "interval":
+            trigger = IntervalTrigger(
+                hours=task.hours,
+                minutes=task.minutes,
+                seconds=task.seconds
             )
-            logger.info(f"Scheduled task: {task.name} using function {task.function_name}")
+        elif task.task_type == "cron":
+            trigger = CronTrigger(
+                hour=task.cron_hour,
+                minute=task.cron_minute,
+                second=task.cron_second
+            )
+        else:
+            logger.warning(f"Invalid task type for task '{task.name}': {task.task_type}")
+            continue
+
+        # Add the job to the scheduler
+        scheduler.add_job(
+            task_func,
+            trigger=trigger,
+            id=task.name,
+            args=[task],
+            replace_existing=True
+        )
+        logger.info(f"Scheduled task: {task.name} using function {task.function_name}")
 
 @app.get("/api/health", response_model=HealthResponse)
 async def health_check():

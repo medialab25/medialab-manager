@@ -23,7 +23,6 @@ class TaskConfig(BaseModel):
     name: str
     task_type: str
     function_name: str
-    enabled: bool
     hours: Optional[int] = 0
     minutes: Optional[int] = 0
     seconds: Optional[int] = 0

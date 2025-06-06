@@ -11,35 +11,29 @@ from tasks.restic_backup import TaskConfig
 logger = logging.getLogger(__name__)
 
 def get_server_url() -> str:
-    """Get the main app server URL from the config file."""
-    try:
-        with open("config.json", "r") as f:
-            config = json.load(f)
-            server = config.get("server", {}).get("host", "192.168.10.10")
-            port = config.get("server", {}).get("port", "4800")
-            return f"http://{server}:{port}"
-    except Exception as e:
-        logger.error(f"Error loading server URL from config: {e}")
-        return "http://192.168.10.10:4800"  # Fallback to default
+    """Get the main app server URL from environment variables."""
+    server = os.getenv("SERVER_HOST", "192.168.10.10")
+    port = os.getenv("SERVER_PORT", "4800")
+    return f"http://{server}:{port}"
 
 def get_restic_server() -> str:
-    """Get the Restic server URL from the config file."""
-    try:
-        with open("config.json", "r") as f:
-            config = json.load(f)
-            return config.get("restic", {}).get("server", "192.168.10.10:4500")
-    except Exception as e:
-        logger.error(f"Error loading restic server URL from config: {e}")
-        return "192.168.10.10:4500"  # Fallback to default
+    """Get the Restic server URL from environment variables."""
+    return os.getenv("RESTIC_SERVER", "192.168.10.10:4500")
 
 class DockerManager:
     def __init__(self):
+        # Use the default socket path
         self.client = docker.from_env()
-        self.api_client = docker.APIClient()
+        self.api_client = docker.APIClient(
+            base_url='unix:///var/run/docker.sock'
+        )
 
     def get_stack_containers(self, stack_name: str) -> List[Dict[str, Any]]:
-        """Get all containers belonging to a specific stack."""
+        """Get all containers belonging to a specific stack, excluding the current container."""
         try:
+            # Get current container name from environment
+            current_container = os.getenv("HOSTNAME")
+            
             containers = self.client.containers.list(
                 filters={"label": f"com.docker.compose.project={stack_name}"}
             )
@@ -50,6 +44,7 @@ class DockerManager:
                     'status': container.status
                 }
                 for container in containers
+                if container.name != current_container  # Exclude current container
             ]
         except Exception as e:
             logger.error(f"Error getting containers for stack {stack_name}: {e}")
@@ -93,7 +88,7 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
 
     try:
         # Notify task start
-        await event_manager.notify_task_start(task_config.task_id)
+        #await event_manager.notify_task_start(task_config.task_id)
         
         docker_manager = DockerManager()
         restic_server = get_restic_server()
@@ -101,14 +96,14 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
         for stack in task_config.stacks:
             try:
                 # Create stack-specific paths
-                repo_url = f"rest:http://{restic_server}/{task_config.repo_name}/{stack}"
-                backup_path = os.path.join(task_config.backup_path, stack)
+#                repo_url = f"rest:http://{restic_server}/{task_config.repo_name}/{stack}"
+ #               backup_path = os.path.join(task_config.backup_path, stack)
                 
                 # Create backup directory if it doesn't exist
-                os.makedirs(backup_path, exist_ok=True)
+  #              os.makedirs(backup_path, exist_ok=True)
                 
-                logger.info(f"Starting backup for stack: {stack}")
-                await event_manager.notify_task_start(task_config.task_id)
+   #             logger.info(f"Starting backup for stack: {stack}")
+    #            await event_manager.notify_task_start(task_config.task_id)
 
                 # Get running containers for this stack
                 containers = docker_manager.get_stack_containers(stack)
@@ -118,7 +113,7 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
 
                 # Stop containers
                 logger.info(f"Stopping containers for {stack}...")
-                docker_manager.stop_containers(containers)
+     #           docker_manager.stop_containers(containers)
                 
                 try:
                     # Prepare backup data
@@ -134,41 +129,40 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
                     
                     # Send backup request to server
                     server_url = get_server_url()
-                    async with aiohttp.ClientSession() as session:
-                        async with session.post(
-                            f"{server_url}/api/backup/execute-stack",
-                            json=backup_data
-                        ) as response:
-                            if response.status != 200:
-                                error_msg = f"Backup request failed with status {response.status}"
-                                logger.error(error_msg)
-                                raise Exception(error_msg)
-                            
-                            result = await response.json()
-                            logger.info(f"Backup completed for stack {stack}: {result}")
-                    
+                    #async with aiohttp.ClientSession() as session:
+                    #    async with session.post(
+                    #        f"{server_url}/api/backup/execute-stack",
+                    #        json=backup_data
+                    #    ) as response:
+                    #        if response.status != 200:
+                    #            error_msg = f"Backup request failed with status {response.status}"
+                    #            logger.error(error_msg)
+                    #            raise Exception(error_msg)
+                    #        
+                    #        result = await response.json()
+                    #        logger.info(f"Backup completed for stack {stack}: {result}")
                 finally:
                     # Always try to start containers back up
                     logger.info(f"Starting containers for {stack}...")
-                    docker_manager.start_containers(containers)
+                    #docker_manager.start_containers(containers)
                 
                 logger.info(f"Backup completed for stack: {stack}")
                 
             except Exception as e:
                 error_msg = f"Error backing up stack {stack}: {str(e)}"
                 logger.error(error_msg)
-                await event_manager.notify_task_error(task_config.task_id, error_msg)
+                #await event_manager.notify_task_error(task_config.task_id, error_msg)
                 
                 # Try to start containers if they were stopped
                 if containers:
                     try:
                         logger.info(f"Attempting to start containers for {stack} after error...")
-                        docker_manager.start_containers(containers)
+                 #       docker_manager.start_containers(containers)
                     except Exception as start_error:
                         logger.error(f"Failed to start containers after error: {start_error}")
 
-        await event_manager.notify_task_end(task_config.task_id)
+        #await event_manager.notify_task_end(task_config.task_id)
     except Exception as e:
         error_msg = f"Error executing backup stacks task: {e}"
         logger.error(error_msg)
-        await event_manager.notify_task_error(task_config.task_id, error_msg) 
+        #await event_manager.notify_task_error(task_config.task_id, error_msg) 
