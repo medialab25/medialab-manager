@@ -1,6 +1,7 @@
 from typing import Dict, List, Callable, Optional
 import json
 import logging
+import os
 from tasks.restic_backup import TaskConfig
 
 logger = logging.getLogger(__name__)
@@ -21,10 +22,16 @@ def get_task_function(name: str) -> Callable:
     return task_registry[name]
 
 def load_tasks() -> List[TaskConfig]:
+    """Load tasks from environment variables"""
     try:
-        with open("config.json", "r") as f:
-            config = json.load(f)
-            return [TaskConfig(**task) for task in config.get("tasks", [])]
+        # Get server configuration from environment variables with defaults
+        server_host = os.getenv("SERVER_HOST", "192.168.10.10")
+        server_port = os.getenv("SERVER_PORT", "4800")
+        restic_server = os.getenv("RESTIC_SERVER", "192.168.10.10:4500")
+        
+        # Since we're moving to environment variables, return an empty list for now
+        # Tasks will need to be configured through environment variables or a different mechanism
+        return []
     except Exception as e:
         logger.error(f"Error loading tasks: {e}")
         return [] 

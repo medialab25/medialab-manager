@@ -2,9 +2,10 @@ import os
 import subprocess
 import logging
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 from managers.event_manager import event_manager
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -18,40 +19,39 @@ def get_restic_server() -> str:
         logger.error(f"Error loading restic server URL from config: {e}")
         return "192.168.10.10:4500"  # Fallback to default
 
-class TaskConfig:
-    def __init__(self, config: Dict[str, Any]):
-        self.src_path = config.get("src_path")
-        self.repo_name = config.get("repo_name")  # This will be used as the repository name on the REST server
-        self.password = config.get("password", "media")
-        self.retention = config.get("retention", "7d")
+class TaskConfig(BaseModel):
+    name: str
+    task_type: str
+    function_name: str
+    enabled: bool
+    hours: Optional[int] = 0
+    minutes: Optional[int] = 0
+    seconds: Optional[int] = 0
+    cron_hour: Optional[str] = None
+    cron_minute: Optional[str] = None
+    cron_second: Optional[str] = None
+    src_path: Optional[str] = None
+    repo_name: Optional[str] = None
+    additional_args: Optional[List[str]] = None
 
-async def restic_backup_task(task_id: str, config: Dict[str, Any]) -> None:
-    """
-    Execute a Restic backup task.
-    
-    Args:
-        task_id: The ID of the task being executed
-        config: Task configuration dictionary
-    """
-    task_config = TaskConfig(config)
-    
-    # Validate required parameters
-    if not task_config.src_path:
-        error_msg = "Missing required parameter: src_path"
-        logger.error(error_msg)
-        await event_manager.notify_task_error(task_id, error_msg)
-        return
-        
-    if not task_config.repo_name:
-        error_msg = "Missing required parameter: repo_name"
-        logger.error(error_msg)
-        await event_manager.notify_task_error(task_id, error_msg)
+async def restic_backup_task(task_config: Optional[TaskConfig] = None) -> None:
+    """Execute a restic backup task"""
+    if not task_config:
+        logger.error("No task configuration provided")
         return
 
-    # Notify task start
-    await event_manager.notify_task_start(task_id)
-    
     try:
+        restic_server = os.getenv("RESTIC_SERVER", "192.168.10.10:4500")
+        logger.info(f"Executing restic backup task: {task_config.name}")
+        logger.info(f"Using restic server: {restic_server}")
+        logger.info(f"Source path: {task_config.src_path}")
+        logger.info(f"Repository: {task_config.repo_name}")
+        if task_config.additional_args:
+            logger.info(f"Additional arguments: {task_config.additional_args}")
+
+        # Notify task start
+        await event_manager.notify_task_start(task_config.name)
+        
         # Get server URL from config
         server_url = get_restic_server()
         repo_url = f"rest:http://{server_url}/{task_config.repo_name}"
@@ -95,13 +95,13 @@ async def restic_backup_task(task_id: str, config: Dict[str, Any]) -> None:
         )
         
         logger.info("Backup completed successfully")
-        await event_manager.notify_task_end(task_id)
+        await event_manager.notify_task_end(task_config.name)
         
     except subprocess.CalledProcessError as e:
         error_msg = f"Backup failed: {e.stderr}"
         logger.error(error_msg)
-        await event_manager.notify_task_error(task_id, error_msg)
+        await event_manager.notify_task_error(task_config.name, error_msg)
     except Exception as e:
         error_msg = f"Unexpected error during backup: {str(e)}"
         logger.error(error_msg)
-        await event_manager.notify_task_error(task_id, error_msg) 
+        await event_manager.notify_task_error(task_config.name, error_msg) 
