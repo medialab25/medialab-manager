@@ -1,0 +1,37 @@
+{
+    "tasks": [
+        {
+            "name": "dummy_task",
+            "task_type": "interval",
+            "function_name": "dummy_task",
+            "enabled": true,
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 30
+        },
+        {
+            "name": "test_backup_interval",
+            "task_type": "interval",
+            "function_name": "restic_backup",
+            "enabled": true,
+            "hours": 0,
+            "minutes": 5,
+            "seconds": 0,
+            "src_path": "/tmp/test_backup",
+            "repo_name": "/tmp/restic_test_repo",
+            "additional_args": ["--exclude", "*.tmp", "--exclude", "*.log"]
+        },
+        {
+            "name": "test_backup_cron",
+            "task_type": "cron",
+            "function_name": "restic_backup",
+            "enabled": true,
+            "cron_hour": "*/1",
+            "cron_minute": "0",
+            "cron_second": "0",
+            "src_path": "/tmp/test_backup",
+            "repo_name": "/tmp/restic_test_repo_cron",
+            "additional_args": ["--exclude", "*.tmp", "--exclude", "*.log"]
+        }
+    ]
+}

@@ -5,8 +5,9 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
+    container_name: medialab-client
     ports:
-      - "8000:8000"
+      - "4810:4810"
     environment:
       - ENVIRONMENT=development
     volumes:
