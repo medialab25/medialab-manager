@@ -33,41 +33,52 @@ class EventManager:
         if self.session and not self.session.closed:
             await self.session.close()
 
-    async def record_event(self, event_type: str, details: Dict, status: str = "success") -> bool:
-        """
-        Record an event by sending it to the main app's event endpoint.
-        
-        Args:
-            event_type: Type of event (e.g., 'backup_started', 'backup_completed')
-            details: Dictionary containing event details
-            status: Status of the event ('success', 'error', etc.)
-            
-        Returns:
-            bool: True if event was recorded successfully, False otherwise
-        """
+    async def notify_task_start(self, task_id: str) -> bool:
+        """Notify that a task has started"""
         try:
             await self.ensure_session()
-            
-            event_data = {
-                "event_type": event_type,
-                "details": details,
-                "status": status,
-                "timestamp": datetime.utcnow().isoformat()
-            }
-            
-            async with self.session.post(
-                f"{self.server_url}/api/events",
-                json=event_data
-            ) as response:
+            async with self.session.post(f"{self.server_url}/tasks/{task_id}/notify-start") as response:
                 if response.status == 200:
-                    logger.info(f"Successfully recorded event: {event_type}")
+                    logger.info(f"Successfully notified task start: {task_id}")
                     return True
                 else:
-                    logger.error(f"Failed to record event: {event_type}. Status: {response.status}")
+                    logger.error(f"Failed to notify task start: {task_id}. Status: {response.status}")
                     return False
-                    
         except Exception as e:
-            logger.error(f"Error recording event {event_type}: {str(e)}")
+            logger.error(f"Error notifying task start {task_id}: {str(e)}")
+            return False
+
+    async def notify_task_end(self, task_id: str) -> bool:
+        """Notify that a task has completed successfully"""
+        try:
+            await self.ensure_session()
+            async with self.session.post(f"{self.server_url}/tasks/{task_id}/notify-end") as response:
+                if response.status == 200:
+                    logger.info(f"Successfully notified task end: {task_id}")
+                    return True
+                else:
+                    logger.error(f"Failed to notify task end: {task_id}. Status: {response.status}")
+                    return False
+        except Exception as e:
+            logger.error(f"Error notifying task end {task_id}: {str(e)}")
+            return False
+
+    async def notify_task_error(self, task_id: str, error_message: str) -> bool:
+        """Notify that a task has encountered an error"""
+        try:
+            await self.ensure_session()
+            async with self.session.post(
+                f"{self.server_url}/tasks/{task_id}/notify-error",
+                params={"error_message": error_message}
+            ) as response:
+                if response.status == 200:
+                    logger.info(f"Successfully notified task error: {task_id}")
+                    return True
+                else:
+                    logger.error(f"Failed to notify task error: {task_id}. Status: {response.status}")
+                    return False
+        except Exception as e:
+            logger.error(f"Error notifying task error {task_id}: {str(e)}")
             return False
 
 # Create a singleton instance

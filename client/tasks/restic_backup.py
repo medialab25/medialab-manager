@@ -2,8 +2,8 @@ import os
 import subprocess
 import logging
 import json
-from typing import Optional, List
-from pydantic import BaseModel
+from typing import Dict, Any
+from datetime import datetime
 from managers.event_manager import event_manager
 
 logger = logging.getLogger(__name__)
@@ -15,136 +15,93 @@ def get_restic_server() -> str:
             config = json.load(f)
             return config.get("restic", {}).get("server", "192.168.10.10:4500")
     except Exception as e:
-        logger.error(f"Error loading restic server from config: {e}")
+        logger.error(f"Error loading restic server URL from config: {e}")
         return "192.168.10.10:4500"  # Fallback to default
 
-class TaskConfig(BaseModel):
-    name: str
-    task_type: str  # "interval" or "cron"
-    function_name: str
-    enabled: bool
-    
-    # Interval scheduling
-    hours: Optional[int] = 0
-    minutes: Optional[int] = 0
-    seconds: Optional[int] = 0
-    
-    # Cron scheduling
-    cron_hour: Optional[str] = "*"
-    cron_minute: Optional[str] = "*"
-    cron_second: Optional[str] = "*"
-    
-    # Restic specific parameters
-    src_path: Optional[str] = None
-    repo_name: Optional[str] = None  # This will be used as the repository name on the REST server
-    password: Optional[str] = "media"  # Default password is 'media'
-    additional_args: Optional[List[str]] = None
+class TaskConfig:
+    def __init__(self, config: Dict[str, Any]):
+        self.src_path = config.get("src_path")
+        self.repo_name = config.get("repo_name")  # This will be used as the repository name on the REST server
+        self.password = config.get("password", "media")
+        self.retention = config.get("retention", "7d")
 
-async def restic_backup_task(task_config: TaskConfig):
-    """Run a Restic backup task with the given configuration."""
-    if not task_config.src_path or not task_config.repo_name:
-        logger.error(f"Task {task_config.name}: Missing required parameters (src_path or repo_name)")
-        await event_manager.record_event(
-            "backup_failed",
-            {
-                "task_name": task_config.name,
-                "error": "Missing required parameters",
-                "src_path": task_config.src_path,
-                "repo_name": task_config.repo_name
-            },
-            status="error"
-        )
+async def restic_backup_task(task_id: str, config: Dict[str, Any]) -> None:
+    """
+    Execute a Restic backup task.
+    
+    Args:
+        task_id: The ID of the task being executed
+        config: Task configuration dictionary
+    """
+    task_config = TaskConfig(config)
+    
+    # Validate required parameters
+    if not task_config.src_path:
+        error_msg = "Missing required parameter: src_path"
+        logger.error(error_msg)
+        await event_manager.notify_task_error(task_id, error_msg)
+        return
+        
+    if not task_config.repo_name:
+        error_msg = "Missing required parameter: repo_name"
+        logger.error(error_msg)
+        await event_manager.notify_task_error(task_id, error_msg)
         return
 
+    # Notify task start
+    await event_manager.notify_task_start(task_id)
+    
     try:
-        # Record backup start
-        await event_manager.record_event(
-            "backup_started",
-            {
-                "task_name": task_config.name,
-                "src_path": task_config.src_path,
-                "repo_name": task_config.repo_name
-            }
-        )
-
-        # Set up environment with RESTIC_PASSWORD if provided
+        # Get server URL from config
+        server_url = get_restic_server()
+        repo_url = f"rest:http://{server_url}/{task_config.repo_name}"
+        
+        # Set environment variables
         env = os.environ.copy()
-        if task_config.password:
-            env['RESTIC_PASSWORD'] = task_config.password
-
-        # Get the REST server URL from config
-        restic_server = get_restic_server()
-        repo_url = f"rest:http://{restic_server}/{task_config.repo_name}"
-
-        # Check if repository exists
+        env["RESTIC_PASSWORD"] = task_config.password
+        
+        # Initialize repository if it doesn't exist
         try:
+            logger.info(f"Initializing repository: {repo_url}")
             subprocess.run(
-                ['restic', '-r', repo_url, 'snapshots'],
-                capture_output=True,
+                ["restic", "-r", repo_url, "init"],
+                env=env,
                 check=True,
-                env=env
-            )
-        except subprocess.CalledProcessError:
-            # Repository doesn't exist, initialize it
-            logger.info(f"Initializing Restic repository at {repo_url}")
-            subprocess.run(
-                ['restic', 'init', '-r', repo_url],
                 capture_output=True,
-                check=True,
-                env=env
+                text=True
             )
-
-        # Run backup
-        cmd = ['restic', 'backup', '-r', repo_url]
-        if task_config.additional_args:
-            cmd.extend(task_config.additional_args)
-        cmd.append(task_config.src_path)
-
+        except subprocess.CalledProcessError as e:
+            if "already initialized" not in e.stderr:
+                raise
+        
+        # Perform backup
+        logger.info(f"Starting backup from {task_config.src_path} to {repo_url}")
         result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
+            ["restic", "-r", repo_url, "backup", task_config.src_path],
+            env=env,
             check=True,
-            env=env
+            capture_output=True,
+            text=True
         )
-
-        logger.info(f"Task {task_config.name}: Backup completed successfully")
-        logger.debug(f"Backup output: {result.stdout}")
-
-        # Record successful backup
-        await event_manager.record_event(
-            "backup_completed",
-            {
-                "task_name": task_config.name,
-                "src_path": task_config.src_path,
-                "repo_name": task_config.repo_name,
-                "output": result.stdout
-            }
+        
+        # Apply retention policy
+        logger.info(f"Applying retention policy: {task_config.retention}")
+        subprocess.run(
+            ["restic", "-r", repo_url, "forget", "--keep-within", task_config.retention],
+            env=env,
+            check=True,
+            capture_output=True,
+            text=True
         )
-
+        
+        logger.info("Backup completed successfully")
+        await event_manager.notify_task_end(task_id)
+        
     except subprocess.CalledProcessError as e:
         error_msg = f"Backup failed: {e.stderr}"
-        logger.error(f"Task {task_config.name}: {error_msg}")
-        await event_manager.record_event(
-            "backup_failed",
-            {
-                "task_name": task_config.name,
-                "src_path": task_config.src_path,
-                "repo_name": task_config.repo_name,
-                "error": error_msg
-            },
-            status="error"
-        )
+        logger.error(error_msg)
+        await event_manager.notify_task_error(task_id, error_msg)
     except Exception as e:
-        error_msg = f"Unexpected error: {str(e)}"
-        logger.error(f"Task {task_config.name}: {error_msg}")
-        await event_manager.record_event(
-            "backup_failed",
-            {
-                "task_name": task_config.name,
-                "src_path": task_config.src_path,
-                "repo_name": task_config.repo_name,
-                "error": error_msg
-            },
-            status="error"
-        ) 
+        error_msg = f"Unexpected error during backup: {str(e)}"
+        logger.error(error_msg)
+        await event_manager.notify_task_error(task_id, error_msg) 
