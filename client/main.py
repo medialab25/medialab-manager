@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from api.health import router as health_router
 from api.tasks import router as tasks_router
 from tasks.restic_backup import TaskConfig, restic_backup_task
+from tasks.backup_stacks import backup_stacks_task
 from managers.task_manager import register_task, get_task_function, load_tasks
 from managers.event_manager import event_manager
 
@@ -98,4 +99,5 @@ async def health_check():
 
 # Register available tasks
 register_task("dummy_task", dummy_task)
-register_task("restic_backup", restic_backup_task) 
+register_task("restic_backup", restic_backup_task)
+register_task("backup_stacks", backup_stacks_task) 
