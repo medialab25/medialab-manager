@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from api.health import router as health_router
 from api.tasks import router as tasks_router
 from tasks.restic_backup import TaskConfig, restic_backup_task
-from task_manager import register_task, get_task_function, load_tasks
+from managers.task_manager import register_task, get_task_function, load_tasks
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

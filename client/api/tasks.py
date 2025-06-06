@@ -3,7 +3,7 @@ from typing import Dict, List
 import logging
 import json
 from tasks.restic_backup import TaskConfig, restic_backup_task
-from task_manager import get_task_function, load_tasks
+from managers.task_manager import get_task_function, load_tasks
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
