@@ -2,6 +2,13 @@ FROM python:3.11-alpine
 
 WORKDIR /app
 
+# Install Docker CLI and required dependencies
+RUN apk add --no-cache \
+    docker-cli \
+    curl \
+    gnupg \
+    lsb-release
+
 # Install restic and dependencies
 RUN apk add --no-cache restic
 

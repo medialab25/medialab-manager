@@ -1,123 +1,94 @@
 import logging
-import os
-import json
-from typing import Dict, Any, List, Optional
+from typing import Optional
 import docker
-from datetime import datetime
-import aiohttp
+import os
+import socket
 from managers.event_manager import event_manager
-from tasks.restic_backup import TaskConfig
+
+from managers.task_manager import TaskConfig
 
 logger = logging.getLogger(__name__)
 
-def get_server_url() -> str:
-    """Get the main app server URL from environment variables."""
-    server = os.getenv("SERVER_HOST", "192.168.10.10")
-    port = os.getenv("SERVER_PORT", "4800")
-    return f"http://{server}:{port}"
+def get_current_container_id():
+    """Get the current container ID from hostname."""
+    try:
+        # Docker sets the hostname to the container ID by default
+        hostname = socket.gethostname()
+        # The hostname is the full container ID, but we only need the first 12 characters
+        return hostname[:12]
+    except:
+        return None
 
-def get_restic_server() -> str:
-    """Get the Restic server URL from environment variables."""
-    return os.getenv("RESTIC_SERVER", "192.168.10.10:4500")
-
-class DockerManager:
-    def __init__(self):
-        # Check if we can access the Docker socket
-        socket_path = '/var/run/docker.sock'
-        if not os.path.exists(socket_path):
-            raise RuntimeError(f"Docker socket not found at {socket_path}")
+def list_project_containers():
+    try:
+        # Create a Docker client
+        client = docker.from_env()
         
-        # Get detailed socket information
+        # Get current container ID
+        current_container_id = get_current_container_id()
+        if not current_container_id:
+            logger.error("Could not determine current container ID.")
+            return
+
+        # Get current container
         try:
-            socket_stat = os.stat(socket_path)
-            logger.info(f"Docker socket permissions: {oct(socket_stat.st_mode)}")
-            logger.info(f"Docker socket owner: {socket_stat.st_uid}")
-            logger.info(f"Docker socket group: {socket_stat.st_gid}")
-            
-            # Get current process user/group
-            import pwd
-            import grp
-            current_uid = os.getuid()
-            current_gid = os.getgid()
-            logger.info(f"Current process UID: {current_uid}")
-            logger.info(f"Current process GID: {current_gid}")
-            
-            # Check if we're in the docker group
-            try:
-                docker_group = grp.getgrnam('docker')
-                logger.info(f"Docker group members: {docker_group.gr_mem}")
-            except KeyError:
-                logger.warning("Docker group not found")
-                
-        except Exception as e:
-            logger.error(f"Error checking socket permissions: {e}")
+            current_container = client.containers.get(current_container_id)
+        except docker.errors.NotFound:
+            logger.error("Current container not found.")
+            return
 
-        if not os.access(socket_path, os.R_OK | os.W_OK):
-            raise RuntimeError(f"No permission to access Docker socket at {socket_path}")
+        # Get project name from current container's labels
+        project_name = current_container.labels.get('com.docker.compose.project')
+        if not project_name:
+            logger.error("Current container is not part of a Docker Compose project.")
+            return
 
-        try:
-            # Initialize Docker client with explicit configuration
-            import docker
-            self.client = docker.APIClient(
-                base_url=f'unix://{socket_path}',
-                version='1.41',
-                timeout=30
-            )
-            
-            # Test the connection
-            self.client.ping()
-            logger.info("Successfully connected to Docker")
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize Docker client: {e}")
-            raise
+        # Get all containers
+        all_containers = client.containers.list(all=True)
+        
+        # Filter containers by project
+        project_containers = [
+            container for container in all_containers
+            if container.labels.get('com.docker.compose.project') == project_name
+        ]
 
-    def get_stack_containers(self, stack_name: str) -> List[Dict[str, Any]]:
-        """Get all containers belonging to a specific stack, excluding the current container."""
-        try:
-            # Get current container name from environment
-            current_container = os.getenv("HOSTNAME")
-            
-            # Use low-level API to get containers
-            containers = self.client.containers(
-                filters={"label": f"com.docker.compose.project={stack_name}"}
-            )
-            return [
-                {
-                    'id': container['Id'],
-                    'name': container['Names'][0].lstrip('/'),  # Remove leading slash
-                    'status': container['State']
-                }
-                for container in containers
-                if container['Names'][0].lstrip('/') != current_container  # Exclude current container
-            ]
-        except Exception as e:
-            logger.error(f"Error getting containers for stack {stack_name}: {e}")
-            return []
+        if not project_containers:
+            logger.warning(f"No containers found in project: {project_name}")
+            return
 
-    def get_current_stack_name(self) -> Optional[str]:
-        """Get the stack name of the current container using Docker labels."""
-        try:
-            current_container = os.getenv("HOSTNAME")
-            if not current_container:
-                logger.error("HOSTNAME environment variable not set")
-                return None
-                
-            # Use low-level API to get container info
-            container_info = self.client.inspect_container(current_container)
-            labels = container_info['Config']['Labels']
+        logger.info(f"\nContainers in project: {project_name}")
+        logger.info("-" * 70)
+        
+        # Print container information
+        for container in project_containers:
+            # Get container labels
+            labels = container.labels
+            service_name = labels.get('com.docker.compose.service', 'N/A')
             
-            # Docker Compose sets this label for all containers in a stack
-            stack_name = labels.get('com.docker.compose.project')
-            if not stack_name:
-                logger.warning(f"No stack name found in container labels for {current_container}")
-                return None
-                
-            return stack_name
-        except Exception as e:
-            logger.error(f"Error getting current stack name: {e}")
-            return None
+            # Mark current container
+            is_current = container.id == current_container_id
+            current_marker = " (current)" if is_current else ""
+            
+            logger.info(f"Container ID: {container.id[:12]}{current_marker}")
+            logger.info(f"Name: {container.name}")
+            logger.info(f"Status: {container.status}")
+            logger.info(f"Image: {container.image.tags[0] if container.image.tags else container.image.id[:12]}")
+            logger.info(f"Service: {service_name}")
+            
+            # Print all labels if they exist
+            if labels:
+                logger.info("\nLabels:")
+                for key, value in labels.items():
+                    logger.info(f"  {key}: {value}")
+            
+            logger.info("-" * 70)
+            
 
+            
+    except docker.errors.DockerException as e:
+        logger.error(f"Error connecting to Docker: {e}")
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
 
 async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
     """Execute a backup stacks task"""
@@ -130,33 +101,31 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
         server_port = os.getenv("SERVER_PORT", "4800")
         logger.info(f"Executing backup stacks task: {task_config.name}")
         logger.info(f"Using server: {server_host}:{server_port}")
+
+        list_project_containers()
+
+        # Create success event
+        await event_manager.record_event(
+            "backup_stacks_completed",
+            {
+                "task_name": task_config.name,
+                "status": "success",
+                "server": f"{server_host}:{server_port}",
+                "description": f"Successfully completed backup stacks task: {task_config.name}"
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error executing backup stacks task: {e}")
+        # Create error event
+        await event_manager.record_event(
+            "backup_stacks_failed",
+            {
+                "task_name": task_config.name,
+                "status": "error",
+                "server": f"{server_host}:{server_port}",
+                "description": f"Failed to execute backup stacks task: {task_config.name}",
+                "error": str(e)
+            }
+        )
 
-    try:
-        # Notify task start
-        #await event_manager.notify_task_start(task_config.task_id)
-        
-        docker_manager = DockerManager()
-        #restic_server = get_restic_server()
-        return
-        # Get current stack name and then get all containers in that stack
-        current_stack = docker_manager.get_current_stack_name()
-        if not current_stack:
-            logger.error("Could not determine current stack name")
-            return
-            
-        logger.info(f"Found current stack: {current_stack}")
-        containers = docker_manager.get_stack_containers(current_stack)
-        if not containers:
-            logger.warning(f"No containers found for stack: {current_stack}")
-            return
-            
-        logger.info(f"Found {len(containers)} containers in stack {current_stack}:")
-        for container in containers:
-            logger.info(f"- {container['name']} ({container['status']})")
-
-    except Exception as e:
-        error_msg = f"Error executing backup stacks task: {e}"
-        logger.error(error_msg)
-        #await event_manager.notify_task_error(task_config.task_id, error_msg) 
