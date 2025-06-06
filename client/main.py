@@ -12,6 +12,7 @@ from api.health import router as health_router
 from api.tasks import router as tasks_router
 from tasks.restic_backup import TaskConfig, restic_backup_task
 from managers.task_manager import register_task, get_task_function, load_tasks
+from managers.event_manager import event_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +26,7 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     yield
     scheduler.shutdown()
+    await event_manager.close()
 
 app = FastAPI(title="Client Service", lifespan=lifespan)
 app.include_router(health_router)
@@ -43,6 +45,13 @@ async def dummy_task(task_config: Optional[TaskConfig] = None):
     logger.info("Running dummy task")
     if task_config:
         logger.info(f"Task configuration: {task_config}")
+        await event_manager.record_event(
+            "dummy_task_executed",
+            {
+                "task_name": task_config.name,
+                "task_type": task_config.task_type
+            }
+        )
 
 def setup_scheduler():
     tasks = load_tasks()

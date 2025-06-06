@@ -4,6 +4,7 @@ import logging
 import json
 from typing import Optional, List
 from pydantic import BaseModel
+from managers.event_manager import event_manager
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +44,29 @@ async def restic_backup_task(task_config: TaskConfig):
     """Run a Restic backup task with the given configuration."""
     if not task_config.src_path or not task_config.repo_name:
         logger.error(f"Task {task_config.name}: Missing required parameters (src_path or repo_name)")
+        await event_manager.record_event(
+            "backup_failed",
+            {
+                "task_name": task_config.name,
+                "error": "Missing required parameters",
+                "src_path": task_config.src_path,
+                "repo_name": task_config.repo_name
+            },
+            status="error"
+        )
         return
 
     try:
+        # Record backup start
+        await event_manager.record_event(
+            "backup_started",
+            {
+                "task_name": task_config.name,
+                "src_path": task_config.src_path,
+                "repo_name": task_config.repo_name
+            }
+        )
+
         # Set up environment with RESTIC_PASSWORD if provided
         env = os.environ.copy()
         if task_config.password:
@@ -90,7 +111,40 @@ async def restic_backup_task(task_config: TaskConfig):
         logger.info(f"Task {task_config.name}: Backup completed successfully")
         logger.debug(f"Backup output: {result.stdout}")
 
+        # Record successful backup
+        await event_manager.record_event(
+            "backup_completed",
+            {
+                "task_name": task_config.name,
+                "src_path": task_config.src_path,
+                "repo_name": task_config.repo_name,
+                "output": result.stdout
+            }
+        )
+
     except subprocess.CalledProcessError as e:
-        logger.error(f"Task {task_config.name}: Backup failed: {e.stderr}")
+        error_msg = f"Backup failed: {e.stderr}"
+        logger.error(f"Task {task_config.name}: {error_msg}")
+        await event_manager.record_event(
+            "backup_failed",
+            {
+                "task_name": task_config.name,
+                "src_path": task_config.src_path,
+                "repo_name": task_config.repo_name,
+                "error": error_msg
+            },
+            status="error"
+        )
     except Exception as e:
-        logger.error(f"Task {task_config.name}: Unexpected error: {str(e)}") 
+        error_msg = f"Unexpected error: {str(e)}"
+        logger.error(f"Task {task_config.name}: {error_msg}")
+        await event_manager.record_event(
+            "backup_failed",
+            {
+                "task_name": task_config.name,
+                "src_path": task_config.src_path,
+                "repo_name": task_config.repo_name,
+                "error": error_msg
+            },
+            status="error"
+        ) 
