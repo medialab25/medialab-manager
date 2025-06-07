@@ -157,12 +157,14 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
         logger.info(f"Using server: {server_host}:{server_port}")
 
         docker_manager = DockerManager()
-        backup_paths, backup_tags, running_containers = await prepare_containers(docker_manager)
-        backup_success = await perform_backup(backup_paths, backup_tags)
-        restart_success = await restart_containers(docker_manager, running_containers)
+        containers = docker_manager.get_stack_containers()
+        logger.info(f"Containers: {containers}")
+#        backup_paths, backup_tags, running_containers = await prepare_containers(docker_manager)
+#        backup_success = await perform_backup(backup_paths, backup_tags)
+#        restart_success = await restart_containers(docker_manager, running_containers)
         
-        final_success = backup_success and restart_success
-        await notify_server(task_config, final_success, server_host, server_port)
+#        final_success = backup_success and restart_success
+#        await notify_server(task_config, final_success, server_host, server_port)
 
     except Exception as e:
         logger.error(f"Error executing backup stacks task: {e}")

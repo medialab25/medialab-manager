@@ -63,14 +63,35 @@ class DockerManager:
         logger.info("-" * 70)
 
     def get_stack_containers(self) -> List[ContainerInfo]:
-        """Get all containers that are part of a stack."""
+        """Get all containers that are part of the same project as the current container."""
         containers = []
         try:
+            current_project = self.get_project_for_current_container()
+            if not current_project:
+                logger.error("Could not determine current project")
+                return containers
+
+            current_container_id = self.current_container_id
+            if not current_container_id:
+                logger.error("Could not determine current container ID")
+                return containers
+
+            logger.info(f"Current container ID: {current_container_id}")
+            logger.info(f"Current project: {current_project}")
+
             for container in self.client.containers.list(all=True):
-                if 'com.docker.compose.project' in container.labels:
+                # Skip the current container - compare both full ID and short ID
+                if container.id == current_container_id or container.id.startswith(current_container_id):
+                    logger.info(f"Skipping current container: {container.id}")
+                    continue
+                    
+                # Only include containers from the same project
+                if container.labels.get('com.docker.compose.project') == current_project:
+                    needs_backup = container.labels.get('medialab-client.full-backup', 'true').lower() != 'false'
+                    logger.info(f"Adding container to backup list: {container.id}")
                     containers.append(ContainerInfo(
                         container_id=container.id,
-                        needs_backup=True  # You might want to make this configurable
+                        needs_backup=needs_backup
                     ))
         except Exception as e:
             logger.error(f"Error getting stack containers: {e}")
