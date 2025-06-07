@@ -2,8 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import Dict, List
 import logging
 import json
-from tasks.restic_backup import TaskConfig, restic_backup_task
-from managers.task_manager import get_task_function, load_tasks
+from managers.task_manager import TaskManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

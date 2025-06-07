@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, CheckConstraint
-from datetime import datetime, UTC
+from datetime import datetime
+import pytz
 from app.core.database import Base
 
 class Task(Base):
@@ -22,8 +23,8 @@ class Task(Base):
     last_start_time = Column(DateTime, nullable=True)
     last_end_time = Column(DateTime, nullable=True)
     last_status = Column(String(10), nullable=True)  # success/error/running
-    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Europe/London')))
+    updated_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Europe/London')), onupdate=lambda: datetime.now(pytz.timezone('Europe/London')))
 
     __table_args__ = (
         CheckConstraint(

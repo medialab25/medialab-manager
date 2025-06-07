@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, List, Callable
 import json
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -10,16 +10,17 @@ import logging
 from contextlib import asynccontextmanager
 from api.health import router as health_router
 from api.tasks import router as tasks_router
-from tasks.restic_backup import TaskConfig, restic_backup_task
-from tasks.backup_stacks import backup_stacks_task
-from managers.task_manager import register_task, get_task_function, load_tasks
+from tasks.backup_project_stacks import backup_project_stacks_task
+from managers.task_manager import TaskConfig, TaskManager, register_task, get_task_function, load_tasks
 from managers.event_manager import event_manager
+import pytz
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-scheduler = AsyncIOScheduler()
+# Create scheduler with timezone configuration
+scheduler = AsyncIOScheduler(timezone=pytz.timezone('Europe/London'))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -89,14 +90,5 @@ def setup_scheduler():
         )
         logger.info(f"Scheduled task: {task.name} using function {task.function_name}")
 
-@app.get("/api/health", response_model=HealthResponse)
-async def health_check():
-    return HealthResponse(
-        status="healthy",
-        timestamp=datetime.utcnow().isoformat()
-    )
-
 # Register available tasks
-register_task("dummy_task", dummy_task)
-register_task("restic_backup", restic_backup_task)
-register_task("backup_stacks", backup_stacks_task) 
+register_task("backup_project_stacks", backup_project_stacks_task) 

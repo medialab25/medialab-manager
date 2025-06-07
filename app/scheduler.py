@@ -8,6 +8,7 @@ from typing import Dict, Callable, Any, List, Optional
 from dataclasses import dataclass
 import asyncio
 import logging
+import pytz
 
 # from app.api.managers.sync_manager import SyncManager
 from app.core.settings import settings
@@ -31,7 +32,11 @@ job_defaults = {
 }
 
 # Create a scheduler instance with custom executors and job defaults
-scheduler = BackgroundScheduler(executors=executors, job_defaults=job_defaults)
+scheduler = BackgroundScheduler(
+    executors=executors,
+    job_defaults=job_defaults,
+    timezone=pytz.timezone('Europe/London')
+)
 
 @dataclass
 class TaskConfig:
