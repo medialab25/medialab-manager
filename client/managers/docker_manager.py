@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ContainerInfo:
     container_id: str
+    container_name: str
     needs_backup: bool = False
 
 class DockerManager:
@@ -30,7 +31,7 @@ class DockerManager:
                 return None
         return self._current_container_id
 
-    def _get_project_name(self, container_id: str) -> Optional[str]:
+    def get_project_name(self, container_id: str) -> Optional[str]:
         """Get the project name from container labels."""
         try:
             container = self.client.containers.get(container_id)
@@ -42,50 +43,44 @@ class DockerManager:
             logger.error(f"Error getting project name for container {container_id}: {e}")
             return None
 
-    def _format_container_info(self, container: docker.models.containers.Container) -> None:
-        """Format and log container information."""
-        labels = container.labels
-        service_name = labels.get('com.docker.compose.service', 'N/A')
-        needs_backup = labels.get('medialab-client.full-backup', 'true').lower() != 'false'
-        
-        logger.info(f"Container ID: {container.id[:12]}")
-        logger.info(f"Name: {container.name}")
-        logger.info(f"Status: {container.status}")
-        logger.info(f"Image: {container.image.tags[0] if container.image.tags else container.image.id[:12]}")
-        logger.info(f"Service: {service_name}")
-        logger.info(f"Needs Backup: {needs_backup}")
-        
-        if labels:
-            logger.info("\nLabels:")
-            for key, value in labels.items():
-                logger.info(f"  {key}: {value}")
-        
-        logger.info("-" * 70)
-
-    def get_stack_containers(self, project_name: str) -> List[ContainerInfo]:
+    def get_project_containers_by_name(self, project_name: str) -> List[ContainerInfo]:
         """Get all containers that are part of the same project as the current container."""
         containers = []
         try:
-            current_container_id = self.current_container_id
+            for container in self.client.containers.list(all=True):
+                if container.labels.get('com.docker.compose.project') == project_name:
+                    containers.append(ContainerInfo(container.id, container.name))
+            return containers
+        except Exception as e:
+            logger.error(f"Error getting project containers by name: {e}")
+            return []
+
+    def get_project_containers(self, current_container_id: str, include_current: bool = False) -> List[ContainerInfo]:
+        """Get all containers that are part of the same project as the current container."""
+        containers = []
+        try:
             if not current_container_id:
                 logger.error("Could not determine current container ID")
                 return containers
 
-            logger.info(f"Current container ID: {current_container_id}")
-            logger.info(f"Current project: {project_name}")
+            project_name = self.get_project_name(current_container_id)
+            if not project_name:
+                logger.error("Could not determine project name for current container")
+                return containers
 
             for container in self.client.containers.list(all=True):
-                # Skip the current container - compare both full ID and short ID
-                if container.id == current_container_id or container.id.startswith(current_container_id):
-                    logger.info(f"Skipping current container: {container.id}")
-                    continue
+                if not include_current:
+                    # Skip the current container - compare both full ID and short ID
+                    if container.id == current_container_id or container.id.startswith(current_container_id):
+                        logger.info(f"Skipping current container: {container.id}")
+                        continue
                     
                 # Only include containers from the same project
                 if container.labels.get('com.docker.compose.project') == project_name:
                     needs_backup = container.labels.get('medialab-client.full-backup', 'true').lower() != 'false'
-                    logger.info(f"Adding container to backup list: {container.id}")
                     containers.append(ContainerInfo(
                         container_id=container.id,
+                        container_name=container.name,
                         needs_backup=needs_backup
                     ))
         except Exception as e:
@@ -126,4 +121,4 @@ class DockerManager:
         if not container_id:
             logger.error("Could not determine current container ID")
             return None
-        return self._get_project_name(container_id) 
+        return self.get_project_name(container_id) 

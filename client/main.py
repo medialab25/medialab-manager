@@ -10,7 +10,7 @@ import logging
 from contextlib import asynccontextmanager
 from api.health import router as health_router
 from api.tasks import router as tasks_router
-from tasks.backup_stacks import backup_stacks_task
+from tasks.backup_project_stacks import backup_project_stacks_task
 from managers.task_manager import TaskConfig, TaskManager, register_task, get_task_function, load_tasks
 from managers.event_manager import event_manager
 import pytz
@@ -91,4 +91,4 @@ def setup_scheduler():
         logger.info(f"Scheduled task: {task.name} using function {task.function_name}")
 
 # Register available tasks
-register_task("backup_stacks", backup_stacks_task) 
+register_task("backup_project_stacks", backup_project_stacks_task) 

@@ -64,7 +64,7 @@ class TaskManager:
                     name=f"Backup {project_name} stack",
                     description=f"Automated backup task for {project_name} - backs up all configured stacks",
                     task_type="cron",
-                    function_name="backup_stacks",
+                    function_name="backup_project_stacks",
                     repo_name=f"{project_name}-stack",
                     cron_hour=os.getenv("STACK_BACKUP_CRON_HOURS", "0"),
                     cron_minute=os.getenv("STACK_BACKUP_CRON_MINS", "0"),
