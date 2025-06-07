@@ -22,5 +22,5 @@ COPY . .
 # Expose port
 EXPOSE 4810
 
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "4810"]
+# Run the application with hot reload enabled
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "4810", "--reload"]
