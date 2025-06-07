@@ -23,8 +23,14 @@ class BackupManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        # TODO: Implement backup start notification logic
-        return True
+        try:
+            # Update task status to running
+            self.task_manager.update_task_status(task_id, "running")
+            logger.info(f"Task {task_id} started")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to notify task start: {str(e)}")
+            return False
 
     def notify_end(self, task_id: str) -> bool:
         """
@@ -36,8 +42,14 @@ class BackupManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        # TODO: Implement backup end notification logic
-        return True
+        try:
+            # Update task status to success
+            self.task_manager.update_task_status(task_id, "success")
+            logger.info(f"Task {task_id} completed successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to notify task end: {str(e)}")
+            return False
 
     def register_backup(self, task_id: str, name: str, description: str, repo_id: str) -> bool:
         """

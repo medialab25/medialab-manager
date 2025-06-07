@@ -194,7 +194,9 @@ class TaskManager:
             return
         
         task.last_status = status
-        if status in ["success", "error"]:
+        if status == "running":
+            task.last_start_time = datetime.now()
+        elif status in ["success", "error"]:
             task.last_end_time = datetime.now()
         
         self.db.commit()
