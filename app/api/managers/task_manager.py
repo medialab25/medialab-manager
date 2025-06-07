@@ -13,6 +13,58 @@ class TaskManager:
         self.db = db
         self.event_manager = EventManager(db=db) if db else None
 
+    def get_task(self, task_id: str) -> Optional[Task]:
+        """
+        Get a task by its ID.
+        
+        Args:
+            task_id: The ID of the task to retrieve
+            
+        Returns:
+            Optional[Task]: The task if found, None otherwise
+        """
+        return self.db.query(Task).filter(Task.task_id == task_id).first()
+
+    def create_task(self, task_id: str, name: str, description: str, group: str, task_type: str = "external", enabled: bool = True) -> Task:
+        """
+        Create a new task in the database.
+        
+        Args:
+            task_id: Unique identifier for the task
+            name: Name of the task
+            description: Description of the task
+            group: Group the task belongs to
+            task_type: Type of task (default: "external")
+            enabled: Whether the task is enabled (default: True)
+            
+        Returns:
+            Task: The created task object
+            
+        Raises:
+            ValueError: If a task with the given ID already exists
+        """
+        # Check if task already exists
+        existing_task = self.db.query(Task).filter(Task.task_id == task_id).first()
+        if existing_task:
+            raise ValueError(f"Task with ID {task_id} already exists")
+        
+        # Create new task
+        task = Task(
+            task_id=task_id,
+            name=name,
+            description=description,
+            group=group,
+            enabled=enabled,
+            task_type=task_type,
+            function_name=task_id
+        )
+        
+        # Add to database
+        self.db.add(task)
+        self.db.commit()
+        
+        return task
+
     @staticmethod
     def sync_tasks_from_config(db: Session):
         """Sync tasks from config to database on startup"""
