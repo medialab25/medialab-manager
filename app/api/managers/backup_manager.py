@@ -13,64 +13,19 @@ class BackupManager:
         self.restic_server = os.getenv("RESTIC_SERVER", "192.168.10.10:4500")
         self.task_manager = TaskManager(db)
 
-    def notify_start(self, task_id: str) -> bool:
-        """
-        Notify that a backup task has started.
-        
-        Args:
-            task_id: Unique identifier for the backup task
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            # Update task status to running
-            self.task_manager.update_task_status(task_id, "running")
-            logger.info(f"Task {task_id} started")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to notify task start: {str(e)}")
-            return False
-
-    def notify_end(self, task_id: str) -> bool:
-        """
-        Notify that a backup task has ended.
-        
-        Args:
-            task_id: Unique identifier for the backup task
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            # Update task status to success
-            self.task_manager.update_task_status(task_id, "success")
-            logger.info(f"Task {task_id} completed successfully")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to notify task end: {str(e)}")
-            return False
-
-    def register_backup(self, task_id: str, name: str, description: str, repo_id: str) -> bool:
+    def register_backup(self, repo_id: str, name: str, description: str) -> bool:
         """
         Register a new backup task.
         
         Args:
-            task_id: Unique identifier for the backup task
+            repo_id: ID of the repository to backup (used as task_id)
             name: Name of the backup task
             description: Description of the backup task
-            repo_id: ID of the repository to backup
             
         Returns:
             bool: True if successful, False otherwise
         """
         try:
-            # Check if task already exists
-            existing_task = self.task_manager.get_task(task_id)
-            if existing_task:
-                logger.info(f"Task {task_id} already exists, skipping creation")
-                return True
-
             # Construct the repository URL
             repo_url = f"rest:http://{self.restic_server}/{repo_id}"
             
@@ -99,23 +54,7 @@ class BackupManager:
                     text=True
                 )
                 logger.info("Repository initialized successfully")
-            
-            try:
-                # Create task in database
-                self.task_manager.create_task(
-                    task_id=task_id,
-                    name=name,
-                    description=description,
-                    group="backup",
-                    task_type="external",
-                    enabled=True
-                )
-                logger.info(f"Successfully created task {task_id}")
-                return True
-            except ValueError as e:
-                logger.error(f"Failed to create task: {str(e)}")
-                return False
-            
+           
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to initialize repository: {e.stderr}")
             return False

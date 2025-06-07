@@ -43,3 +43,4 @@ system-backups/
 
 # Rclone configuration
 app/tasks/data/rclone.conf
+data/main.db-journal

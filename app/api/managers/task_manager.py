@@ -74,11 +74,6 @@ class TaskManager:
         # Get all task IDs from config
         config_task_ids = set(settings.TASKS.keys())
         
-        # Remove tasks that no longer exist in config
-        for task_id in list(existing_tasks.keys()):
-            if task_id not in config_task_ids:
-                db.delete(existing_tasks[task_id])
-        
         # Add or update tasks from config
         for task_id, task_data in settings.TASKS.items():
             if task_id in existing_tasks:
@@ -200,6 +195,62 @@ class TaskManager:
             task.last_end_time = datetime.now()
         
         self.db.commit()
+
+    def start_task(self, task_id: str, name: str = None, description: str = None, group: str = "other") -> Task:
+        """Start a task, creating it if it doesn't exist.
+        
+        Args:
+            task_id: Unique identifier for the task
+            name: Name of the task (optional, defaults to task_id if not provided)
+            description: Description of the task (optional)
+            group: Group the task belongs to (default: "other")
+            
+        Returns:
+            Task: The task object that was started
+        """
+        task = self.get_task(task_id)
+        
+        if not task:
+            # Create the task if it doesn't exist
+            task = self.create_task(
+                task_id=task_id,
+                name=name or task_id,
+                description=description or "",
+                group=group
+            )
+        
+        # Update task status to running
+        task.last_start_time = datetime.now()
+        task.last_status = "running"
+        self.db.commit()
+        
+        return task
+
+    def end_task(self, task_id: str, status: str = "success") -> Task:
+        """End a task and update its status.
+        
+        Args:
+            task_id: The ID of the task to end
+            status: The final status of the task (default: "success")
+            
+        Returns:
+            Task: The updated task object
+            
+        Raises:
+            ValueError: If the task is not found or status is invalid
+        """
+        if status not in ["success", "error"]:
+            raise ValueError("Status must be either 'success' or 'error'")
+            
+        task = self.get_task(task_id)
+        if not task:
+            raise ValueError(f"Task {task_id} not found")
+            
+        task.last_end_time = datetime.now()
+        task.last_status = status
+        self.db.commit()
+        
+        return task
 
     def get_task_last_run(self, task_id: str) -> Dict:
         """Get the last run information for a task

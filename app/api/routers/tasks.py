@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict, List
+from typing import Dict, List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -10,8 +10,16 @@ from app.api.managers.event_manager import EventManager
 
 router = APIRouter()
 
-class TaskToggleRequest(BaseModel):
+class TaskToggleAPIRequest(BaseModel):
     enabled: bool
+
+class TaskStartAPIRequest(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    group: str = "other"
+
+class TaskEndAPIRequest(BaseModel):
+    status: str = "success"
 
 @router.get("/")
 def list_tasks_endpoint(db: Session = Depends(get_db)):
@@ -20,7 +28,7 @@ def list_tasks_endpoint(db: Session = Depends(get_db)):
     return task_manager.list_tasks()
 
 @router.post("/{task_id}/toggle")
-def toggle_task_endpoint(task_id: str, request: TaskToggleRequest, db: Session = Depends(get_db)):
+def toggle_task_endpoint(task_id: str, request: TaskToggleAPIRequest, db: Session = Depends(get_db)):
     """Toggle a task's enabled status"""
     task_manager = TaskManager(db=db)
     try:
@@ -108,5 +116,79 @@ def get_task_last_run(task_id: str, db: Session = Depends(get_db)):
         return task_manager.get_task_last_run(task_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{task_id}/start")
+def start_task_endpoint(task_id: str, request: TaskStartAPIRequest, db: Session = Depends(get_db)):
+    """Start a task, creating it if it doesn't exist"""
+    task_manager = TaskManager(db=db)
+    event_manager = EventManager(db=db)
+    try:
+        # Start the task
+        task = task_manager.start_task(
+            task_id=task_id,
+            name=request.name,
+            description=request.description,
+            group=request.group
+        )
+        
+        # Create event
+        event_manager.add_event(
+            type="task",
+            sub_type=task_id,
+            status="info",
+            description=f"Task {task_id} started",
+            details=f"Task {task_id} started at {datetime.now()}"
+        )
+        
+        return {
+            "status": "success",
+            "message": f"Task {task_id} started",
+            "task": {
+                "id": task.task_id,
+                "name": task.name,
+                "description": task.description,
+                "group": task.group,
+                "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
+                "last_status": task.last_status
+            }
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{task_id}/end")
+def end_task_endpoint(task_id: str, request: TaskEndAPIRequest, db: Session = Depends(get_db)):
+    """End a task and update its status"""
+    task_manager = TaskManager(db=db)
+    event_manager = EventManager(db=db)
+    try:
+        # End the task
+        task = task_manager.end_task(task_id, request.status)
+        
+        # Create event
+        event_manager.add_event(
+            type="task",
+            sub_type=task_id,
+            status=request.status,
+            description=f"Task {task_id} ended with status: {request.status}",
+            details=f"Task {task_id} ended at {datetime.now()}"
+        )
+        
+        return {
+            "status": "success",
+            "message": f"Task {task_id} ended",
+            "task": {
+                "id": task.task_id,
+                "name": task.name,
+                "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
+                "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
+                "last_status": task.last_status
+            }
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
