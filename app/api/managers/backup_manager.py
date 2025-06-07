@@ -13,14 +13,12 @@ class BackupManager:
         self.restic_server = os.getenv("RESTIC_SERVER", "192.168.10.10:4500")
         self.task_manager = TaskManager(db)
 
-    def register_backup(self, repo_id: str, name: str, description: str) -> bool:
+    def register_backup(self, repo_id: str) -> bool:
         """
         Register a new backup task.
         
         Args:
             repo_id: ID of the repository to backup (used as task_id)
-            name: Name of the backup task
-            description: Description of the backup task
             
         Returns:
             bool: True if successful, False otherwise
