@@ -39,9 +39,9 @@ async def execute_restic_command(cmd: str) -> bool:
         logger.error(f"Error executing restic command: {str(e)}")
         return False
 
-async def prepare_containers(docker_manager: DockerManager) -> tuple[List[str], List[str], List[str]]:
+async def prepare_containers(docker_manager: DockerManager, project_name: str) -> tuple[List[str], List[str], List[str]]:
     """Prepare containers for backup by stopping them if needed."""
-    container_infos = docker_manager.get_stack_containers()
+    container_infos = docker_manager.get_stack_containers(project_name)
     logger.info(f"Container infos: {container_infos}")
 
     backup_paths = []
@@ -60,7 +60,6 @@ async def prepare_containers(docker_manager: DockerManager) -> tuple[List[str], 
                         continue
                     running_containers.append(container_info.container_id)
                 
-                project_name = container.labels.get('com.docker.compose.project', 'unknown')
                 container_name = container.name.lstrip('/')
                 
                 backup_paths.extend([
@@ -157,9 +156,9 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
         logger.info(f"Using server: {server_host}:{server_port}")
 
         docker_manager = DockerManager()
-        containers = docker_manager.get_stack_containers()
-        logger.info(f"Containers: {containers}")
-#        backup_paths, backup_tags, running_containers = await prepare_containers(docker_manager)
+        project_name = docker_manager.get_project_for_current_container()
+
+        backup_paths, backup_tags, running_containers = await prepare_containers(docker_manager, project_name)
 #        backup_success = await perform_backup(backup_paths, backup_tags)
 #        restart_success = await restart_containers(docker_manager, running_containers)
         
