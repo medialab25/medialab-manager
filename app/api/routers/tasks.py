@@ -27,6 +27,12 @@ class TaskCreateAPIRequest(BaseModel):
     group: str = "other"
     task_type: str = "external"
     enabled: bool = True
+    hours: Optional[int] = None
+    minutes: Optional[int] = None
+    seconds: Optional[int] = None
+    cron_hour: Optional[int] = None
+    cron_minute: Optional[int] = None
+    cron_second: Optional[int] = None
 
 @router.get("/")
 def list_tasks_endpoint(db: Session = Depends(get_db)):
@@ -213,7 +219,13 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
             description=request.description,
             group=request.group,
             task_type=request.task_type,
-            enabled=request.enabled
+            enabled=request.enabled,
+            hours=request.hours,
+            minutes=request.minutes,
+            seconds=request.seconds,
+            cron_hour=request.cron_hour,
+            cron_minute=request.cron_minute,
+            cron_second=request.cron_second
         )
         
         # Create event
@@ -225,6 +237,23 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
             details=f"Task {task_id} created at {datetime.now()}"
         )
         
+        # Prepare schedule information based on task type
+        schedule = {
+            "type": task.task_type
+        }
+        if task.task_type == "interval":
+            schedule.update({
+                "hours": task.hours,
+                "minutes": task.minutes,
+                "seconds": task.seconds
+            })
+        elif task.task_type == "cron":
+            schedule.update({
+                "cron_hour": task.cron_hour,
+                "cron_minute": task.cron_minute,
+                "cron_second": task.cron_second
+            })
+        
         return {
             "status": "success",
             "message": f"Task {task_id} created",
@@ -234,7 +263,8 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
                 "description": task.description,
                 "group": task.group,
                 "task_type": task.task_type,
-                "enabled": task.enabled
+                "enabled": task.enabled,
+                "schedule": schedule
             }
         }
     except ValueError as e:
