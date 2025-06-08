@@ -59,7 +59,24 @@ def list_events(
         )
     
     event_manager = EventManager(db)
-    return event_manager.list_events(filter, skip, limit, sort_by, sort_order)
+    events = event_manager.list_events(filter, skip, limit, sort_by, sort_order)
+    
+    # Convert events to JSON-serializable format
+    events_json = []
+    for event in events:
+        events_json.append({
+            "id": event.id,
+            "timestamp": event.timestamp.isoformat(),  # Required by EventSchema
+            "type": event.type,
+            "sub_type": event.sub_type,
+            "status": event.status,
+            "description": event.description,
+            "details": event.details,
+            "has_attachment": event.has_attachment,
+            "formatted_timestamp": event.formatted_timestamp
+        })
+    
+    return events_json
 
 @router.get("/{event_id}/attachment")
 def get_event_attachment(

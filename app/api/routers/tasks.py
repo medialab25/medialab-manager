@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from app.core.database import get_db
 from app.api.managers.task_manager import TaskManager
 from app.api.managers.event_manager import EventManager
+from app.schemas.task import TaskCreateAPIRequest, TaskStartAPIRequest, TaskEndAPIRequest, TaskToggleAPIRequest
+from app.utils.time_utils import get_current_time
 
 router = APIRouter()
 
@@ -74,7 +76,7 @@ def notify_task_start_endpoint(task_id: str, db: Session = Depends(get_db)):
             sub_type=task_id,
             status="info",
             description=f"Task {task_id} started",
-            details=f"Task {task_id} started at {datetime.now()}"
+            details=f"Task {task_id} started at {get_current_time()}"
         )
         return {"status": "success", "message": f"Task {task_id} start notification sent"}
     except Exception as e:
@@ -95,7 +97,7 @@ def notify_task_end_endpoint(task_id: str, db: Session = Depends(get_db)):
             sub_type=task_id,
             status="success",
             description=f"Task {task_id} completed",
-            details=f"Task {task_id} completed at {datetime.now()}"
+            details=f"Task {task_id} completed at {get_current_time()}"
         )
         return {"status": "success", "message": f"Task {task_id} end notification sent"}
     except Exception as e:
@@ -116,7 +118,7 @@ def notify_task_error_endpoint(task_id: str, error_message: str = None, db: Sess
             sub_type=task_id,
             status="error",
             description=f"Task {task_id} failed",
-            details=f"Task {task_id} failed at {datetime.now()}" + (f": {error_message}" if error_message else "")
+            details=f"Task {task_id} failed at {get_current_time()}" + (f": {error_message}" if error_message else "")
         )
         return {"status": "success", "message": f"Task {task_id} error notification sent"}
     except Exception as e:
@@ -153,7 +155,7 @@ def start_task_endpoint(task_id: str, request: TaskStartAPIRequest, db: Session 
             sub_type=task_id,
             status="info",
             description=f"Task {task_id} started",
-            details=f"Task {task_id} started at {datetime.now()}"
+            details=f"Task {task_id} started at {get_current_time()}"
         )
         
         return {
@@ -164,7 +166,7 @@ def start_task_endpoint(task_id: str, request: TaskStartAPIRequest, db: Session 
                 "name": task.name,
                 "description": task.description,
                 "group": task.group,
-                "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
+                "last_start_time": task.get_formatted_last_start_time(),
                 "last_status": task.last_status
             }
         }
@@ -188,7 +190,7 @@ def end_task_endpoint(task_id: str, request: TaskEndAPIRequest, db: Session = De
             sub_type=task_id,
             status=request.status,
             description=f"Task {task_id} ended with status: {request.status}",
-            details=f"Task {task_id} ended at {datetime.now()}"
+            details=f"Task {task_id} ended at {get_current_time()}"
         )
         
         return {
@@ -197,8 +199,8 @@ def end_task_endpoint(task_id: str, request: TaskEndAPIRequest, db: Session = De
             "task": {
                 "id": task.task_id,
                 "name": task.name,
-                "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
-                "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
+                "last_start_time": task.get_formatted_last_start_time(),
+                "last_end_time": task.get_formatted_last_end_time(),
                 "last_status": task.last_status
             }
         }
@@ -236,7 +238,7 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
             sub_type=task_id,
             status="info",
             description=f"Task {task_id} created",
-            details=f"Task {task_id} created at {datetime.now()}"
+            details=f"Task {task_id} created at {get_current_time()}"
         )
         
         # Prepare schedule information based on task type

@@ -129,64 +129,29 @@ class TaskManager:
         # Get all task IDs from config
         config_task_ids = set(settings.TASKS.keys())
         
+        # Create task manager instance for syncing
+        task_manager = TaskManager(db)
+        
         # Add or update tasks from config
         for task_id, task_data in settings.TASKS.items():
             task_type = task_data.get("task_type", "external")
             
-            if task_id in existing_tasks:
-                # Update existing task with config values
-                task = existing_tasks[task_id]
-                task.name = task_data.get("name", task_id)
-                task.description = task_data.get("description", "")
-                task.group = task_data.get("group", "other")
-                task.task_type = task_type
-                task.function_name = task_data.get("function_name", task_id)
-                task.host_url = task_data.get("host_url", None)
-                
-                # Update scheduling based on task type
-                if task_type == "interval":
-                    task.hours = task_data.get("hours", 0)
-                    task.minutes = task_data.get("minutes", 0)
-                    task.seconds = task_data.get("seconds", 0)
-                    task.cron_hour = None
-                    task.cron_minute = None
-                    task.cron_second = None
-                elif task_type == "cron":
-                    task.hours = None
-                    task.minutes = None
-                    task.seconds = None
-                    task.cron_hour = task_data.get("cron_hour", "*")
-                    task.cron_minute = task_data.get("cron_minute", "*")
-                    task.cron_second = task_data.get("cron_second", "*")
-                else:
-                    # Store schedule for external tasks too
-                    task.hours = task_data.get("hours", 0)
-                    task.minutes = task_data.get("minutes", 0)
-                    task.seconds = task_data.get("seconds", 0)
-                    task.cron_hour = task_data.get("cron_hour", "*")
-                    task.cron_minute = task_data.get("cron_minute", "*")
-                    task.cron_second = task_data.get("cron_second", "*")
-            else:
-                # Create new task in database
-                task = Task(
-                    task_id=task_id,
-                    name=task_data.get("name", task_id),
-                    description=task_data.get("description", ""),
-                    group=task_data.get("group", "other"),
-                    enabled=task_data.get("enabled", False),
-                    task_type=task_type,
-                    function_name=task_data.get("function_name", task_id),
-                    host_url=task_data.get("host_url", None),
-                    hours=task_data.get("hours", 0) if task_type == "interval" else task_data.get("hours", 0),
-                    minutes=task_data.get("minutes", 0) if task_type == "interval" else task_data.get("minutes", 0),
-                    seconds=task_data.get("seconds", 0) if task_type == "interval" else task_data.get("seconds", 0),
-                    cron_hour=task_data.get("cron_hour", "*") if task_type == "cron" else task_data.get("cron_hour", "*"),
-                    cron_minute=task_data.get("cron_minute", "*") if task_type == "cron" else task_data.get("cron_minute", "*"),
-                    cron_second=task_data.get("cron_second", "*") if task_type == "cron" else task_data.get("cron_second", "*")
-                )
-                db.add(task)
-        
-        db.commit()
+            # Create or update task
+            task_manager.create_task(
+                task_id=task_id,
+                name=task_data.get("name", task_id),
+                description=task_data.get("description", ""),
+                group=task_data.get("group", "other"),
+                task_type=task_type,
+                enabled=task_data.get("enabled", False),
+                host_url=task_data.get("host_url", None),
+                hours=task_data.get("hours", 0),
+                minutes=task_data.get("minutes", 0),
+                seconds=task_data.get("seconds", 0),
+                cron_hour=task_data.get("cron_hour", "*"),
+                cron_minute=task_data.get("cron_minute", "*"),
+                cron_second=task_data.get("cron_second", "*")
+            )
 
     def list_tasks(self) -> Dict:
         """List all tasks grouped by their group"""

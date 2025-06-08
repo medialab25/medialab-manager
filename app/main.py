@@ -218,7 +218,7 @@ async def get_events(
         for event in events:
             events_json.append({
                 "id": event.id,
-                "timestamp": event.timestamp.isoformat(),
+                "formatted_timestamp": event.formatted_timestamp,
                 "type": event.type,
                 "sub_type": event.sub_type,
                 "status": event.status,

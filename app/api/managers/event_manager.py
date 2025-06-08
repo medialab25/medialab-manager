@@ -131,7 +131,8 @@ class EventManager:
         # Apply sorting
         sort_field = getattr(Event, sort_by, Event.timestamp)
         sort_func = desc if sort_order.lower() == "desc" else asc
-        query = query.order_by(sort_func(sort_field))
+        # Always include id as a secondary sort key to ensure stable pagination
+        query = query.order_by(sort_func(sort_field), sort_func(Event.id))
         
         return query.offset(skip).limit(limit).all()
 
