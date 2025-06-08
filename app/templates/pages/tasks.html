@@ -340,7 +340,7 @@
                     {% elif task.task_type == 'external' %}
                     External Task
                     {% elif task.task_type == 'interval' %}
-                    {% if task.hours or task.minutes or task.seconds %}
+                    {% if task.hours is not none or task.minutes is not none or task.seconds is not none %}
                     Every
                     {% if task.hours %}{{ task.hours }} hour{% if task.hours != 1 %}s{% endif %}{% endif %}
                     {% if task.hours and (task.minutes or task.seconds) %}, {% endif %}
@@ -352,6 +352,7 @@
                     Not scheduled
                     {% endif %}
                     {% elif task.task_type == 'cron' %}
+                    {% if task.cron_hour is not none and task.cron_minute is not none %}
                     {% if task.cron_hour == '*' and task.cron_minute == '*' %}
                     Every minute
                     {% elif task.cron_hour == '*' %}
@@ -362,8 +363,8 @@
                     {% set minute = task.cron_minute|default('00', true)|int %}
                     {% set period = 'AM' if hour < 12 else 'PM' %} {% set display_hour=hour if hour <=12 else hour - 12
                         %} {% set display_hour=12 if display_hour==0 else display_hour %} Daily at {{ display_hour
-                        }}:{{ '%02d' |format(minute) }} {{ period }} {% endif %} {% else %} Not scheduled {% endif %}
-                        </td>
+                        }}:{{ '%02d' |format(minute) }} {{ period }} {% endif %} {% else %} Not scheduled {% endif %} {%
+                        else %} Not scheduled {% endif %} </td>
                 <td class="task-last-run">{{ task.last_start_time|default('Never', true) }}</td>
                 <td>
                     <span class="task-status {{ task.last_status|default('none', true) }}">

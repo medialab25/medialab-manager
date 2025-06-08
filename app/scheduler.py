@@ -214,20 +214,21 @@ def start_scheduler():
                 continue
 
             # Create the appropriate trigger based on task type
-            if task_data.get("task_type") == "interval":
+            task_type = task_data.get("task_type")
+            if task_type == "interval":
                 trigger = IntervalTrigger(
                     hours=task_data.get("hours", 0),
                     minutes=task_data.get("minutes", 0),
                     seconds=task_data.get("seconds", 0)
                 )
-            elif task_data.get("task_type") == "cron":
+            elif task_type == "cron":
                 trigger = CronTrigger(
                     hour=task_data.get("cron_hour", "*"),
                     minute=task_data.get("cron_minute", "*"),
                     second=task_data.get("cron_second", "*")
                 )
             else:
-                logger.warning(f"Invalid task type for task '{task_id}': {task_data.get('task_type')}")
+                logger.warning(f"Invalid task type for task '{task_id}': {task_type}")
                 continue
 
             # Add the job to the scheduler with parameters from config
