@@ -17,6 +17,7 @@ def sync_data_cloud(task_id: str, **params: Dict[str, Any]) -> str:
             - backup_path (str): The local path to sync
             - bucket_name (str): The cloud bucket name to sync to
             - dry_run (bool, optional): If True, perform a dry run without making changes. Defaults to False.
+            - include_file (str, optional): Path to file containing list of folders to include in sync. Defaults to None.
         
     Returns:
         str: Status message about the sync operation
@@ -28,6 +29,7 @@ def sync_data_cloud(task_id: str, **params: Dict[str, Any]) -> str:
     backup_path = params.get('backup_path')
     bucket_name = params.get('bucket_name')
     dry_run = params.get('dry_run', False)
+    include_file = params.get('include_file')
     
     if not backup_path or not bucket_name:
         error_msg = "backup_path and bucket_name are required parameters"
@@ -49,7 +51,7 @@ def sync_data_cloud(task_id: str, **params: Dict[str, Any]) -> str:
         event_type="backup",
         sub_type="cloud_sync",
         description="Starting cloud sync operation",
-        details=f"Syncing from {backup_path} to {bucket_name}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}\nDry run: {dry_run}"
+        details=f"Syncing from {backup_path} to {bucket_name}\nStart time: {time.strftime('%Y-%m-%d %H:%M:%S')}\nDry run: {dry_run}\nInclude file: {include_file}"
     )
     
     print(f"Executing cloud sync from {backup_path} to {bucket_name} (dry run: {dry_run})")
@@ -62,6 +64,11 @@ def sync_data_cloud(task_id: str, **params: Dict[str, Any]) -> str:
         # Add config file path
         config_path = os.path.join(os.path.dirname(__file__), 'data', 'rclone.conf')
         rclone_cmd.extend(['--config', config_path])
+        
+        # Add include file if specified
+        if include_file:
+            rclone_cmd.extend(['--include-from', include_file])
+            
         rclone_cmd.extend([backup_path, bucket_name])
         
         # Run rclone sync command
@@ -88,7 +95,7 @@ def sync_data_cloud(task_id: str, **params: Dict[str, Any]) -> str:
             event_type="backup",
             sub_type="cloud_sync",
             description="Cloud sync completed successfully",
-            details=f"Synced from {backup_path} to {bucket_name}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}\nDry run: {dry_run}",
+            details=f"Synced from {backup_path} to {bucket_name}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}\nDry run: {dry_run}\nInclude file: {include_file}",
             attachment_data=rclone_result.stdout.encode('utf-8'),
             attachment_mime_type=AttachDataMimeType.TEXT
         )
@@ -104,7 +111,7 @@ def sync_data_cloud(task_id: str, **params: Dict[str, Any]) -> str:
             event_type="backup",
             sub_type="cloud_sync",
             description="Cloud sync failed",
-            details=f"Error: {str(e)}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}\nDry run: {dry_run}",
+            details=f"Error: {str(e)}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}\nDry run: {dry_run}\nInclude file: {include_file}",
             attachment_data=e.stderr.encode('utf-8') if e.stderr else str(e).encode('utf-8'),
             attachment_mime_type=AttachDataMimeType.TEXT
         )

@@ -61,7 +61,8 @@
             "params": {
                 "backup_path": "/srv/system-backups/",
                 "bucket_name": "e2:system-backups",
-                "dry_run": false
+                "dry_run": false,
+                "include_file": null
             }
         },
         "sync_rach_data": {
