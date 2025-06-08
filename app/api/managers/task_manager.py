@@ -72,28 +72,23 @@ class TaskManager:
             
             # Update scheduling based on task type
             if task_type == "interval":
-                existing_task.hours = hours
-                existing_task.minutes = minutes
-                existing_task.seconds = seconds
+                # Clear cron settings and set interval settings
                 existing_task.cron_hour = None
                 existing_task.cron_minute = None
                 existing_task.cron_second = None
             elif task_type == "cron":
+                # Clear interval settings and set cron settings
                 existing_task.hours = None
                 existing_task.minutes = None
                 existing_task.seconds = None
-                existing_task.cron_hour = cron_hour
-                existing_task.cron_minute = cron_minute
-                existing_task.cron_second = cron_second
-            else:
-                # Clear all scheduling for non-scheduled tasks
-                existing_task.hours = None
-                existing_task.minutes = None
-                existing_task.seconds = None
-                existing_task.cron_hour = None
-                existing_task.cron_minute = None
-                existing_task.cron_second = None
-                
+            # For all task types, set the appropriate schedule values
+            existing_task.hours = hours
+            existing_task.minutes = minutes
+            existing_task.seconds = seconds
+            existing_task.cron_hour = cron_hour
+            existing_task.cron_minute = cron_minute
+            existing_task.cron_second = cron_second
+            
             self.db.commit()
             return existing_task
         
@@ -106,12 +101,12 @@ class TaskManager:
             enabled=enabled,
             task_type=task_type,
             function_name=task_id,
-            hours=hours if task_type == "interval" else None,
-            minutes=minutes if task_type == "interval" else None,
-            seconds=seconds if task_type == "interval" else None,
-            cron_hour=cron_hour if task_type == "cron" else None,
-            cron_minute=cron_minute if task_type == "cron" else None,
-            cron_second=cron_second if task_type == "cron" else None
+            hours=hours if task_type == "interval" else hours,
+            minutes=minutes if task_type == "interval" else minutes,
+            seconds=seconds if task_type == "interval" else seconds,
+            cron_hour=cron_hour if task_type == "cron" else cron_hour,
+            cron_minute=cron_minute if task_type == "cron" else cron_minute,
+            cron_second=cron_second if task_type == "cron" else cron_second
         )
         
         # Add to database
@@ -158,13 +153,13 @@ class TaskManager:
                     task.cron_minute = task_data.get("cron_minute", "*")
                     task.cron_second = task_data.get("cron_second", "*")
                 else:
-                    # Clear all scheduling for non-scheduled tasks
-                    task.hours = None
-                    task.minutes = None
-                    task.seconds = None
-                    task.cron_hour = None
-                    task.cron_minute = None
-                    task.cron_second = None
+                    # Store schedule for external tasks too
+                    task.hours = task_data.get("hours", 0)
+                    task.minutes = task_data.get("minutes", 0)
+                    task.seconds = task_data.get("seconds", 0)
+                    task.cron_hour = task_data.get("cron_hour", "*")
+                    task.cron_minute = task_data.get("cron_minute", "*")
+                    task.cron_second = task_data.get("cron_second", "*")
             else:
                 # Create new task in database
                 task = Task(
@@ -175,12 +170,12 @@ class TaskManager:
                     enabled=task_data.get("enabled", False),
                     task_type=task_type,
                     function_name=task_data.get("function_name", task_id),
-                    hours=task_data.get("hours", 0) if task_type == "interval" else None,
-                    minutes=task_data.get("minutes", 0) if task_type == "interval" else None,
-                    seconds=task_data.get("seconds", 0) if task_type == "interval" else None,
-                    cron_hour=task_data.get("cron_hour", "*") if task_type == "cron" else None,
-                    cron_minute=task_data.get("cron_minute", "*") if task_type == "cron" else None,
-                    cron_second=task_data.get("cron_second", "*") if task_type == "cron" else None
+                    hours=task_data.get("hours", 0) if task_type == "interval" else task_data.get("hours", 0),
+                    minutes=task_data.get("minutes", 0) if task_type == "interval" else task_data.get("minutes", 0),
+                    seconds=task_data.get("seconds", 0) if task_type == "interval" else task_data.get("seconds", 0),
+                    cron_hour=task_data.get("cron_hour", "*") if task_type == "cron" else task_data.get("cron_hour", "*"),
+                    cron_minute=task_data.get("cron_minute", "*") if task_type == "cron" else task_data.get("cron_minute", "*"),
+                    cron_second=task_data.get("cron_second", "*") if task_type == "cron" else task_data.get("cron_second", "*")
                 )
                 db.add(task)
         
@@ -209,23 +204,23 @@ class TaskManager:
 
             # Add schedule information based on task type
             if task.task_type == "interval":
-                task_dict["schedule"] = {
-                    "type": "interval",
-                    "hours": task.hours,
-                    "minutes": task.minutes,
-                    "seconds": task.seconds
-                }
+                task_dict["hours"] = task.hours
+                task_dict["minutes"] = task.minutes
+                task_dict["seconds"] = task.seconds
             elif task.task_type == "cron":
-                task_dict["schedule"] = {
-                    "type": "cron",
-                    "hour": task.cron_hour,
-                    "minute": task.cron_minute,
-                    "second": task.cron_second
-                }
-            else:
-                task_dict["schedule"] = {
-                    "type": "unknown"
-                }
+                task_dict["cron_hour"] = task.cron_hour
+                task_dict["cron_minute"] = task.cron_minute
+                task_dict["cron_second"] = task.cron_second
+            elif task.task_type == "external":
+                # Include schedule info for external tasks too
+                if task.hours is not None or task.minutes is not None or task.seconds is not None:
+                    task_dict["hours"] = task.hours
+                    task_dict["minutes"] = task.minutes
+                    task_dict["seconds"] = task.seconds
+                if task.cron_hour is not None or task.cron_minute is not None or task.cron_second is not None:
+                    task_dict["cron_hour"] = task.cron_hour
+                    task_dict["cron_minute"] = task.cron_minute
+                    task_dict["cron_second"] = task.cron_second
 
             tasks[group].append(task_dict)
         
