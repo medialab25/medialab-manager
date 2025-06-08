@@ -60,6 +60,12 @@ class TaskManager:
         Returns:
             Task: The created or updated task object
         """
+
+        if task_type == "interval":
+            task_type = "external_interval"
+        elif task_type == "cron":
+            task_type = "external_cron"
+
         # Check if task already exists
         existing_task = self.db.query(Task).filter(Task.task_id == task_id).first()
         if existing_task:
@@ -71,23 +77,15 @@ class TaskManager:
             existing_task.enabled = enabled
             
             # Update scheduling based on task type
-            if task_type == "interval":
-                # Clear cron settings and set interval settings
-                existing_task.cron_hour = None
-                existing_task.cron_minute = None
-                existing_task.cron_second = None
-            elif task_type == "cron":
-                # Clear interval settings and set cron settings
-                existing_task.hours = None
-                existing_task.minutes = None
-                existing_task.seconds = None
-            # For all task types, set the appropriate schedule values
-            existing_task.hours = hours
-            existing_task.minutes = minutes
-            existing_task.seconds = seconds
-            existing_task.cron_hour = cron_hour
-            existing_task.cron_minute = cron_minute
-            existing_task.cron_second = cron_second
+            if task_type == "external_interval":
+                self._clear_cron_schedule(existing_task)
+                self._set_interval_schedule(existing_task, hours, minutes, seconds)
+            elif task_type == "external_cron":
+                self._clear_interval_schedule(existing_task)
+                self._set_cron_schedule(existing_task, cron_hour, cron_minute, cron_second)
+            else:
+                self._clear_interval_schedule(existing_task)
+                self._clear_cron_schedule(existing_task)
             
             self.db.commit()
             return existing_task
@@ -203,24 +201,14 @@ class TaskManager:
             }
 
             # Add schedule information based on task type
-            if task.task_type == "interval":
+            if task.task_type == "interval" or task.task_type == "external_interval":
                 task_dict["hours"] = task.hours
                 task_dict["minutes"] = task.minutes
                 task_dict["seconds"] = task.seconds
-            elif task.task_type == "cron":
+            elif task.task_type == "cron" or task.task_type == "external_cron":
                 task_dict["cron_hour"] = task.cron_hour
                 task_dict["cron_minute"] = task.cron_minute
                 task_dict["cron_second"] = task.cron_second
-            elif task.task_type == "external":
-                # Include schedule info for external tasks too
-                if task.hours is not None or task.minutes is not None or task.seconds is not None:
-                    task_dict["hours"] = task.hours
-                    task_dict["minutes"] = task.minutes
-                    task_dict["seconds"] = task.seconds
-                if task.cron_hour is not None or task.cron_minute is not None or task.cron_second is not None:
-                    task_dict["cron_hour"] = task.cron_hour
-                    task_dict["cron_minute"] = task.cron_minute
-                    task_dict["cron_second"] = task.cron_second
 
             tasks[group].append(task_dict)
         
@@ -352,4 +340,28 @@ class TaskManager:
             "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
             "last_status": task.last_status,
             "duration": (task.last_end_time - task.last_start_time).total_seconds() if task.last_end_time and task.last_start_time else None
-        } 
+        }
+
+    def _clear_interval_schedule(self, task: Task) -> None:
+        """Clear interval schedule settings from a task"""
+        task.hours = None
+        task.minutes = None
+        task.seconds = None
+
+    def _clear_cron_schedule(self, task: Task) -> None:
+        """Clear cron schedule settings from a task"""
+        task.cron_hour = None
+        task.cron_minute = None
+        task.cron_second = None
+
+    def _set_interval_schedule(self, task: Task, hours: int = None, minutes: int = None, seconds: int = None) -> None:
+        """Set interval schedule settings for a task"""
+        task.hours = hours
+        task.minutes = minutes
+        task.seconds = seconds
+
+    def _set_cron_schedule(self, task: Task, cron_hour: str = None, cron_minute: str = None, cron_second: str = None) -> None:
+        """Set cron schedule settings for a task"""
+        task.cron_hour = cron_hour
+        task.cron_minute = cron_minute
+        task.cron_second = cron_second 

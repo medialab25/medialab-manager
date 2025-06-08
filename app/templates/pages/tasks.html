@@ -325,7 +325,8 @@
                 <td>
                     {% if task.task_type == 'manual' %}
                     <i class="fas fa-user-clock manual-task-indicator" title="Manual Task"></i>
-                    {% elif task.task_type == 'external' %}
+                    {% elif task.task_type == 'external' or task.task_type == 'external_cron' or task.task_type ==
+                    'external_interval' %}
                     <i class="fas fa-external-link-alt manual-task-indicator" title="External Task"></i>
                     {% else %}
                     <input type="checkbox" class="task-toggle" data-task-id="{{ task.id }}" {% if task.enabled
@@ -339,7 +340,7 @@
                     Manual Task
                     {% elif task.task_type == 'external' %}
                     External Task
-                    {% elif task.task_type == 'interval' %}
+                    {% elif task.task_type == 'interval' or task.task_type == 'external_interval' %}
                     {% if task.hours is not none or task.minutes is not none or task.seconds is not none %}
                     Every
                     {% if task.hours %}{{ task.hours }} hour{% if task.hours != 1 %}s{% endif %}{% endif %}
@@ -351,7 +352,7 @@
                     {% else %}
                     Not scheduled
                     {% endif %}
-                    {% elif task.task_type == 'cron' %}
+                    {% elif task.task_type == 'cron' or task.task_type == 'external_cron' %}
                     {% if task.cron_hour is not none and task.cron_minute is not none %}
                     {% if task.cron_hour == '*' and task.cron_minute == '*' %}
                     Every minute
@@ -373,7 +374,8 @@
                 </td>
                 <td>
                     <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if not
-                        task.enabled and task.task_type !='manual' or task.task_type=='external' %}disabled{% endif %}
+                        task.enabled and task.task_type !='manual' or task.task_type=='external' or
+                        task.task_type=='external_cron' or task.task_type=='external_interval' %}disabled{% endif %}
                         title="Run Now">
                         <i class="fas fa-play"></i>
                     </button>

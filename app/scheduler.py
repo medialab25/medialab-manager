@@ -204,7 +204,7 @@ def start_scheduler():
         # Add tasks from settings
         for task_id, task_data in settings.TASKS.items():
             # Skip manual and external tasks
-            if task_data.get("task_type") in ["manual", "external"]:
+            if task_data.get("task_type") in ["manual", "external", "external_interval", "external_cron"]:
                 continue
                 
             # Get the task function

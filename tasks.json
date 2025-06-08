@@ -92,20 +92,6 @@
             "cron_minute": "1",
             "cron_second": "0"
         },
-        "starr-gate": {
-            "name": "Starr-Gate",
-            "description": "Starr-Gate",
-            "group": "backup",
-            "enabled": true,
-            "task_type": "external"
-        },
-        "black-starr": {
-            "name": "Black-Starr",
-            "description": "Black-Starr",
-            "group": "backup",
-            "enabled": true,
-            "task_type": "external"
-        },
         "sync_system_vault": {
             "name": "Sync System Vault",
             "description": "Sync System Vault",

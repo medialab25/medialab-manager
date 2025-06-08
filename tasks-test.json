@@ -65,3 +65,17 @@
         "bucket_name": "system-files"
     }
 },
+"starr-gate": {
+    "name": "Starr-Gate",
+    "description": "Starr-Gate",
+    "group": "backup",
+    "enabled": true,
+    "task_type": "external"
+},
+"black-starr": {
+    "name": "Black-Starr",
+    "description": "Black-Starr",
+    "group": "backup",
+    "enabled": true,
+    "task_type": "external"
+},
