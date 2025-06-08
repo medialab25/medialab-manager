@@ -10,6 +10,7 @@ services:
       - ./:/app
       - /tmp:/stack-data
     environment:
+      - HOST_URL=http://192.168.10.30:4810
       - SERVER_HOST=192.168.10.10
       - SERVER_PORT=4800
       - RESTIC_SERVER=192.168.10.10:4500

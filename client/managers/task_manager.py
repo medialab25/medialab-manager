@@ -29,6 +29,7 @@ class TaskConfig:
     cron_minute: str = "*"
     cron_second: str = "*"
     params: Optional[Dict] = None
+    host_url: str = "http://192.168.10.30:4810"
 
     def __post_init__(self):
         if self.params is None:
@@ -74,7 +75,8 @@ class TaskManager:
                 "description": task.description,
                 "group": task.group,
                 "task_type": task.task_type,
-                "enabled": task.enabled
+                "enabled": task.enabled,
+                "host_url": task.host_url
             }
             
             # Add scheduling information based on task type
@@ -157,7 +159,8 @@ class TaskManager:
                     repo_name=f"{project_name}-stack",
                     cron_hour=cron_hour,
                     cron_minute=cron_minute,
-                    cron_second=cron_second
+                    cron_second=cron_second,
+                    host_url=os.getenv("HOST_URL", "http://192.168.10.30:4810")
                 )
                 logger.info(f"Created task config with cron values: hour={backup_stacks_task.cron_hour}, minute={backup_stacks_task.cron_minute}, second={backup_stacks_task.cron_second}")
                 tasks.append(backup_stacks_task)
