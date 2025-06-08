@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import httpx
 from urllib.parse import urlparse
+from enum import Enum
 
 from app.core.settings import settings
 from app.models.event_types import SubEventType
@@ -10,6 +11,11 @@ from app.models.task import Task
 from app.scheduler import add_task, remove_task, TaskConfig, run_task_now
 from app.api.managers.event_manager import EventManager
 from app.utils.time_utils import get_current_time, format_datetime
+
+class TaskStatus(str, Enum):
+    CREATED = "created"
+    UPDATED = "updated"
+    UNCHANGED = "unchanged"
 
 class TaskManager:
     def __init__(self, db: Session = None):
@@ -43,7 +49,7 @@ class TaskManager:
         cron_hour: str = None,
         cron_minute: str = None,
         cron_second: str = None
-    ) -> Task:
+    ) -> tuple[Task, TaskStatus]:
         """
         Create a new task in the database or update an existing one.
         
@@ -63,38 +69,72 @@ class TaskManager:
             cron_second: Second for cron scheduling (only used if task_type is "cron")
             
         Returns:
-            Task: The created or updated task object
+            tuple[Task, TaskStatus]: A tuple containing the task object and a TaskStatus enum value
         """
-
         if task_type == "interval":
             task_type = "external_interval"
         elif task_type == "cron":
             task_type = "external_cron"
 
+        # Convert cron fields to strings if they are integers
+        cron_hour = str(cron_hour) if cron_hour is not None else None
+        cron_minute = str(cron_minute) if cron_minute is not None else None
+        cron_second = str(cron_second) if cron_second is not None else None
+
         # Check if task already exists
         existing_task = self.db.query(Task).filter(Task.task_id == task_id).first()
         if existing_task:
-            # Update existing task with new information
-            existing_task.name = name
-            existing_task.description = description
-            existing_task.group = group
-            existing_task.task_type = task_type
-            existing_task.enabled = enabled
-            existing_task.host_url = host_url
+            # Track if any fields were changed
+            task_updated = False
+            
+            # Check and update basic fields
+            if existing_task.name != name:
+                existing_task.name = name
+                task_updated = True
+            if existing_task.description != description:
+                existing_task.description = description
+                task_updated = True
+            if existing_task.group != group:
+                existing_task.group = group
+                task_updated = True
+            if existing_task.task_type != task_type:
+                existing_task.task_type = task_type
+                task_updated = True
+            if existing_task.enabled != enabled:
+                existing_task.enabled = enabled
+                task_updated = True
+            if existing_task.host_url != host_url:
+                existing_task.host_url = host_url
+                task_updated = True
             
             # Update scheduling based on task type
             if task_type == "external_interval":
-                self._clear_cron_schedule(existing_task)
-                self._set_interval_schedule(existing_task, hours, minutes, seconds)
+                if (existing_task.hours != hours or 
+                    existing_task.minutes != minutes or 
+                    existing_task.seconds != seconds):
+                    self._clear_cron_schedule(existing_task)
+                    self._set_interval_schedule(existing_task, hours, minutes, seconds)
+                    task_updated = True
             elif task_type == "external_cron":
-                self._clear_interval_schedule(existing_task)
-                self._set_cron_schedule(existing_task, cron_hour, cron_minute, cron_second)
+                if (existing_task.cron_hour != cron_hour or 
+                    existing_task.cron_minute != cron_minute or 
+                    existing_task.cron_second != cron_second):
+                    self._clear_interval_schedule(existing_task)
+                    self._set_cron_schedule(existing_task, cron_hour, cron_minute, cron_second)
+                    task_updated = True
             else:
-                self._clear_interval_schedule(existing_task)
-                self._clear_cron_schedule(existing_task)
+                if (existing_task.hours is not None or 
+                    existing_task.minutes is not None or 
+                    existing_task.seconds is not None or
+                    existing_task.cron_hour is not None or 
+                    existing_task.cron_minute is not None or 
+                    existing_task.cron_second is not None):
+                    self._clear_interval_schedule(existing_task)
+                    self._clear_cron_schedule(existing_task)
+                    task_updated = True
             
             self.db.commit()
-            return existing_task
+            return existing_task, TaskStatus.UPDATED if task_updated else TaskStatus.UNCHANGED
         
         # Create new task
         task = Task(
@@ -118,7 +158,7 @@ class TaskManager:
         self.db.add(task)
         self.db.commit()
         
-        return task
+        return task, TaskStatus.CREATED
 
     @staticmethod
     def sync_tasks_from_config(db: Session):
@@ -273,7 +313,7 @@ class TaskManager:
         
         if not task:
             # Create the task if it doesn't exist
-            task = self.create_task(
+            task, _ = self.create_task(
                 task_id=task_id,
                 name=name or task_id,
                 description=description or "",

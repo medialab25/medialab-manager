@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from app.core.database import get_db
-from app.api.managers.task_manager import TaskManager
+from app.api.managers.task_manager import TaskManager, TaskStatus
 from app.api.managers.event_manager import EventManager
 from app.schemas.task import TaskCreateAPIRequest, TaskStartAPIRequest, TaskEndAPIRequest, TaskToggleAPIRequest
 from app.utils.time_utils import get_current_time
@@ -216,7 +216,7 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
     event_manager = EventManager(db=db)
     try:
         # Create the task
-        task = task_manager.create_task(
+        task, status = task_manager.create_task(
             task_id=task_id,
             name=request.name,
             description=request.description,
@@ -232,14 +232,15 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
             cron_second=request.cron_second
         )
         
-        # Create event
-        event_manager.add_event(
-            type="task",
-            sub_type=task_id,
-            status="info",
-            description=f"Task {task_id} created",
-            details=f"Task {task_id} created at {get_current_time()}"
-        )
+        # Create event only if task was created or updated
+        if status in [TaskStatus.CREATED, TaskStatus.UPDATED]:
+            event_manager.add_event(
+                type="task",
+                sub_type=task_id,
+                status="info",
+                description=f"Task {task_id} {status.value}",
+                details=f"Task {task_id} {status.value} at {get_current_time()}"
+            )
         
         # Prepare schedule information based on task type
         schedule = {
@@ -260,7 +261,7 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
         
         return {
             "status": "success",
-            "message": f"Task {task_id} created",
+            "message": f"Task {task_id} {status.value}",
             "task": {
                 "id": task.task_id,
                 "name": task.name,
