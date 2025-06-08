@@ -27,6 +27,7 @@ class TaskCreateAPIRequest(BaseModel):
     group: str = "other"
     task_type: str = "external"
     enabled: bool = True
+    host_url: Optional[str] = None
     hours: Optional[int] = None
     minutes: Optional[int] = None
     seconds: Optional[int] = None
@@ -220,6 +221,7 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
             group=request.group,
             task_type=request.task_type,
             enabled=request.enabled,
+            host_url=request.host_url,
             hours=request.hours,
             minutes=request.minutes,
             seconds=request.seconds,
@@ -264,6 +266,7 @@ def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Sessio
                 "group": task.group,
                 "task_type": task.task_type,
                 "enabled": task.enabled,
+                "host_url": task.host_url,
                 "schedule": schedule
             }
         }

@@ -118,6 +118,11 @@
         color: #004085;
     }
 
+    .task-status.requested {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
     .task-status.none {
         background-color: #e2e3e5;
         color: #383d41;
@@ -373,10 +378,9 @@
                     </span>
                 </td>
                 <td>
-                    <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if not
-                        task.enabled and task.task_type !='manual' or task.task_type=='external' or
-                        task.task_type=='external_cron' or task.task_type=='external_interval' %}disabled{% endif %}
-                        title="Run Now">
+                    <button class="run-now-btn" onclick="confirmRunTask('{{ task.id }}', '{{ task.name }}')" {% if (not
+                        task.enabled and task.task_type !='manual' ) or (task.task_type in ['external', 'external_cron'
+                        , 'external_interval' ] and not task.host_url) %}disabled{% endif %} title="Run Now">
                         <i class="fas fa-play"></i>
                     </button>
                 </td>

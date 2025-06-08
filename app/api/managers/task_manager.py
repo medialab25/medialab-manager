@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional
 from sqlalchemy.orm import Session
 from datetime import datetime
+import httpx
 
 from app.core.settings import settings
 from app.models.event_types import SubEventType
@@ -33,6 +34,7 @@ class TaskManager:
         group: str, 
         task_type: str = "external", 
         enabled: bool = True,
+        host_url: str = None,
         hours: int = None,
         minutes: int = None,
         seconds: int = None,
@@ -50,6 +52,7 @@ class TaskManager:
             group: Group the task belongs to
             task_type: Type of task ("interval", "cron", or "external"/"manual")
             enabled: Whether the task is enabled (default: True)
+            host_url: Host URL associated with the task (optional)
             hours: Hours for interval scheduling (only used if task_type is "interval")
             minutes: Minutes for interval scheduling (only used if task_type is "interval")
             seconds: Seconds for interval scheduling (only used if task_type is "interval")
@@ -75,6 +78,7 @@ class TaskManager:
             existing_task.group = group
             existing_task.task_type = task_type
             existing_task.enabled = enabled
+            existing_task.host_url = host_url
             
             # Update scheduling based on task type
             if task_type == "external_interval":
@@ -99,6 +103,7 @@ class TaskManager:
             enabled=enabled,
             task_type=task_type,
             function_name=task_id,
+            host_url=host_url,
             hours=hours if task_type == "interval" else hours,
             minutes=minutes if task_type == "interval" else minutes,
             seconds=seconds if task_type == "interval" else seconds,
@@ -134,6 +139,7 @@ class TaskManager:
                 task.group = task_data.get("group", "other")
                 task.task_type = task_type
                 task.function_name = task_data.get("function_name", task_id)
+                task.host_url = task_data.get("host_url", None)
                 
                 # Update scheduling based on task type
                 if task_type == "interval":
@@ -168,6 +174,7 @@ class TaskManager:
                     enabled=task_data.get("enabled", False),
                     task_type=task_type,
                     function_name=task_data.get("function_name", task_id),
+                    host_url=task_data.get("host_url", None),
                     hours=task_data.get("hours", 0) if task_type == "interval" else task_data.get("hours", 0),
                     minutes=task_data.get("minutes", 0) if task_type == "interval" else task_data.get("minutes", 0),
                     seconds=task_data.get("seconds", 0) if task_type == "interval" else task_data.get("seconds", 0),
@@ -195,6 +202,7 @@ class TaskManager:
                 "description": task.description,
                 "enabled": task.enabled,
                 "task_type": task.task_type,
+                "host_url": task.host_url,
                 "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
                 "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
                 "last_status": task.last_status
@@ -238,10 +246,31 @@ class TaskManager:
         try:
             # Update task status to running
             task.last_start_time = datetime.now()
-            task.last_status = "running"
+            task.last_status = "requested"
             self.db.commit()
             
-            run_task_now(task_id)
+            # If task has host URL and is external/cron/interval, send request to that host
+            if task.host_url and task.task_type in ["external", "external_interval", "external_cron"]:
+                try:
+                    # Extract port from host URL if present (format: host:port)
+                    host_parts = task.host_url.split(":")
+                    host = host_parts[0]
+                    port = host_parts[1] if len(host_parts) > 1 else "4810"  # Default to 4810 if no port specified
+                    
+                    # Send request to the task's endpoint
+                    with httpx.Client(timeout=30.0) as client:
+                        response = client.post(f"http://{host}:{port}/api/tasks/{task_id}/run")
+                        if response.status_code != 200:
+                            raise ValueError(f"Remote task execution failed: {response.text}")
+                except Exception as e:
+                    task.last_status = "error"
+                    task.last_end_time = datetime.now()
+                    self.db.commit()
+                    raise ValueError(f"Failed to execute remote task: {str(e)}")
+            else:
+                # Run task locally
+                run_task_now(task_id)
+            
             return {"status": "success", "message": f"Task {task_id} started"}
         except Exception as e:
             # Update task status to error

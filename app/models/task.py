@@ -14,6 +14,7 @@ class Task(Base):
     enabled = Column(Boolean, default=False)
     task_type = Column(String(20), default="interval")
     function_name = Column(String(100))
+    host_url = Column(String(255), nullable=True)  # Can store full URLs or host:port combinations
     hours = Column(Integer, default=0)
     minutes = Column(Integer, default=0)
     seconds = Column(Integer, default=0)
