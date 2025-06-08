@@ -38,15 +38,12 @@ class TaskManager:
             enabled: Whether the task is enabled (default: True)
             
         Returns:
-            Task: The created task object
-            
-        Raises:
-            ValueError: If a task with the given ID already exists
+            Task: The created task object or existing task if task_id already exists
         """
         # Check if task already exists
         existing_task = self.db.query(Task).filter(Task.task_id == task_id).first()
         if existing_task:
-            raise ValueError(f"Task with ID {task_id} already exists")
+            return existing_task
         
         # Create new task
         task = Task(

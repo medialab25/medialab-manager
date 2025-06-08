@@ -21,6 +21,13 @@ class TaskStartAPIRequest(BaseModel):
 class TaskEndAPIRequest(BaseModel):
     status: str = "success"
 
+class TaskCreateAPIRequest(BaseModel):
+    name: str
+    description: str
+    group: str = "other"
+    task_type: str = "external"
+    enabled: bool = True
+
 @router.get("/")
 def list_tasks_endpoint(db: Session = Depends(get_db)):
     """API endpoint to list all tasks"""
@@ -186,6 +193,48 @@ def end_task_endpoint(task_id: str, request: TaskEndAPIRequest, db: Session = De
                 "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
                 "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
                 "last_status": task.last_status
+            }
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{task_id}/create")
+def create_task_endpoint(task_id: str, request: TaskCreateAPIRequest, db: Session = Depends(get_db)):
+    """Create a new task"""
+    task_manager = TaskManager(db=db)
+    event_manager = EventManager(db=db)
+    try:
+        # Create the task
+        task = task_manager.create_task(
+            task_id=task_id,
+            name=request.name,
+            description=request.description,
+            group=request.group,
+            task_type=request.task_type,
+            enabled=request.enabled
+        )
+        
+        # Create event
+        event_manager.add_event(
+            type="task",
+            sub_type=task_id,
+            status="info",
+            description=f"Task {task_id} created",
+            details=f"Task {task_id} created at {datetime.now()}"
+        )
+        
+        return {
+            "status": "success",
+            "message": f"Task {task_id} created",
+            "task": {
+                "id": task.task_id,
+                "name": task.name,
+                "description": task.description,
+                "group": task.group,
+                "task_type": task.task_type,
+                "enabled": task.enabled
             }
         }
     except ValueError as e:
