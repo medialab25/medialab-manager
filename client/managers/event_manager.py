@@ -8,9 +8,7 @@ logger = logging.getLogger(__name__)
 
 class EventManager:
     def __init__(self):
-        self.server_host = os.getenv("SERVER_HOST", "192.168.10.10")
-        self.server_port = os.getenv("SERVER_PORT", "4800")
-        self.server_url = f"http://{self.server_host}:{self.server_port}"
+        self.server_url = os.getenv("SERVER_URL", "http://192.168.10.10:4800")
         self.events = []
         self.client = httpx.AsyncClient()
 

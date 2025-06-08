@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class BackupManager:
     def __init__(self, db: Session):
         self.db = db
-        self.restic_server = os.getenv("RESTIC_SERVER", "192.168.10.10:4500")
+        self.restic_server = os.getenv("RESTIC_SERVER", "http://192.168.10.10:4500")
         self.task_manager = TaskManager(db)
 
     def register_backup(self, repo_id: str) -> bool:
@@ -25,7 +25,7 @@ class BackupManager:
         """
         try:
             # Construct the repository URL
-            repo_url = f"rest:http://{self.restic_server}/{repo_id}"
+            repo_url = f"rest:{self.restic_server}/{repo_id}"
             
             # Set environment variables
             env = os.environ.copy()

@@ -92,7 +92,7 @@
         <tbody>
             {% for event in events %}
             <tr>
-                <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ event.formatted_timestamp }}</td>
                 <td>{{ event.type }}</td>
                 <td>{{ event.sub_type }}</td>
                 <td>{{ event.title }}</td>

@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, CheckConstraint
 from datetime import datetime
-import pytz
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, CheckConstraint
 from app.core.database import Base
+from app.utils.time_utils import get_current_time, format_datetime
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -24,8 +24,8 @@ class Task(Base):
     last_start_time = Column(DateTime, nullable=True)
     last_end_time = Column(DateTime, nullable=True)
     last_status = Column(String(10), nullable=True)  # success/error/running
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Europe/London')))
-    updated_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Europe/London')), onupdate=lambda: datetime.now(pytz.timezone('Europe/London')))
+    created_at = Column(DateTime, default=get_current_time)
+    updated_at = Column(DateTime, default=get_current_time, onupdate=get_current_time)
 
     __table_args__ = (
         CheckConstraint(
@@ -38,8 +38,13 @@ class Task(Base):
         ),
     )
 
-    def __repr__(self):
-        return f"<Task(task_id={self.task_id}, name={self.name}, enabled={self.enabled})>"
+    def get_formatted_last_start_time(self) -> str:
+        """Get formatted last start time"""
+        return format_datetime(self.last_start_time) if self.last_start_time else None
+
+    def get_formatted_last_end_time(self) -> str:
+        """Get formatted last end time"""
+        return format_datetime(self.last_end_time) if self.last_end_time else None
 
     def get_last_run_time(self) -> str:
         """Get the last run time in a formatted string
@@ -48,5 +53,8 @@ class Task(Base):
             str: Formatted last run time or 'Never' if not run yet
         """
         if self.last_start_time:
-            return self.last_start_time.strftime("%Y-%m-%d %H:%M:%S")
-        return "Never" 
+            return format_datetime(self.last_start_time)
+        return "Never"
+
+    def __repr__(self):
+        return f"<Task(task_id={self.task_id}, name={self.name}, enabled={self.enabled})>" 

@@ -11,9 +11,8 @@ services:
       - /tmp:/stack-data
     environment:
       - HOST_URL=http://192.168.10.30:4810
-      - SERVER_HOST=192.168.10.10
-      - SERVER_PORT=4800
-      - RESTIC_SERVER=192.168.10.10:4500
+      - SERVER_URL=http://192.168.10.10:4800
+      - RESTIC_SERVER=http://192.168.10.10:4500
       - STACK_BACKUP_CRON_MINUTE=1
       - STACK_BACKUP_CRON_HOUR=2
       - STACK_BACKUP_CRON_SECOND=3

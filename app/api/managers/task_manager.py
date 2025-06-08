@@ -2,12 +2,14 @@ from typing import Dict, List, Optional
 from sqlalchemy.orm import Session
 from datetime import datetime
 import httpx
+from urllib.parse import urlparse
 
 from app.core.settings import settings
 from app.models.event_types import SubEventType
 from app.models.task import Task
 from app.scheduler import add_task, remove_task, TaskConfig, run_task_now
 from app.api.managers.event_manager import EventManager
+from app.utils.time_utils import get_current_time, format_datetime
 
 class TaskManager:
     def __init__(self, db: Session = None):
@@ -252,10 +254,10 @@ class TaskManager:
             # If task has host URL and is external/cron/interval, send request to that host
             if task.host_url and task.task_type in ["external", "external_interval", "external_cron"]:
                 try:
-                    # Extract port from host URL if present (format: host:port)
-                    host_parts = task.host_url.split(":")
-                    host = host_parts[0]
-                    port = host_parts[1] if len(host_parts) > 1 else "4810"  # Default to 4810 if no port specified
+                    # Parse the URL properly to handle schemes and ports
+                    parsed_url = urlparse(task.host_url)
+                    host = parsed_url.hostname
+                    port = str(parsed_url.port) if parsed_url.port else "4810"  # Default to 4810 if no port specified
                     
                     # Send request to the task's endpoint
                     with httpx.Client(timeout=30.0) as client:
@@ -280,18 +282,15 @@ class TaskManager:
             raise ValueError(str(e))
 
     def update_task_status(self, task_id: str, status: str) -> None:
-        """Update a task's status"""
-        task = self.db.query(Task).filter(Task.task_id == task_id).first()
-        if not task:
-            return
-        
-        task.last_status = status
-        if status == "running":
-            task.last_start_time = datetime.now()
-        elif status in ["success", "error"]:
-            task.last_end_time = datetime.now()
-        
-        self.db.commit()
+        """Update task status and timestamps"""
+        task = self.get_task(task_id)
+        if task:
+            task.last_status = status
+            if status == "running":
+                task.last_start_time = get_current_time()
+            else:
+                task.last_end_time = get_current_time()
+            self.db.commit()
 
     def start_task(self, task_id: str, name: str = None, description: str = None, group: str = "other") -> Task:
         """Start a task, creating it if it doesn't exist.
@@ -349,26 +348,18 @@ class TaskManager:
         
         return task
 
-    def get_task_last_run(self, task_id: str) -> Dict:
-        """Get the last run information for a task
-        
-        Args:
-            task_id: The ID of the task
-            
-        Returns:
-            Dict: Dictionary containing last run information
-        """
-        task = self.db.query(Task).filter(Task.task_id == task_id).first()
+    def get_task_last_run(self, task_id: str) -> dict:
+        """Get the last run information for a task"""
+        task = self.get_task(task_id)
         if not task:
-            raise ValueError("Task not found")
+            raise ValueError(f"Task {task_id} not found")
             
         return {
             "task_id": task.task_id,
             "name": task.name,
-            "last_start_time": task.last_start_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_start_time else None,
-            "last_end_time": task.last_end_time.strftime("%Y-%m-%d %H:%M:%S") if task.last_end_time else None,
-            "last_status": task.last_status,
-            "duration": (task.last_end_time - task.last_start_time).total_seconds() if task.last_end_time and task.last_start_time else None
+            "last_start_time": task.get_formatted_last_start_time(),
+            "last_end_time": task.get_formatted_last_end_time(),
+            "last_status": task.last_status
         }
 
     def _clear_interval_schedule(self, task: Task) -> None:

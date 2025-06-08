@@ -7,6 +7,8 @@ from managers.event_manager import event_manager
 from managers.task_manager import TaskConfig
 from managers.docker_manager import DockerManager
 import asyncio
+import httpx
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -120,28 +122,24 @@ async def restart_containers(docker_manager: DockerManager, running_containers: 
             success = False
     return success
 
-async def notify_server(task_config: TaskConfig, backup_success: bool, server_host: str, server_port: str) -> None:
-    """Notify the server about backup completion or failure."""
-    event_type = "backup_stacks_completed" if backup_success else "backup_stacks_failed"
-    await event_manager.record_event(
-        event_type,
-        {
-            "task_name": task_config.name,
-            "status": "success" if backup_success else "error",
-            "server": f"{server_host}:{server_port}",
-            "description": f"{'Successfully completed' if backup_success else 'Failed to execute'} backup stacks task: {task_config.name}"
+async def notify_server(task_config: TaskConfig, backup_success: bool, server_url: str) -> None:
+    """Notify the server about the backup status"""
+    try:
+        endpoint = "success" if backup_success else "failure"
+        data = {
+            "task": task_config.name,
+            "status": "success" if backup_success else "failure",
+            "server": server_url,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
-    )
-
-    async with aiohttp.ClientSession() as session:
-        try:
-            endpoint = "notify-end" if backup_success else "notify-error"
-            await session.post(
-                f"http://{server_host}:{server_port}/api/backup/{task_config.name}/{endpoint}",
-                params={"error_message": "Backup failed" if not backup_success else None}
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{server_url}/api/backup/{task_config.name}/{endpoint}",
+                json=data,
             )
-        except Exception as e:
-            logger.error(f"Failed to notify server of backup {'completion' if backup_success else 'failure'}: {e}")
+            response.raise_for_status()
+    except Exception as e:
+        logger.error(f"Failed to notify server: {e}")
 
 async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
     """Execute a backup stacks task."""
@@ -151,9 +149,8 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
 
     try:
         logger.info(f"Executing backup stacks task: {task_config.name}")
-        server_host = os.getenv("SERVER_HOST", "192.168.10.10")
-        server_port = os.getenv("SERVER_PORT", "4800")
-        logger.info(f"Using server: {server_host}:{server_port}")
+        server_url = os.getenv("SERVER_URL", "http://192.168.10.10:4800")
+        logger.info(f"Using server: {server_url}")
 
         docker_manager = DockerManager()
         project_name = docker_manager.get_project_for_current_container()
@@ -163,9 +160,9 @@ async def backup_stacks_task(task_config: Optional[TaskConfig] = None) -> None:
 #        restart_success = await restart_containers(docker_manager, running_containers)
         
 #        final_success = backup_success and restart_success
-#        await notify_server(task_config, final_success, server_host, server_port)
+#        await notify_server(task_config, final_success, server_url)
 
     except Exception as e:
         logger.error(f"Error executing backup stacks task: {e}")
-        await notify_server(task_config, False, server_host, server_port)
+        await notify_server(task_config, False, server_url)
 

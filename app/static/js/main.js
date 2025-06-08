@@ -8,7 +8,7 @@ function formatFileSize(bytes) {
 }
 
 function formatDate(date) {
-    return new Date(date).toLocaleString();
+    return date;  // Return the date as is since it's already formatted on the server
 }
 
 // File upload handling

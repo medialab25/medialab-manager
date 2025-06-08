@@ -463,7 +463,7 @@
                 {% else %}
                 {% for event in events %}
                 <tr>
-                    <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ event.formatted_timestamp }}</td>
                     <td>{{ event.type }}</td>
                     <td>{{ event.sub_type if event.sub_type else '' }}</td>
                     <td>{{ event.description }}</td>
@@ -816,7 +816,7 @@
             events.forEach(event => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${new Date(event.timestamp).toLocaleString()}</td>
+                    <td>${event.formatted_timestamp}</td>
                     <td>${event.type}</td>
                     <td>${event.sub_type || ''}</td>
                     <td>${event.description}</td>

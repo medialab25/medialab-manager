@@ -73,9 +73,8 @@ async def backup_project_stacks_task(task_config: Optional[TaskConfig] = None) -
 
     try:
         logger.info(f"Executing backup stacks task: {task_config.name}")
-        server_host = os.getenv("SERVER_HOST", "192.168.10.10")
-        server_port = os.getenv("SERVER_PORT", "4800")
-        logger.info(f"Using server: {server_host}:{server_port}")
+        server_url = os.getenv("SERVER_URL", "http://192.168.10.10:4800")
+        logger.info(f"Using server: {server_url}")
 
         docker_manager = DockerManager()
         project_name = docker_manager.get_project_for_current_container()

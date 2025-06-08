@@ -15,6 +15,7 @@ _task_registry: Dict[str, Callable] = {}
 @dataclass
 class TaskConfig:
     """Configuration for a task."""
+    task_id: str
     name: str
     description: str
     task_type: str
@@ -53,9 +54,7 @@ class TaskManager:
     def __init__(self):
         """Initialize the task manager"""
         self.docker_manager = DockerManager()
-        self.server_host = os.getenv("SERVER_HOST", "192.168.10.10")
-        self.server_port = os.getenv("SERVER_PORT", "4800")
-        self.server_url = f"http://{self.server_host}:{self.server_port}"
+        self.server_url = os.getenv("SERVER_URL", "http://192.168.10.10:4800")
 
     async def create_task(self, task: TaskConfig) -> bool:
         """Create a task via the API.
@@ -101,7 +100,7 @@ class TaskManager:
             async with httpx.AsyncClient() as client:
                 try:
                     response = await client.post(
-                        f"{self.server_url}/api/tasks/{task.name}/create",
+                        f"{self.server_url}/api/tasks/{task.task_id}/create",
                         json=request_data,
                         timeout=30.0
                     )
@@ -151,6 +150,7 @@ class TaskManager:
                 logger.info(f"Cron values from env: hour={cron_hour}, minute={cron_minute}, second={cron_second}")
 
                 backup_stacks_task = TaskConfig(
+                    task_id=f"backup_stacks_{project_name}",
                     name=f"Backup {project_name} stack",
                     description=f"Automated backup task for {project_name} - backs up all configured stacks",
                     task_type="cron",
