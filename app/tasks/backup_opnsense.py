@@ -9,13 +9,9 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 import shutil
-from urllib3.exceptions import InsecureRequestWarning
 from app.utils.event_utils import EventManagerUtil
 from app.utils.file_utils import AttachDataMimeType
 import time
-
-# Disable SSL warnings since we're using self-signed certificates
-requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 # Configuration
 BACKUP_DIR = "/srv/system-backups/opnsense-remote"
