@@ -1,0 +1,50 @@
+{
+    "name": "MediaLab Manager Dev",
+    "dockerComposeFile": "../docker-compose.dev.yml",
+    "service": "server",
+    "workspaceFolder": "/app",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-azuretools.vscode-docker",
+                "eamodio.gitlens",
+                "ms-python.black-formatter",
+                "ms-python.flake8",
+                "ms-python.mypy-type-checker",
+                "ms-python.pytest-adapter",
+                "ms-python.vscode-pylance",
+                "njpwerner.autodocstring",
+                "streetsidesoftware.code-spell-checker",
+                "yzhang.markdown-all-in-one"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enabled": true,
+                "python.linting.flake8Enabled": true,
+                "python.formatting.provider": "black",
+                "python.formatting.blackPath": "/usr/local/bin/black",
+                "python.linting.mypyEnabled": true,
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "python.testing.nosetestsEnabled": false,
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.organizeImports": true
+                },
+                "files.exclude": {
+                    "**/__pycache__": true,
+                    "**/.pytest_cache": true,
+                    "**/*.pyc": true
+                }
+            }
+        }
+    },
+    "forwardPorts": [
+        4800,
+        4810
+    ],
+    "postCreateCommand": "pip install -e .",
+    "remoteUser": "root"
+}

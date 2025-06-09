@@ -1,0 +1,37 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    docker-cli \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install development tools
+RUN pip install --no-cache-dir \
+    black \
+    flake8 \
+    mypy \
+    pytest \
+    pytest-asyncio \
+    pytest-cov \
+    ipython
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+ENV DEBUG=1
+
+# Expose port
+EXPOSE 4810
+
+# Default command (can be overridden by docker-compose)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "4810", "--reload"] 
