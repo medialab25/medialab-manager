@@ -2,7 +2,7 @@
     "name": "Medialab Manager Dev",
     "dockerComposeFile": "../docker-compose.yml",
     "service": "api",
-    "workspaceFolder": "/app",
+    "workspaceFolder": "/workspace",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -29,6 +29,13 @@
         4800,
         4810
     ],
-    "postCreateCommand": "pip install -e .",
-    "remoteUser": "root"
+    "postCreateCommand": "pip install -e . && pip install -r /workspace/client/requirements.txt",
+    "remoteUser": "root",
+    "runServices": [
+        "api",
+        "client"
+    ],
+    "dockerComposeFile": "../docker-compose.yml",
+    "dockerComposeEnvFile": "../.env.dev",
+    "initializeCommand": "cp -n ../.env.dev.example ../.env.dev || true"
 }

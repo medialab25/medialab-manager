@@ -4,19 +4,25 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ${DOCKERFILE:-Dockerfile}
     container_name: medialab-api
     ports:
       - "4800:4800"
     environment:
-      - ENVIRONMENT=development
+      - ENVIRONMENT=${ENVIRONMENT:-production}
       - DATABASE_URL=sqlite:///data/medialab.db
+      - PYTHONPATH=/workspace
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
+      - ${DEV_MOUNT:-/dev/null}:/workspace  # Only mounted in dev
     restart: unless-stopped
     networks:
       - medialab-network
+    command: ${API_COMMAND:-uvicorn app.main:app --host 0.0.0.0 --port 4800}
+    profiles:
+      - all
+      - api
 
   client:
     build:
@@ -26,15 +32,20 @@ services:
     ports:
       - "4810:4810"
     environment:
-      - ENVIRONMENT=development
+      - ENVIRONMENT=${ENVIRONMENT:-production}
       - API_URL=http://api:4800
     volumes:
-      - ./client:/app
+      - ${CLIENT_MOUNT:-./client:/app}  # Full mount in dev, minimal in prod
+      - ${DOCKER_SOCKET:-/dev/null}:/var/run/docker.sock  # Only mounted in dev
     restart: unless-stopped
     networks:
       - medialab-network
+    command: ${CLIENT_COMMAND:-uvicorn main:app --host 0.0.0.0 --port 4810}
     depends_on:
       - api
+    profiles:
+      - all
+      - client
 
 networks:
   medialab-network:

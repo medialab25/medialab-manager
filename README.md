@@ -123,23 +123,32 @@ mvm-service
 
 ### Running with Docker Compose
 
-1. Build and start the containers:
+1. For production:
    ```bash
-   docker-compose up --build
+   docker-compose --profile all up --build
    ```
 
-2. Access the services:
+2. For development:
+   ```bash
+   # Copy the development environment file
+   cp .env.dev.example .env.dev
+   
+   # Start the development environment
+   docker-compose --profile all up --build
+   ```
+
+3. Access the services:
    - API: http://localhost:4800
    - Client: http://localhost:4810
 
-3. Stop the containers:
+4. Stop the containers:
    ```bash
    docker-compose down
    ```
 
 ### Development Container
 
-This project includes a VS Code dev container configuration for a consistent development environment.
+This project includes a VS Code dev container configuration for a consistent development environment that supports both API and client development.
 
 #### Prerequisites
 - Docker
@@ -148,18 +157,112 @@ This project includes a VS Code dev container configuration for a consistent dev
 
 #### Setup
 1. Clone the repository
-2. Open the project in VS Code
-3. When prompted, click "Reopen in Container" or use the command palette (F1) and select "Remote-Containers: Reopen in Container"
+2. Copy the development environment file:
+   ```bash
+   cp .env.dev.example .env.dev
+   ```
+3. Open the project in VS Code
+4. When prompted, click "Reopen in Container" or use the command palette (F1) and select "Remote-Containers: Reopen in Container"
 
 The dev container includes:
-- Python 3.8
+- Python 3.8 for API development
+- Python 3.11 for client development
 - Development tools (black, flake8, pytest)
 - Git integration
 - VS Code extensions for Python development
-- Hot reload for development
+- Hot reload for both API and client
+- Docker CLI access for client operations
 
 #### Development Workflow
 1. The dev container automatically mounts your local directory
-2. Changes to the code are immediately reflected
-3. The API runs with hot reload enabled
-4. Use the integrated terminal in VS Code for running commands
+2. Both API and client services run with hot reload enabled
+3. API runs on port 4800, client on port 4810
+4. Changes to either service are immediately reflected
+5. Use the integrated terminal in VS Code for running commands
+6. Both services can be developed simultaneously in the same container
+
+To start development:
+```bash
+# Start both services in development mode
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+## Docker Configuration
+
+The project uses a simplified Docker setup with a single `docker-compose.yml` file that handles both development and production environments. This is achieved through:
+
+- Environment variables for configuration
+- Docker Compose profiles for service selection
+- Conditional volume mounts and commands
+
+### Environment Files
+
+Environment files are used to configure the application for different environments. These files are not tracked in git for security reasons.
+
+1. Set up the development environment:
+   ```bash
+   # Run the setup script
+   ./scripts/setup-dev-env.sh
+   
+   # Edit the environment file if needed
+   nano .env.dev
+   ```
+
+2. The script will create a `.env.dev` file with these settings:
+   ```ini
+   # Development environment configuration
+   ENVIRONMENT=development
+   
+   # Docker configuration
+   DOCKERFILE=.devcontainer/Dockerfile
+   DOCKER_SOCKET=/var/run/docker.sock
+   
+   # Mount configurations
+   DEV_MOUNT=.:/workspace
+   CLIENT_MOUNT=./client:/app
+   
+   # Command overrides for development
+   API_COMMAND=uvicorn app.main:app --host 0.0.0.0 --port 4800 --reload
+   CLIENT_COMMAND=uvicorn main:app --host 0.0.0.0 --port 4810 --reload
+   ```
+
+Note: The `.env.dev` file should never be committed to version control. Use the setup script to create it locally.
+
+### File Structure
+```
+.
+├── docker-compose.yml        # Main Docker configuration
+├── scripts/                  # Utility scripts
+│   └── setup-dev-env.sh     # Development environment setup
+├── .env.dev                 # Development environment (do not commit)
+├── .devcontainer/          # VS Code dev container configuration
+│   ├── devcontainer.json
+│   └── Dockerfile
+└── client/
+    └── Dockerfile          # Client-specific Dockerfile
+```
+
+### Running the Application
+
+1. Production Mode:
+   ```bash
+   docker-compose --profile all up --build
+   ```
+
+2. Development Mode:
+   ```bash
+   # Copy the development environment file
+   cp .env.dev.example .env.dev
+   
+   # Start the development environment
+   docker-compose --profile all up --build
+   ```
+
+3. VS Code Dev Container:
+   - Open in VS Code
+   - Use "Reopen in Container"
+   - Development configuration is automatically applied
+
+The services will be available at:
+- API: http://localhost:4800
+- Client: http://localhost:4810
