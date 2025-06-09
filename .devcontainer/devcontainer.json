@@ -35,7 +35,6 @@
         "api",
         "client"
     ],
-    "dockerComposeFile": "../docker-compose.yml",
     "dockerComposeEnvFile": "../.env.dev",
     "initializeCommand": "cp -n ../.env.dev.example ../.env.dev || true"
 }
