@@ -165,8 +165,7 @@ This project includes a VS Code dev container configuration for a consistent dev
 4. When prompted, click "Reopen in Container" or use the command palette (F1) and select "Remote-Containers: Reopen in Container"
 
 The dev container includes:
-- Python 3.8 for API development
-- Python 3.11 for client development
+- Python 3.11 for both API and client development
 - Development tools (black, flake8, pytest)
 - Git integration
 - VS Code extensions for Python development
