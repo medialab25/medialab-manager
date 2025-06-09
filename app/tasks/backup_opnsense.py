@@ -3,8 +3,9 @@
 import os
 import sys
 import logging
-import requests
+import httpx
 import datetime
+import asyncio
 from pathlib import Path
 from typing import Optional
 import shutil
@@ -48,24 +49,25 @@ def load_environment_variables() -> None:
                     value = value.strip().strip('"\'')
                     os.environ[key] = value
 
-def test_api_connection() -> bool:
+async def test_api_connection() -> bool:
     """Test connectivity to the OPNsense API."""
     logger.info("Testing API connection...")
     
-    session = requests.Session()
-    session.auth = (API_KEY, API_SECRET)
-    session.verify = False
-    
-    try:
-        # Test basic API connectivity
-        response = session.get(f"https://{OPNSENSE_HOST}/api/core/firmware/status")
-        response.raise_for_status()
-        
-        logger.info("API connection test successful")
-        return True
-    except requests.exceptions.RequestException as e:
-        logger.error(f"ERROR: API connection test failed: {str(e)}")
-        return False
+    async with httpx.AsyncClient(
+        auth=(API_KEY, API_SECRET),
+        verify=False,
+        timeout=30.0
+    ) as client:
+        try:
+            # Test basic API connectivity
+            response = await client.get(f"https://{OPNSENSE_HOST}/api/core/firmware/status")
+            response.raise_for_status()
+            
+            logger.info("API connection test successful")
+            return True
+        except httpx.HTTPError as e:
+            logger.error(f"ERROR: API connection test failed: {str(e)}")
+            return False
 
 def cleanup_old_backups() -> None:
     """Remove old backups, keeping only the last MAX_BACKUPS."""
@@ -87,7 +89,7 @@ def cleanup_old_backups() -> None:
         logger.info(f"Removing old backup: {old_file.name}")
         old_file.unlink()
 
-def get_latest_backup() -> bool:
+async def get_latest_backup() -> bool:
     """Download the latest backup from OPNsense API."""
     logger.info("Getting latest backup from OPNsense API...")
     
@@ -98,30 +100,31 @@ def get_latest_backup() -> bool:
     backup_name = f"config-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.xml"
     backup_path = os.path.join(BACKUP_DIR, backup_name)
     
-    session = requests.Session()
-    session.auth = (API_KEY, API_SECRET)
-    session.verify = False
-    
-    try:
-        response = session.get(
-            f"https://{OPNSENSE_HOST}/api/core/backup/download/this",
-            stream=True
-        )
-        response.raise_for_status()
-        
-        with open(backup_path, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
-        
-        logger.info(f"Successfully downloaded backup to {backup_path}")
-        return True
-    except requests.exceptions.RequestException as e:
-        logger.error(f"ERROR: Failed to download backup: {str(e)}")
-        return False
+    async with httpx.AsyncClient(
+        auth=(API_KEY, API_SECRET),
+        verify=False,
+        timeout=60.0
+    ) as client:
+        try:
+            async with client.stream(
+                "GET",
+                f"https://{OPNSENSE_HOST}/api/core/backup/download/this"
+            ) as response:
+                response.raise_for_status()
+                
+                with open(backup_path, 'wb') as f:
+                    async for chunk in response.aiter_bytes():
+                        f.write(chunk)
+            
+            logger.info(f"Successfully downloaded backup to {backup_path}")
+            return True
+        except httpx.HTTPError as e:
+            logger.error(f"ERROR: Failed to download backup: {str(e)}")
+            return False
 
-def backup_opnsense() -> str:
+async def backup_opnsense_async() -> str:
     """
-    Main function to execute the OPNsense backup process.
+    Async version of the main function to execute the OPNsense backup process.
     This is the entry point for the task system.
     
     Returns:
@@ -159,7 +162,7 @@ def backup_opnsense() -> str:
     load_environment_variables()
     
     # Test API connection before proceeding
-    if not test_api_connection():
+    if not await test_api_connection():
         error_msg = "API connection test failed"
         logger.error(f"ERROR: {error_msg}")
         end_time = time.time()
@@ -175,7 +178,7 @@ def backup_opnsense() -> str:
         raise Exception(error_msg)
     
     # Get latest backup from API
-    if get_latest_backup():
+    if await get_latest_backup():
         success_msg = "Backup completed successfully"
         logger.info(success_msg)
         # Clean up old backups after successful backup
@@ -206,6 +209,13 @@ def backup_opnsense() -> str:
                 details=f"{error_msg}\nDuration: {duration:.2f} seconds\nEnd time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
             )
         raise Exception(error_msg)
+
+def backup_opnsense() -> str:
+    """
+    Synchronous wrapper for the async backup function.
+    This maintains compatibility with the task system.
+    """
+    return asyncio.run(backup_opnsense_async())
 
 if __name__ == "__main__":
     backup_opnsense() 
