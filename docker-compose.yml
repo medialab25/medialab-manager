@@ -1,6 +1,23 @@
 version: '3.8'
 
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medialab-api
+    ports:
+      - "4800:4800"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=sqlite:///data/medialab.db
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - medialab-network
+
   client:
     build:
       context: ./client
@@ -10,6 +27,15 @@ services:
       - "4810:4810"
     environment:
       - ENVIRONMENT=development
+      - API_URL=http://api:4800
     volumes:
       - ./client:/app
-    restart: unless-stopped 
+    restart: unless-stopped
+    networks:
+      - medialab-network
+    depends_on:
+      - api
+
+networks:
+  medialab-network:
+    driver: bridge 

@@ -118,3 +118,48 @@ Important security notes:
 mvm
 mvm-service
 ```
+
+## Container Setup
+
+### Running with Docker Compose
+
+1. Build and start the containers:
+   ```bash
+   docker-compose up --build
+   ```
+
+2. Access the services:
+   - API: http://localhost:4800
+   - Client: http://localhost:4810
+
+3. Stop the containers:
+   ```bash
+   docker-compose down
+   ```
+
+### Development Container
+
+This project includes a VS Code dev container configuration for a consistent development environment.
+
+#### Prerequisites
+- Docker
+- VS Code
+- VS Code Remote - Containers extension
+
+#### Setup
+1. Clone the repository
+2. Open the project in VS Code
+3. When prompted, click "Reopen in Container" or use the command palette (F1) and select "Remote-Containers: Reopen in Container"
+
+The dev container includes:
+- Python 3.8
+- Development tools (black, flake8, pytest)
+- Git integration
+- VS Code extensions for Python development
+- Hot reload for development
+
+#### Development Workflow
+1. The dev container automatically mounts your local directory
+2. Changes to the code are immediately reflected
+3. The API runs with hot reload enabled
+4. Use the integrated terminal in VS Code for running commands
