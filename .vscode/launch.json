@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "FastAPI",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "args": [
@@ -14,12 +14,12 @@
                 "--port",
                 "4800"
             ],
-            "jinja": true,
             "justMyCode": true,
             "env": {
-                "ENV": "dev"
-            },
-            "python": "${workspaceFolder}/.venv/bin/python"
+                "ENV": "dev",
+                "PYTHONUNBUFFERED": "1",
+                "DOCKER_CONTAINER": "1"
+            }
         }
     ]
 }
