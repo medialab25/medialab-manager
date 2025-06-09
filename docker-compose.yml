@@ -34,9 +34,10 @@ services:
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-production}
       - API_URL=http://api:4800
+      - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
       - ${CLIENT_MOUNT:-./client:/app}  # Full mount in dev, minimal in prod
-      - ${DOCKER_SOCKET:-/dev/null}:/var/run/docker.sock  # Only mounted in dev
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
     restart: unless-stopped
     networks:
       - medialab-network

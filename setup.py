@@ -10,7 +10,7 @@ setup(
         "jinja2==3.1.2",
         "python-dotenv==1.0.0",
         "python-multipart==0.0.6",
-        "pydantic==2.4.2",
+        "pydantic[email]==2.4.2",
         "pydantic-settings==2.0.3",
         "apscheduler==3.10.1",
         "httpx==0.25.2",
@@ -19,6 +19,7 @@ setup(
         "click>=8.1,<8.2",
         "sqlalchemy>=2.0.0",
         "aiosqlite>=0.19.0",
+        "requests>=2.31.0",
     ],
     entry_points={
         "console_scripts": [
