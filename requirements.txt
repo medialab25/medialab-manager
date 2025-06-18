@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic-settings
+jinja2
+apscheduler
+rich
+typer
+httpx
+pillow
+pytz
+email-validator
+python-multipart
+requests 
