@@ -21,6 +21,7 @@ from app.api.routers.notify import router as notification_router
 from app.api.routers.event import router as event_router
 from app.api.routers.tasks import router as tasks_router
 from app.api.routers.backup import router as backup_router
+from app.api.routers.main_routes import router as main_routes_router
 from app.views import router as views_router
 #from app.api.routers.media import router as media_router
 #from app.api.routers.search import router as search_router
@@ -128,6 +129,7 @@ templates.env.filters["remove_param"] = remove_query_param
 
 # Include routers
 app.include_router(views_router)
+app.include_router(main_routes_router)
 app.include_router(tasks_router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(backup_router, prefix="/api/backup", tags=["backup"])
 #app.include_router(system_router, prefix="/api/system", tags=["system"])
@@ -137,71 +139,6 @@ app.include_router(backup_router, prefix="/api/backup", tags=["backup"])
 #app.include_router(sync_router, prefix="/api/sync", tags=["sync"])
 app.include_router(notification_router, prefix="/api/notify", tags=["notify"])
 app.include_router(event_router, prefix="/api/events", tags=["events"])
-
-@app.get("/")
-async def home(request: Request, db: Session = Depends(get_db)):
-    """Redirect to events page"""
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/events")
-
-@app.get("/api/events/")
-async def get_events(
-    page: int = Query(1, ge=1),
-    type: Optional[str] = None,
-    sub_type: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    status: Optional[str] = None,
-    db: Session = Depends(get_db)
-):
-    try:
-        # Convert query parameters to filter
-        filter_params = {}
-        if type:
-            filter_params["type"] = type.lower()
-        if sub_type:
-            filter_params["sub_type"] = sub_type.lower()
-        if start_date:
-            try:
-                filter_params["start_date"] = datetime.fromisoformat(start_date)
-            except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid start_date format")
-        if end_date:
-            try:
-                filter_params["end_date"] = datetime.fromisoformat(end_date)
-            except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid end_date format")
-        if status:
-            filter_params["status"] = status
-
-        # Create filter object
-        event_filter = EventFilter(**filter_params)
-
-        # Calculate pagination
-        per_page = 10
-        skip = (page - 1) * per_page
-
-        # Get events using EventManager
-        event_manager = EventManager(db)
-        events = event_manager.list_events(event_filter, skip, per_page, "timestamp", "desc")
-
-        # Convert events to JSON-serializable format
-        events_json = []
-        for event in events:
-            events_json.append({
-                "id": event.id,
-                "formatted_timestamp": event.formatted_timestamp,
-                "type": event.type,
-                "sub_type": event.sub_type,
-                "status": event.status,
-                "description": event.description,
-                "details": event.details,
-                "has_attachment": event.has_attachment
-            })
-
-        return events_json
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 def run_service(debug: bool = None):
     """Run the FastAPI service with uvicorn"""

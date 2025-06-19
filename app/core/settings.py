@@ -54,17 +54,23 @@ class Settings(BaseSettings):
                     TASKS_FILE=config.get("TASKS_FILE", "tasks.json")
                 )
                 
+                logger.info(f"Loading tasks from file: {settings.TASKS_FILE}")
+                
                 # Load tasks and filters from the tasks file
                 try:
                     with open(settings.TASKS_FILE) as f:
                         tasks_config = json.load(f)
                         settings.TASKS = tasks_config.get("TASKS", {})
                         settings.TASK_FILTERS = tasks_config.get("TASK_FILTERS", {})
+                        logger.info(f"Successfully loaded {len(settings.TASKS)} tasks from {settings.TASKS_FILE}")
                 except FileNotFoundError:
                     logger.warning(f"Tasks file {settings.TASKS_FILE} not found")
+                    settings.TASKS = {}
+                    settings.TASK_FILTERS = {}
                 
                 return settings
         except FileNotFoundError:
+            logger.warning("config.json not found, using default settings")
             return cls()
     
     class Config:

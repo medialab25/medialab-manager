@@ -4,6 +4,7 @@ from datetime import datetime
 import httpx
 from urllib.parse import urlparse
 from enum import Enum
+import logging
 
 from app.core.settings import settings
 from app.models.event_types import SubEventType
@@ -11,6 +12,8 @@ from app.models.task import Task
 from app.scheduler import add_task, remove_task, TaskConfig, run_task_now
 from app.api.managers.event_manager import EventManager
 from app.utils.time_utils import get_current_time, format_datetime
+
+logger = logging.getLogger(__name__)
 
 class TaskStatus(str, Enum):
     CREATED = "created"
@@ -163,6 +166,11 @@ class TaskManager:
     @staticmethod
     def sync_tasks_from_config(db: Session):
         """Sync tasks from config to database on startup"""
+        # Check if tasks.json exists, if not, don't initialize tasks
+        if not settings.TASKS:
+            logger.info("No tasks configuration found, skipping task initialization")
+            return
+            
         # Get all existing tasks from database
         existing_tasks = {task.task_id: task for task in db.query(Task).all()}
         

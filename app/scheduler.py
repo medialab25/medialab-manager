@@ -201,6 +201,15 @@ def start_scheduler():
     """Start the scheduler and add default jobs"""
     if not scheduler.running:
         scheduler.start()
+        
+        # Check if tasks configuration exists, if not, don't add any tasks
+        logger.info(f"Tasks configuration: {settings.TASKS}")
+        logger.info(f"Number of tasks in settings: {len(settings.TASKS)}")
+        
+        if not settings.TASKS:
+            logger.info("No tasks configuration found, skipping scheduler task initialization")
+            return
+            
         # Add tasks from settings
         for task_id, task_data in settings.TASKS.items():
             # Skip manual and external tasks
