@@ -140,37 +140,9 @@ app.include_router(event_router, prefix="/api/events", tags=["events"])
 
 @app.get("/")
 async def home(request: Request, db: Session = Depends(get_db)):
-    # Get the last 10 events using EventManager
-    event_manager = EventManager(db)
-    recent_events = event_manager.list_events(
-        EventFilter(),
-        skip=0,
-        limit=10,
-        sort_by="timestamp",
-        sort_order="desc"
-    )
-
-    # Format events for display
-    recent_activity = [
-        {
-            "time": event.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "description": f"{event.description} - {event.details}"
-        }
-        for event in recent_events
-    ]
-
-    return templates.TemplateResponse(
-        "pages/home.html",
-        {
-            "request": request,
-            "user": None,  # Replace with actual user when auth is implemented
-            "messages": [],
-            "dashboard": {
-                "total_equipment": 12,
-                "recent_activity": recent_activity
-            }
-        }
-    )
+    """Redirect to events page"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/events")
 
 @app.get("/api/events/")
 async def get_events(
@@ -230,96 +202,6 @@ async def get_events(
         return events_json
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/events")
-async def events_page(
-    request: Request,
-    page: int = 1,
-    type: str = None,
-    sub_type: str = None,
-    start_date: str = None,
-    end_date: str = None,
-    status: str = None,
-    db: Session = Depends(get_db)
-):
-    # Convert query parameters to filter
-    filter_params = {}
-    if type:
-        filter_params["type"] = type.lower()
-    if sub_type:
-        filter_params["sub_type"] = sub_type.lower()
-    if start_date:
-        filter_params["start_date"] = datetime.fromisoformat(start_date)
-    if end_date:
-        filter_params["end_date"] = datetime.fromisoformat(end_date)
-    if status:
-        filter_params["status"] = status
-
-    # Create filter object
-    event_filter = EventFilter(**filter_params)
-
-    # Calculate pagination
-    per_page = 10
-    skip = (page - 1) * per_page
-
-    # Get events using EventManager
-    event_manager = EventManager(db)
-    events = event_manager.list_events(event_filter, skip, per_page, "timestamp", "desc")
-
-    return templates.TemplateResponse(
-        "pages/events.html",
-        {
-            "request": request,
-            "user": None,  # Replace with actual user when auth is implemented
-            "messages": [],
-            "events": events,
-            "task_filters": settings.TASK_FILTERS  # Get task filters from settings
-        }
-    )
-
-@app.get("/media-data")
-async def media_data(request: Request):
-    return templates.TemplateResponse(
-        "pages/media_data.html",
-        {
-            "request": request,
-            "user": None,  # Replace with actual user when auth is implemented
-            "messages": []
-        }
-    )
-
-@app.get("/disk-manager")
-async def disk_manager(request: Request):
-    return templates.TemplateResponse(
-        "pages/disk_manager.html",
-        {
-            "request": request,
-            "user": None,  # Replace with actual user when auth is implemented
-            "messages": []
-        }
-    )
-
-@app.get("/torrent-manager")
-async def torrent_manager(request: Request):
-    return templates.TemplateResponse(
-        "pages/torrent_manager.html",
-        {
-            "request": request,
-            "user": None,  # Replace with actual user when auth is implemented
-            "messages": []
-        }
-    )
-
-@app.get("/admin")
-async def admin(request: Request):
-    return templates.TemplateResponse(
-        "pages/admin.html",
-        {
-            "request": request,
-            "user": None,  # Replace with actual user when auth is implemented
-            "messages": []
-        }
-    )
 
 def run_service(debug: bool = None):
     """Run the FastAPI service with uvicorn"""
