@@ -1,4 +1,5 @@
-FROM python:3.11-slim
+# Pull the base image first
+FROM registry.spongnet.uk/python:ml-latest
 
 WORKDIR /code
 

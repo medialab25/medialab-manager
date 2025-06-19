@@ -1,7 +1,8 @@
 #!/bin/bash
 
 docker run --rm \
-  -p 4800:4800 \
+  --name medialab-manager-dev \
+  -p 4801:4800 \
   -v $(pwd)/app:/code/app \
   -v $(pwd)/config.json:/code/config.json \
   -v $(pwd)/requirements.txt:/code/requirements.txt \
