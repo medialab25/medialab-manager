@@ -1,9 +1,11 @@
 # Pull the base image first
 FROM registry.spongnet.uk/python:ml-latest
 
-WORKDIR /code
+WORKDIR /app
 
-COPY . /code
+# Copy only the app directory and requirements
+COPY app/ /app/app/
+COPY app/requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 

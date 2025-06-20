@@ -58,9 +58,9 @@ run() {
     docker run --rm \
         --name $CONTAINER_NAME \
         -p $PORT:$PORT \
-        -v $(pwd)/app:/code/app \
-        -v $(pwd)/config.json:/code/config.json \
-        -v $(pwd)/requirements.txt:/code/requirements.txt \
+        -v $(pwd)/app:/app/app \
+        -v $(pwd)/config.json:/app/config.json \
+        -v $(pwd)/app/requirements.txt:/app/requirements.txt \
         $REGISTRY/$IMAGE_NAME:$DEV_TAG \
         uvicorn app.main:app --host 0.0.0.0 --port $PORT --reload
 }
