@@ -2,7 +2,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "FastAPI",
+            "name": "FastAPI Docker Debug",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 4802
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/app"
+                }
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "FastAPI Local",
             "type": "python",
             "request": "launch",
             "module": "uvicorn",
@@ -19,7 +35,7 @@
             "env": {
                 "ENV": "dev"
             },
-            "python": "${workspaceFolder}/.venv/bin/python"
+            "python": "python3"
         }
     ]
 }

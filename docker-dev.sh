@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Combined Docker development script
-# Usage: ./docker-dev.sh [build|run|publish|push|pull|stop]
+# Usage: ./docker-dev.sh [build|run|publish|push|pull|stop|compose|debug]
 
 set -e
 
@@ -14,6 +14,7 @@ DEV_TAG="ml-latest-dev"
 PROD_TAG="ml-latest"
 CONTAINER_NAME="medialab-manager-dev"
 PORT="4801"
+DEBUG_PORT="4801"
 
 # Colors for output
 RED='\033[0;31m'
@@ -65,6 +66,27 @@ run() {
         uvicorn app.main:app --host 0.0.0.0 --port $PORT --reload
 }
 
+# Compose function (run with docker-compose)
+compose() {
+    log_info "Starting development environment with Docker Compose..."
+    docker compose -f docker-compose.dev.yml up --build
+}
+
+# Debug function (run with debugging enabled)
+debug() {
+    log_info "Starting development environment with debugging enabled..."
+    log_info "The application will wait for debugger to connect on port $DEBUG_PORT"
+    log_info "Use VS Code debugger with 'FastAPI Docker Debug' configuration"
+    docker compose -f docker-compose.dev.yml up --build
+}
+
+# Stop compose function
+stop_compose() {
+    log_info "Stopping Docker Compose environment..."
+    docker compose -f docker-compose.dev.yml down
+    log_success "Docker Compose environment stopped"
+}
+
 # Publish function (build and push production tag)
 publish() {
     log_info "Publishing production image..."
@@ -106,14 +128,19 @@ show_usage() {
     echo "Commands:"
     echo "  build     Build the development Docker image"
     echo "  run       Run the development container"
+    echo "  compose   Run with Docker Compose (recommended)"
+    echo "  debug     Run with debugging enabled (VS Code debugger)"
     echo "  publish   Build and push production image"
     echo "  push      Build and push development image"
     echo "  pull      Pull image from registry"
     echo "  stop      Stop and remove development container"
+    echo "  stop-compose Stop Docker Compose environment"
     echo ""
     echo "Examples:"
     echo "  $0 build"
     echo "  $0 run"
+    echo "  $0 compose"
+    echo "  $0 debug"
     echo "  $0 publish"
 }
 
@@ -124,6 +151,12 @@ case "${1:-}" in
         ;;
     run)
         run
+        ;;
+    compose)
+        compose
+        ;;
+    debug)
+        debug
         ;;
     publish)
         publish
@@ -136,6 +169,9 @@ case "${1:-}" in
         ;;
     stop)
         stop
+        ;;
+    stop-compose)
+        stop_compose
         ;;
     *)
         log_error "Unknown command: $1"

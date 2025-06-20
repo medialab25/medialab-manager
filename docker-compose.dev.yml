@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  medialab-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medialab-manager-dev
+    restart: unless-stopped
+    ports:
+      - "4801:4800"
+      - "4802:4801"  # Debug port
+    volumes:
+      # Mount the entire app directory for live development
+      - ./app:/app/app
+      # Mount the config.json for MEDIA_DATA
+      - ./config.json:/app/config.json:ro
+      # Mount tasks configuration
+      #- ./tasks.json:/app/tasks.json:ro
+      # Mount data directories
+      - ./data:/app/data
+      # Mount logs
+      - ./logs:/app/logs
+      # Mount media storage (adjust paths as needed)
+      - /srv/storage/media:/srv/storage/media:ro
+      - /srv/storage/cache:/srv/storage/cache:ro
+    environment:
+      # Application Settings
+      - MEDIALAB_PROJECT_NAME=MediaLab Manager
+      - MEDIALAB_VERSION=0.1.0
+      - MEDIALAB_DESCRIPTION=MediaLab Management System
+      
+      # Database Settings
+      - MEDIALAB_DATABASE_MAIN_DB_PATH=/app/data/main.db
+      - MEDIALAB_DATABASE_MEDIA_DB_PATH=/app/data/media.db
+      
+      # Notification Settings
+      - MEDIALAB_NOTIFICATION_SMTP_RELAY=192.168.2.1
+      - MEDIALAB_NOTIFICATION_SMTP_PORT=25
+      - MEDIALAB_NOTIFICATION_SMTP_FROM=MediaLab Admin <admin@spongnet.uk>
+      - MEDIALAB_NOTIFICATION_SMTP_TO=medialab25@icloud.com
+      
+      # Task Settings
+      - MEDIALAB_TASKS_FILE=/app/tasks.json
+      
+      # Server Settings
+      - MEDIALAB_HOST=0.0.0.0
+      - MEDIALAB_PORT=4800
+      - MEDIALAB_DEBUG_PORT=4801
+      - MEDIALAB_DEBUG=true
+      
+      # Logging
+      - MEDIALAB_LOG_FILE=/app/logs/medialab-manager.log
+    networks:
+      - medialab-network
+
+networks:
+  medialab-network:
+    driver: bridge 
