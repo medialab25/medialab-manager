@@ -1,6 +1,6 @@
 """Event management router."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import json
@@ -8,6 +8,7 @@ import json
 from app.core.database import get_db
 from app.schemas.event import EventCreate, Event as EventSchema, EventFilter
 from app.api.managers.event_manager import EventManager
+from app.utils.file_utils import AttachDataMimeType
 
 router = APIRouter()
 
@@ -25,6 +26,51 @@ def create_event(
         description=event.description,
         details=event.details
     )
+
+@router.post("/add_event", response_model=EventSchema)
+async def add_event(
+    type: str = Form(...),
+    sub_type: Optional[str] = Form(None),
+    status: str = Form(...),
+    description: str = Form(...),
+    details: str = Form(...),
+    attachment: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
+):
+    """Add a new event with optional file attachment"""
+    event_manager = EventManager(db)
+    
+    # Handle attachment if provided
+    attachment_data = None
+    attachment_mime_type = None
+    
+    if attachment:
+        try:
+            attachment_data = await attachment.read()
+            # Determine MIME type from file extension or content
+            if attachment.content_type:
+                attachment_mime_type = attachment.content_type
+            else:
+                # Fallback to octet-stream if no content type
+                attachment_mime_type = "application/octet-stream"
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error reading attachment: {str(e)}")
+    
+    # Create the event using the manager
+    event = event_manager.add_event_with_output(
+        type=type,
+        sub_type=sub_type,
+        status=status,
+        description=description,
+        details=details,
+        attachment_data=attachment_data,
+        attachment_mime_type=attachment_mime_type
+    )
+    
+    if not event:
+        raise HTTPException(status_code=500, detail="Failed to create event")
+    
+    return event
 
 @router.get("/{event_id}", response_model=EventSchema)
 def get_event(
