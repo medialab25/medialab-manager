@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     ports:
       - "4801:4800"
-      - "4802:4801"  # Debug port
+      - "9801:4801"  # Debug port
     volumes:
       # Mount the entire app directory for live development
       - ./app:/app/app
@@ -19,6 +19,7 @@ services:
       #- ./tasks.json:/app/tasks.json:ro
       # Mount data directories
       - ./data:/app/data
+      - /srv/data/app-server/medialab-manager:/app/data
       # Mount logs
       - ./logs:/app/logs
       # Mount media storage (adjust paths as needed)
