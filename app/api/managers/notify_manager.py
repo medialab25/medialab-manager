@@ -10,6 +10,7 @@ import mimetypes
 import logging
 from sqlalchemy.orm import Session
 from app.core.database import DBManager
+from app.core.settings import settings
 from app.utils.file_utils import get_attachment_data
 from app.models.event_types import EventType, SubEventType
 from app.api.managers.event_manager import EventManager
@@ -25,30 +26,11 @@ class NotifyManager:
         Args:
             db: Optional SQLAlchemy database session
         """
-        self.config = self._load_config()
-        self.smtp_settings = self.config["NOTIFICATION"]
-        self.from_email = self.smtp_settings["SMTP_FROM"]
-        self.to_email = self.smtp_settings["SMTP_TO"]
+        self.notification_settings = settings.NOTIFICATION
+        self.from_email = self.notification_settings.SMTP_FROM
+        self.to_email = self.notification_settings.SMTP_TO
         self.db = db
         self.event_manager = EventManager(db) if db else None
-
-    def _load_config(self) -> Dict[str, Any]:
-        """Load configuration from config.json file.
-
-        Returns:
-            Dict containing configuration settings
-
-        Raises:
-            FileNotFoundError: If config.json is not found
-            json.JSONDecodeError: If config.json is not valid JSON
-        """
-        config_path = Path("config.json")
-        try:
-            with open(config_path) as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.error(f"Failed to load config: {str(e)}")
-            raise
 
     def _create_email_message(
         self, 
@@ -71,7 +53,7 @@ class NotifyManager:
             MIMEMultipart message object
         """
         msg = MIMEMultipart()
-        msg["From"] = self.smtp_settings["SMTP_FROM"]
+        msg["From"] = self.notification_settings.SMTP_FROM
         msg["To"] = to
         msg["Subject"] = subject
         msg.attach(MIMEText(body, "plain"))
@@ -188,8 +170,8 @@ class NotifyManager:
             msg = self._create_email_message(to, subject, body, attachment_path, filename)
 
             with smtplib.SMTP(
-                self.smtp_settings["SMTP_RELAY"],
-                self.smtp_settings["SMTP_PORT"],
+                self.notification_settings.SMTP_RELAY,
+                self.notification_settings.SMTP_PORT,
                 timeout=30
             ) as server:
                 server.send_message(msg)

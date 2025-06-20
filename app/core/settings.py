@@ -23,6 +23,26 @@ class DatabaseSettings(BaseSettings):
         except (FileNotFoundError, KeyError):
             return cls()
 
+class NotificationSettings(BaseSettings):
+    SMTP_RELAY: str = "192.168.2.1"
+    SMTP_PORT: int = 25
+    SMTP_FROM: str = "MediaLab Admin <admin@spongnet.uk>"
+    SMTP_TO: str = "medialab25@icloud.com"
+
+    @classmethod
+    def from_config(cls):
+        try:
+            with open("config.json") as f:
+                config = json.load(f)
+                return cls(
+                    SMTP_RELAY=config["NOTIFICATION"]["SMTP_RELAY"],
+                    SMTP_PORT=config["NOTIFICATION"]["SMTP_PORT"],
+                    SMTP_FROM=config["NOTIFICATION"]["SMTP_FROM"],
+                    SMTP_TO=config["NOTIFICATION"]["SMTP_TO"]
+                )
+        except (FileNotFoundError, KeyError):
+            return cls()
+
 class Settings(BaseSettings):
     # Server settings
     HOST: str = "0.0.0.0"
@@ -31,18 +51,24 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     
     # Application settings
-    VERSION: str = "0.1.0"
-    LOG_FILE: Path = Path(os.path.expanduser("~/medialab-manager.log"))
     PROJECT_NAME: str = "MediaLab Manager"
-    DESCRIPTION: str = "A FastAPI application for managing media files."
+    VERSION: str = "0.1.0"
+    DESCRIPTION: str = "MediaLab Management System"
+    LOG_FILE: Path = Path(os.path.expanduser("~/medialab-manager.log"))
     
     # Database settings
     DATABASE: DatabaseSettings = DatabaseSettings.from_config()
+    
+    # Notification settings
+    NOTIFICATION: NotificationSettings = NotificationSettings.from_config()
     
     # Task settings
     TASKS: Dict[str, Dict[str, Any]] = {}
     TASK_FILTERS: Dict[str, Dict[str, Any]] = {}
     TASKS_FILE: str = "tasks.json"
+    
+    # Media data settings (kept from config.json for now)
+    MEDIA_DATA: Dict[str, Any] = {}
     
     @classmethod
     def from_config(cls):
@@ -51,7 +77,12 @@ class Settings(BaseSettings):
                 config = json.load(f)
                 settings = cls(
                     DATABASE=DatabaseSettings.from_config(),
-                    TASKS_FILE=config.get("TASKS_FILE", "tasks.json")
+                    NOTIFICATION=NotificationSettings.from_config(),
+                    PROJECT_NAME=config.get("PROJECT_NAME", "MediaLab Manager"),
+                    VERSION=config.get("VERSION", "0.1.0"),
+                    DESCRIPTION=config.get("DESCRIPTION", "MediaLab Management System"),
+                    TASKS_FILE=config.get("TASKS_FILE", "tasks.json"),
+                    MEDIA_DATA=config.get("MEDIA_DATA", {})
                 )
                 
                 logger.info(f"Loading tasks from file: {settings.TASKS_FILE}")

@@ -44,6 +44,98 @@ sudo ./install.sh --deps --symlink
 ./install.sh --reinstall
 ```
 
+## Configuration
+
+### Environment Variables
+
+MediaLab Manager supports configuration via environment variables with the `MEDIALAB_` prefix. Copy `env.example` to `.env` and modify as needed:
+
+```bash
+cp env.example .env
+```
+
+#### Application Settings
+
+```bash
+MEDIALAB_PROJECT_NAME=MediaLab Manager
+MEDIALAB_VERSION=0.1.0
+MEDIALAB_DESCRIPTION=MediaLab Management System
+```
+
+#### Database Settings
+
+```bash
+MEDIALAB_DATABASE_MAIN_DB_PATH=data/main.db
+MEDIALAB_DATABASE_MEDIA_DB_PATH=data/media.db
+```
+
+#### Notification Settings
+
+```bash
+# SMTP Configuration
+MEDIALAB_NOTIFICATION_SMTP_RELAY=192.168.2.1
+MEDIALAB_NOTIFICATION_SMTP_PORT=25
+MEDIALAB_NOTIFICATION_SMTP_FROM=MediaLab Admin <admin@spongnet.uk>
+MEDIALAB_NOTIFICATION_SMTP_TO=medialab25@icloud.com
+```
+
+#### Task Settings
+
+```bash
+MEDIALAB_TASKS_FILE=tasks.json
+```
+
+#### Server Settings (optional - these have defaults)
+
+```bash
+MEDIALAB_HOST=0.0.0.0
+MEDIALAB_PORT=4800
+MEDIALAB_DEBUG_PORT=4801
+MEDIALAB_DEBUG=false
+```
+
+### Docker Compose
+
+MediaLab Manager includes Docker Compose examples for easy deployment:
+
+#### Simple Deployment
+
+For basic deployment without external dependencies:
+
+```bash
+# Copy the simple example
+cp docker-compose.simple.yml docker-compose.yml
+
+# Edit environment variables as needed
+nano docker-compose.yml
+
+# Start the service
+docker-compose up -d
+```
+
+#### Full Deployment
+
+For deployment with all features enabled:
+
+```bash
+# Copy the full example
+cp docker-compose.example.yml docker-compose.yml
+
+# Edit environment variables as needed
+nano docker-compose.yml
+
+# Start the service
+docker-compose up -d
+```
+
+#### Key Configuration Points
+
+- **Volumes**: Mount `config.json` for MEDIA_DATA, `tasks.json` for task configuration
+- **Data Persistence**: Mount `./data` and `./logs` directories
+- **Media Access**: Mount your media storage paths (adjust as needed)
+- **Environment Variables**: All settings can be configured via environment variables
+- **Ports**: Default web interface on port 4800, debug on 4801
+
 ### Using the Commands
 
 After installation, you can use the commands in three ways:
