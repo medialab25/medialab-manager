@@ -719,8 +719,14 @@
                 // If the response is wrapped in a content field, use that
                 const jsonData = data.content ? data.content : data;
 
-                // Format and display the JSON
-                viewer.innerHTML = JSON.stringify(jsonData, null, 2);
+                // Format the JSON with proper indentation
+                const formattedJson = JSON.stringify(jsonData, null, 2);
+
+                // Escape HTML and preserve whitespace
+                const escapedJson = escapeHtml(formattedJson);
+
+                // Display with proper formatting
+                viewer.innerHTML = `<pre style="margin: 0; white-space: pre-wrap; word-break: break-word;">${escapedJson}</pre>`;
             })
             .catch(error => {
                 viewer.innerHTML = `Error loading details: ${error.message}`;
