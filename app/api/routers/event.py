@@ -35,6 +35,7 @@ async def add_event(
     description: str = Form(...),
     details: str = Form(...),
     attachment: Optional[UploadFile] = File(None),
+    attachment_type: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     """Add a new event with optional file attachment"""
@@ -47,12 +48,37 @@ async def add_event(
     if attachment:
         try:
             attachment_data = await attachment.read()
-            # Determine MIME type from file extension or content
-            if attachment.content_type:
+            
+            # Use provided attachment_type if specified, otherwise determine MIME type from file extension or content
+            if attachment_type:
+                attachment_mime_type = attachment_type
+            elif attachment.content_type:
                 attachment_mime_type = attachment.content_type
             else:
-                # Fallback to octet-stream if no content type
-                attachment_mime_type = "application/octet-stream"
+                # Try to determine MIME type from filename
+                filename = attachment.filename.lower() if attachment.filename else ""
+                if filename.endswith('.txt') or filename.endswith('.log'):
+                    attachment_mime_type = "text/plain"
+                elif filename.endswith('.json'):
+                    attachment_mime_type = "application/json"
+                elif filename.endswith('.md') or filename.endswith('.markdown'):
+                    attachment_mime_type = "text/markdown"
+                elif filename.endswith('.html') or filename.endswith('.htm'):
+                    attachment_mime_type = "text/html"
+                elif filename.endswith('.sh') or filename.endswith('.bash'):
+                    attachment_mime_type = "text/x-shellscript"
+                else:
+                    # Try to detect text content by attempting to decode as UTF-8
+                    try:
+                        content_str = attachment_data.decode('utf-8')
+                        # If it's valid UTF-8 and looks like text, treat as text/plain
+                        if content_str.isprintable() or '\n' in content_str:
+                            attachment_mime_type = "text/plain"
+                        else:
+                            attachment_mime_type = "application/octet-stream"
+                    except UnicodeDecodeError:
+                        # If it can't be decoded as UTF-8, it's likely binary
+                        attachment_mime_type = "application/octet-stream"
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error reading attachment: {str(e)}")
     

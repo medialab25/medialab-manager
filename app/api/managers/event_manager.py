@@ -34,7 +34,7 @@ class EventManager:
             description: Event description
             details: Event details
             attachment_data: Binary attachment data
-            attachment_mime_type: MIME type of the attachment
+            attachment_mime_type: MIME type of the attachment (can be enum or string)
             parent_id: Optional parent event ID
             
         Returns:
@@ -42,6 +42,16 @@ class EventManager:
         """
         event = None
         if self.db_manager:
+            # Handle attachment_mime_type - can be enum or string
+            mime_type = None
+            if attachment_mime_type:
+                if isinstance(attachment_mime_type, AttachDataMimeType):
+                    # If it's an enum, map it to MIME type string
+                    mime_type = MIME_TYPE_MAPPING.get(attachment_mime_type)
+                else:
+                    # If it's already a string, use it directly
+                    mime_type = attachment_mime_type
+            
             event = self.db_manager.create(
                 type=type,
                 sub_type=sub_type,
@@ -50,7 +60,7 @@ class EventManager:
                 details=details,
                 has_attachment=bool(attachment_data),
                 attachment_data=attachment_data,
-                attachment_mime_type=MIME_TYPE_MAPPING.get(attachment_mime_type) if attachment_mime_type else None,
+                attachment_mime_type=mime_type,
                 parent_id=parent_id
             )
 
