@@ -42,30 +42,6 @@ async def events_page(
     db: Session = Depends(get_db)
 ):
     """Events page view"""
-    # Convert query parameters to filter
-    filter_params = {}
-    if type:
-        filter_params["type"] = type.lower()
-    if sub_type:
-        filter_params["sub_type"] = sub_type.lower()
-    if start_date:
-        filter_params["start_date"] = datetime.fromisoformat(start_date)
-    if end_date:
-        filter_params["end_date"] = datetime.fromisoformat(end_date)
-    if status:
-        filter_params["status"] = status
-
-    # Create filter object
-    event_filter = EventFilter(**filter_params)
-
-    # Calculate pagination
-    per_page = 10
-    skip = (page - 1) * per_page
-
-    # Get events using EventManager
-    event_manager = EventManager(db)
-    events = event_manager.list_events(event_filter, skip, per_page, "timestamp", "desc")
-    
     return templates.TemplateResponse(
         "pages/events.html",
         {
@@ -77,7 +53,6 @@ async def events_page(
             "start_date": start_date,
             "end_date": end_date,
             "status": status,
-            "events": events,
             "task_filters": settings.TASK_FILTERS
         }
     )

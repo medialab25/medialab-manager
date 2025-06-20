@@ -456,32 +456,9 @@
                 </tr>
             </thead>
             <tbody id="eventsTableBody">
-                {% if events|length == 0 %}
                 <tr>
-                    <td colspan="7" style="text-align:center; color:#888; font-style:italic;">No events found.</td>
+                    <td colspan="7" style="text-align:center; color:#888; font-style:italic;">Loading events...</td>
                 </tr>
-                {% else %}
-                {% for event in events %}
-                <tr>
-                    <td>{{ event.formatted_timestamp }}</td>
-                    <td>{{ event.type }}</td>
-                    <td>{{ event.sub_type if event.sub_type else '' }}</td>
-                    <td>{{ event.description }}</td>
-                    <td>{{ event.status }}</td>
-                    <td>
-                        {% if event.details %}
-                        <button class="details-btn" onclick="showJsonViewer('{{ event.id }}')">View Details</button>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if event.has_attachment %}
-                        <button class="attachment-btn" onclick="showAttachment('{{ event.id }}')">View
-                            Attachment</button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-                {% endif %}
             </tbody>
         </table>
     </div>
