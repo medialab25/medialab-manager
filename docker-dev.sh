@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Combined Docker development script
-# Usage: ./docker-dev.sh [build|run|publish|push|pull|stop|compose|debug]
+# Usage: ./docker-dev.sh [build|run|publish|push|pull|stop|compose|compose-detached|debug|logs]
 
 set -e
 
@@ -68,16 +68,50 @@ run() {
 
 # Compose function (run with docker-compose)
 compose() {
-    log_info "Starting development environment with Docker Compose..."
-    docker compose -f docker-compose.dev.yml up --build
+    local detached=false
+    if [[ "$1" == "-d" ]]; then
+        detached=true
+    fi
+    
+    if [[ "$detached" == "true" ]]; then
+        log_info "Starting development environment with Docker Compose (detached)..."
+        docker compose -f docker-compose.dev.yml up --build -d
+        log_success "Docker Compose environment started in detached mode"
+        log_info "Use '$0 logs' to view logs or '$0 stop-compose' to stop"
+    else
+        log_info "Starting development environment with Docker Compose..."
+        docker compose -f docker-compose.dev.yml up --build
+    fi
+}
+
+# Compose detached function (run with docker-compose in detached mode)
+compose_detached() {
+    log_info "Starting development environment with Docker Compose (detached)..."
+    docker compose -f docker-compose.dev.yml up --build -d
+    log_success "Docker Compose environment started in detached mode"
+    log_info "Use '$0 logs' to view logs or '$0 stop-compose' to stop"
 }
 
 # Debug function (run with debugging enabled)
 debug() {
-    log_info "Starting development environment with debugging enabled..."
-    log_info "The application will wait for debugger to connect on port $DEBUG_PORT"
-    log_info "Use VS Code debugger with 'FastAPI Docker Debug' configuration"
-    docker compose -f docker-compose.dev.yml up --build
+    local detached=false
+    if [[ "$1" == "-d" ]]; then
+        detached=true
+    fi
+    
+    if [[ "$detached" == "true" ]]; then
+        log_info "Starting development environment with debugging enabled (detached)..."
+        log_info "The application will wait for debugger to connect on port $DEBUG_PORT"
+        log_info "Use VS Code debugger with 'FastAPI Docker Debug' configuration"
+        docker compose -f docker-compose.dev.yml up --build -d
+        log_success "Debug environment started in detached mode"
+        log_info "Use '$0 logs' to view logs or '$0 stop-compose' to stop"
+    else
+        log_info "Starting development environment with debugging enabled..."
+        log_info "The application will wait for debugger to connect on port $DEBUG_PORT"
+        log_info "Use VS Code debugger with 'FastAPI Docker Debug' configuration"
+        docker compose -f docker-compose.dev.yml up --build
+    fi
 }
 
 # Stop compose function
@@ -123,24 +157,32 @@ stop() {
 
 # Show usage
 show_usage() {
-    echo "Usage: $0 [COMMAND]"
+    echo "Usage: $0 [COMMAND] [OPTIONS]"
     echo ""
     echo "Commands:"
     echo "  build     Build the development Docker image"
     echo "  run       Run the development container"
     echo "  compose   Run with Docker Compose (recommended)"
+    echo "  compose-detached Run with Docker Compose in detached mode"
     echo "  debug     Run with debugging enabled (VS Code debugger)"
     echo "  publish   Build and push production image"
     echo "  push      Build and push development image"
     echo "  pull      Pull image from registry"
     echo "  stop      Stop and remove development container"
     echo "  stop-compose Stop Docker Compose environment"
+    echo "  logs      View Docker Compose logs"
+    echo ""
+    echo "Options:"
+    echo "  -d        Run in detached mode (for compose and debug commands)"
     echo ""
     echo "Examples:"
     echo "  $0 build"
     echo "  $0 run"
     echo "  $0 compose"
+    echo "  $0 compose -d"
+    echo "  $0 compose-detached"
     echo "  $0 debug"
+    echo "  $0 debug -d"
     echo "  $0 publish"
 }
 
@@ -153,10 +195,13 @@ case "${1:-}" in
         run
         ;;
     compose)
-        compose
+        compose "$2"
+        ;;
+    compose-detached)
+        compose_detached
         ;;
     debug)
-        debug
+        debug "$2"
         ;;
     publish)
         publish
@@ -172,6 +217,10 @@ case "${1:-}" in
         ;;
     stop-compose)
         stop_compose
+        ;;
+    logs)
+        log_info "Showing Docker Compose logs..."
+        docker compose -f docker-compose.dev.yml logs -f
         ;;
     *)
         log_error "Unknown command: $1"

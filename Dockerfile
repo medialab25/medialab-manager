@@ -11,5 +11,5 @@ RUN pip install --no-cache-dir -r requirements.txt debugpy
 
 EXPOSE 4800 4801
 
-# Use debugpy for remote debugging
-CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:4801", "--wait-for-client", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "4800"] 
+# Use debugpy for remote debugging with hot reload, but don't wait for client
+CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:4801", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "4800", "--reload"] 
