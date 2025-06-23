@@ -760,11 +760,8 @@
             const filters = getCurrentFilters();
             const queryParams = new URLSearchParams();
 
-            // Add pagination parameters
-            const limit = 100;  // Match the backend's default limit
-            const skip = currentPage * limit;
-            queryParams.append('skip', skip.toString());
-            queryParams.append('limit', limit.toString());
+            // Add pagination parameters - use page-based pagination (10 items per page)
+            queryParams.append('page', currentPage.toString());
 
             // Add filter parameters only if they have values
             if (filters.type) queryParams.append('type', filters.type);
@@ -823,7 +820,7 @@
             hasMore = false;
             // Show error message in the table
             const tbody = document.getElementById('eventsTableBody');
-            tbody.innerHTML = `< tr > <td colspan="7" style="text-align:center; color:#dc3545;">Error loading events: ${error.message}</td></tr >`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#dc3545;">Error loading events: ${error.message}</td></tr>`;
         } finally {
             isLoading = false;
             document.getElementById('loadingIndicator').style.display = 'none';

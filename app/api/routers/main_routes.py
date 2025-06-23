@@ -48,8 +48,8 @@ async def get_events(
         # Create filter object
         event_filter = EventFilter(**filter_params)
 
-        # Calculate pagination
-        per_page = 10
+        # Calculate pagination - use 100 items per page for infinite scroll
+        per_page = 100
         skip = (page - 1) * per_page
 
         # Get events using EventManager
